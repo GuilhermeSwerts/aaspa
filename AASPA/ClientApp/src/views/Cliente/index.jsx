@@ -1,0 +1,180 @@
+import React, { useState, useContext, useEffect } from 'react';
+import { NavBar } from '../../components/Layout/layout';
+import { AuthContext } from '../../context/AuthContext';
+import { Mascara } from '../../util/mascara';
+import ClienteForm from "./clienteForm";
+import { GetParametro } from '../../util/parametro';
+import { api } from '../../api/api';
+import axios from 'axios';
+
+function Cliente() {
+    const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
+    const [clienteId, setClienteId] = useState(0);
+    const initState = {
+        cpf: '',
+        nome: '',
+        cep: '',
+        logradouro: '',
+        bairro: '',
+        localidade: '',
+        uf: '',
+        numero: '',
+        complemento: '',
+        dataNasc: '',
+        nrDocto: '',
+        empregador: '',
+        matriculaBeneficio: '',
+        nomeMae: '',
+        nomePai: '',
+        telefoneFixo: '',
+        telefoneCelular: '',
+        possuiWhatsapp: false,
+        funcaoAASPA: '',
+        email: ''
+    };
+    const initStateCaptador = {
+        cpfOuCnpj: '',
+        nome: '',
+        descricao: ''
+    }
+    const [cliente, setCliente] = useState(initState);
+    const [captador, setCaptador] = useState(initStateCaptador);
+
+    const BuscarClienteId = (id) => {
+        api.get(`BuscarClienteID/${id}`, res => {
+            const clt = res.data.cliente;
+            const cpt = res.data.captador;
+            setCliente({
+                cpf: clt.cliente_cpf,
+                nome: clt.cliente_nome,
+                cep: clt.cliente_cep,
+                logradouro: clt.cliente_logradouro,
+                bairro: clt.cliente_bairro,
+                localidade: clt.cliente_localidade,
+                uf: clt.cliente_uf,
+                numero: clt.cliente_numero,
+                complemento: clt.cliente_complemento,
+                dataNasc: clt.cliente_dataNasc,
+                nrDocto: clt.cliente_nrDocto,
+                empregador: clt.cliente_empregador,
+                matriculaBeneficio: clt.cliente_matriculaBeneficio,
+                nomeMae: clt.cliente_nomeMae,
+                nomePai: clt.cliente_nomePai,
+                telefoneFixo: clt.cliente_telefoneFixo,
+                telefoneCelular: clt.cliente_telefoneCelular,
+                possuiWhatsapp: clt.cliente_possuiWhatsapp,
+                funcaoAASPA: clt.cliente_funcaoAASPA,
+                email: clt.cliente_email
+            })
+            setCaptador({
+                cpfOuCnpj: cpt.captador_cpf_cnpj,
+                nome: cpt.captador_nome,
+                descricao: cpt.captador_descricao
+            })
+        }, erro => {
+            alert('Houve um erro ao buscar o cliente.')
+        })
+    }
+
+    useEffect(() => {
+        handdleUsuarioLogado();
+        var id = GetParametro("clienteId");
+        if (id) {
+            setClienteId(id);
+            BuscarClienteId(id);
+        }
+    }, [])
+
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        const newValue = type === 'checkbox' ? checked : value;
+        setCliente({ ...cliente, [name]: newValue });
+    };
+
+    const handleChangeCaptador = (e) => {
+        const { name, value, type, checked } = e.target;
+        const newValue = type === 'checkbox' ? checked : value;
+        setCaptador({ ...captador, [name]: newValue });
+    };
+
+    const getLogadouro = (event) => {
+        let cep = event.target.value;
+        const url = `https://viacep.com.br/ws/${cep.replace('.', '').replace('.', '').replace('-', '')}/json/`;
+        fetch(url)
+            .then(response => {
+                return response.json();
+            })
+            .then(data => {
+                setCliente({
+                    ...cliente,
+                    cep: cep,
+                    logradouro: data.logradouro,
+                    bairro: data.bairro,
+                    localidade: data.localidade,
+                    uf: data.uf
+                })
+            }).catch(erro => console.log(erro))
+    }
+
+    const handdleEnviarFormulario = () => {
+        var formData = new FormData();
+        addCampos(formData);
+        let edicao = clienteId && clienteId > 0;
+        api.post(edicao ? "/EditarCliente" : "/NovoCliente", formData, res => {
+            alert(`Cliente ${edicao ? 'Editado' : 'Cadastrado'} Com Sucesso!`);
+            setCliente(initState);
+            setCaptador(initStateCaptador);
+            if (edicao) {
+                BuscarClienteId(clienteId)
+            }
+        }, err => {
+            alert(err.response.data);
+        });
+    }
+
+    const addCampos = (formData) => {
+        // Cliente
+        formData.append('Cliente[Id]', clienteId);
+        formData.append('Cliente[Cpf]', cliente.cpf);
+        formData.append('Cliente[Nome]', cliente.nome);
+        formData.append('Cliente[Cep]', cliente.cep);
+        formData.append('Cliente[Logradouro]', cliente.logradouro);
+        formData.append('Cliente[Bairro]', cliente.bairro);
+        formData.append('Cliente[Localidade]', cliente.localidade);
+        formData.append('Cliente[Uf]', cliente.uf);
+        formData.append('Cliente[Numero]', cliente.numero);
+        formData.append('Cliente[Complemento]', cliente.complemento);
+        formData.append('Cliente[DataNasc]', cliente.dataNasc);
+        formData.append('Cliente[NrDocto]', cliente.nrDocto);
+        formData.append('Cliente[Empregador]', cliente.empregador);
+        formData.append('Cliente[MatriculaBeneficio]', cliente.matriculaBeneficio);
+        formData.append('Cliente[NomeMae]', cliente.nomeMae);
+        formData.append('Cliente[NomePai]', cliente.nomePai);
+        formData.append('Cliente[TelefoneFixo]', cliente.telefoneFixo);
+        formData.append('Cliente[TelefoneCelular]', cliente.telefoneCelular);
+        formData.append('Cliente[PossuiWhatsapp]', cliente.possuiWhatsapp);
+        formData.append('Cliente[FuncaoAASPA]', cliente.funcaoAASPA);
+        formData.append('Cliente[Email]', cliente.email);
+
+        // Captador
+        formData.append('Captador[cpfOuCnpj]', captador.cpfOuCnpj);
+        formData.append('Captador[nome]', captador.nome);
+        formData.append('Captador[descricao]', captador.descricao);
+    }
+
+    return (
+        <NavBar usuario_nome={usuario && usuario.usuario_nome}>
+            <ClienteForm
+                Mascara={Mascara}
+                captador={captador}
+                cliente={cliente}
+                getLogadouro={getLogadouro}
+                handleChange={handleChange}
+                handleChangeCaptador={handleChangeCaptador}
+                onSubmit={handdleEnviarFormulario}
+            />
+        </NavBar>
+    );
+}
+
+export default Cliente;

@@ -1,0 +1,177 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="theme-color" content="#000000">
+  <base href="%PUBLIC_URL%/" />
+  <link rel="manifest" href="%PUBLIC_URL%/manifest.json">
+  <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
+  <title>AASPA</title>
+</head>
+<style>
+  .fade .modal .show {
+    z-index: 1050 !important;
+  }
+
+  .custom-alert {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1062;
+  }
+
+  .ok-btn {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+
+  .overlay-alert-ok,
+  .overlay-alert {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1060;
+    display: none;
+  }
+
+  .overlay-alert-ok {
+    z-index: 1061 !important;
+  }
+
+  .custom-confirm {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1061;
+  }
+
+  .button-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .confirm-btn {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+</style>
+
+<body>
+  <noscript>
+    You need to enable JavaScript to run this app.
+  </noscript>
+  <div id="root"></div>
+</body>
+<script>
+  function fecharAlerta() {
+    var overlay = document.querySelector('.overlay-alert-ok');
+    var alertBox = document.querySelector('.custom-alert');
+    if (alertBox && overlay) {
+      alertBox.parentNode.removeChild(alertBox);
+      overlay.parentNode.removeChild(overlay);
+    }
+  }
+
+  function fecharConfirmacao(result) {
+    var overlay = document.querySelector('.overlay-alert');
+    var confirmBox = document.querySelector('.custom-confirm');
+    if (confirmBox && overlay) {
+      confirmBox.parentNode.removeChild(confirmBox);
+      overlay.parentNode.removeChild(overlay);
+    }
+    window.__confirmResult(result);
+  }
+
+  window.confirm = function (msg) {
+    var overlay = document.createElement('div');
+    overlay.className = 'overlay-alert';
+    overlay.style.display = 'block';
+
+    var confirmBox = document.createElement('div');
+    confirmBox.className = 'custom-confirm';
+
+    var mensagem = document.createElement('p');
+    mensagem.textContent = msg;
+    confirmBox.appendChild(mensagem);
+
+    var buttonContainer = document.createElement('div');
+    buttonContainer.className = 'button-container';
+
+    var simButton = document.createElement('button');
+    simButton.innerHTML = 'Sim';
+    simButton.className = 'confirm-btn';
+    simButton.onclick = function () { return fecharConfirmacao(true); };
+    buttonContainer.appendChild(simButton);
+
+    var naoButton = document.createElement('button');
+    naoButton.innerHTML = 'Não';
+    naoButton.className = 'confirm-btn';
+    naoButton.onclick = function () { return fecharConfirmacao(false); };
+    buttonContainer.appendChild(naoButton);
+
+    confirmBox.appendChild(buttonContainer);
+
+    document.body.appendChild(confirmBox);
+    document.body.appendChild(overlay);
+
+    return new Promise(function (resolve, reject) {
+      window.__confirmResult = function (result) {
+        resolve(result);
+      };
+    });
+  };
+
+
+  window.alert = function (msg) {
+    var overlay = document.createElement('div');
+    overlay.className = 'overlay-alert-ok';
+    overlay.style.display = 'block';
+
+    var alertBox = document.createElement('div');
+    alertBox.className = 'custom-alert';
+
+    var mensagem = document.createElement('p');
+    mensagem.textContent = msg;
+    alertBox.appendChild(mensagem);
+
+    var okButton = document.createElement('button');
+    okButton.innerHTML = 'OK';
+    okButton.className = 'ok-btn';
+    okButton.onclick = fecharAlerta;
+    alertBox.appendChild(okButton);
+
+    document.body.appendChild(alertBox);
+    document.body.appendChild(overlay);
+  };
+</script>
+
+</html>
