@@ -21,7 +21,7 @@ function ModalNovoMotivoDoContato({ BuscarMotivos }) {
             initState();
             setShow(false);
             alert('Motivo Do Contato salvo com sucesso!');
-        }, er => {
+        }, err => {
             alert(err.response.data)
         })
     }

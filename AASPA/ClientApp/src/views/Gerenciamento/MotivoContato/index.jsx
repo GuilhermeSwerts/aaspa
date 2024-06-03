@@ -18,7 +18,6 @@ function MotivoContato() {
             alert('Houve um erro ao buscar os motivos de contato')
         })
     }
-
     useEffect(() => {
         handdleUsuarioLogado();
         buscarMotivos();
@@ -29,7 +28,7 @@ function MotivoContato() {
         if (value && value != "")
             setMotivosFiltro(motivos.filter(x => x.motivo_contato_nome.toUpperCase().includes(value.toUpperCase())));
         else
-        setMotivosFiltro(motivos);
+            setMotivosFiltro(motivos);
     }
 
     return (

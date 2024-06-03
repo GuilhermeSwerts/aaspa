@@ -37,7 +37,7 @@ function ModalNovoPagamento({ ClienteId, ClienteNome, BuscarPagamentos = null })
                 BuscarPagamentos(ClienteId)
             }
             alert('Pagamento salvo com sucesso!');
-        }, er => {
+        }, err => {
             alert(err.response.data)
         })
     }

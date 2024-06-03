@@ -21,7 +21,7 @@ function ModalNovaOrigem({ BuscarOrigem }) {
             initState();
             setShow(false);
             alert('Origem salvo com sucesso!');
-        }, er => {
+        }, err => {
             alert(err.response.data)
         })
     }

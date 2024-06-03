@@ -20,7 +20,7 @@
   "devDependencies": {
     "ajv": "^6.9.1",
     "cross-env": "^5.2.0",
-    "eslint-config-react-app": "^5.2.0",
+    "eslint-config-react-app": "6.0.0",
     "eslint-plugin-jsx-a11y": "^6.2.3",
     "nan": "^2.14.1",
     "react-scripts": "^5.0.0",
