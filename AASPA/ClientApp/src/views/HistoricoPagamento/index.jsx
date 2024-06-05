@@ -53,6 +53,8 @@ function HistoricoPagamento() {
         }
     }
 
+    const ConverterMoeda = atual => atual.toLocaleString('pt-br',{style: 'currency', currency: 'BRL'}); 
+
     return (
         <NavBar usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
             <button className='btn btn-link' onClick={() => window.history.back()}>Voltar</button>
@@ -75,7 +77,7 @@ function HistoricoPagamento() {
                 <tbody>
                     {pagamentos.map(pagamento => (
                         <tr>
-                            <td>R$ {("" + pagamento.valorPago).replace(".", ",")}</td>
+                            <td>R$ {pagamento.valorPago.toFixed(2).replace(".", ",")}</td>
                             <td>{pagamento.dtPagamento}</td>
                             <td>{pagamento.dt_Cadastro}</td>
                             <td style={{ display: 'flex', gap: 5 }}>

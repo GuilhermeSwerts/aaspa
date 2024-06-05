@@ -47,10 +47,17 @@ export const Mascara = {
         v = v.replace(/(\d{5})(\d)/, "$1-$2")
         return v
     },
+    telefoneFixo: function telefoneFixo(v) {
+        v = v.replace(/\D/g, "")
+        v = v.replace(/(\d{1})(\d)/, "($1$2")
+        v = v.replace(/(\d{2})(\d)/, "$1) $2")
+        v = v.replace(/(\d{4})(\d)/, "$1-$2")
+        return v
+    },
     moeda: function moeda(v) {
         return v.replace(/[^\d,]/g, "")
             .replace(/\./g, ",")
-            .replace(/(\d)(?=(\d{2})+(?!\d))/g, '$1')
+            .replace(/(\d)(?=(\d{0})+(?!\d))/g, '$1')
             .replace(/(\d{1})(\d)/, "R$ $1$2")
             
     },

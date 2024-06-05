@@ -29,10 +29,6 @@ function ModalEditarStatusAtual({ BuscarTodosClientes, ClienteId, StatusId }) {
         })
     }, [])
 
-    const atualizarTela = async () => {
-        BuscarTodosClientes();
-    }
-
     const handleSubmit = async () => {
         if (novoStatus === StatusId) {
             alert("Escolha um status diferente do atual.");
@@ -44,11 +40,10 @@ function ModalEditarStatusAtual({ BuscarTodosClientes, ClienteId, StatusId }) {
         formData.append("status_id_novo", novoStatus);
         formData.append("cliente_id", ClienteId);
 
-        api.post("AlterarStatusCliente", formData, res => {
-            atualizarTela().then(() => {
-                alert("Status Editado com sucesso!")
-                setShow(false);
-            })
+        api.post("AlterarStatusCliente", formData, async res => {
+            await alert("A pagina será recarregada\nPor favor aguarde...");
+            BuscarTodosClientes();
+            setShow(false);
         }, err => {
             alert("Houve um erro ao editar um status.")
         })

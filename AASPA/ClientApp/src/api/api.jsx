@@ -28,13 +28,12 @@ export default class Api {
             document.getElementById("loadingpanel").style.display = 'none';
         })
             .catch(async (err) => {
-                debugger
                 console.log({ error: err });
                 if (err.response != null && err.response.status == 401) {
-                    window.Wait(false);
+                    window.Wait && window.Wait(false);
                     window.localStorage.removeItem("access_token");
                     document.getElementById("loadingpanel").style.display = 'none';
-                    // window.location.href = this.loginPage;
+                    window.location.href = this.loginPage;
                     return;
                 }
                 if (funcError != undefined)

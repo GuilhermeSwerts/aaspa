@@ -9,9 +9,10 @@ import DescricaoModal from '../../components/Modal/descricaoModal';
 import { FaEye, FaTrash } from 'react-icons/fa6';
 import { ButtonTooltip } from '../../components/Inputs/ButtonTooltip';
 import ModalEditarContatoOcorrencia from '../../components/Modal/editarContatoOcorrencia';
+import axios from 'axios';
 
-function HistoricoOcorrenciaCliente() {
-    const { usuario, handdleUsuarioLogado } = useContext(AuthContext)
+function HistoricoOcorrenciaCliente(props) {
+    const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
     const [clientId, setClienteId] = useState();
     const [historicoOcorrenciaCliente, setHistoricoOcorrenciaCliente] = useState([]);
     const [clienteData, setClienteData] = useState({
@@ -19,44 +20,60 @@ function HistoricoOcorrenciaCliente() {
     });
     const descRef = useRef();
 
-    const BuscarHistoricoOcorrenciaCliente = (id) => {
-        api.get(`BuscarTodosContatoOcorrencia/${id}`, res => {
-            setHistoricoOcorrenciaCliente(res.data);
-        }, erro => {
-            alert('Houve um erro ao buscar historico ocorrencia cliente.')
-        })
-    }
+    const ExcluirOcorrencia = async (id) => {
+        if (await window.confirm("Deseja realmente excluir essa ocorrência?")) {
+            try {
+                var res = await axios.delete(`${api.urlBase}/DeletarContatoOcorrencia/${id}`, {
+                    headers: {
+                        "Authorization": `Bearer ${api.access_token ? api.access_token : ""}`
+                    }
+                })
+                if (res.status === 200) {
+                    BuscarHistoricoOcorrenciaCliente(clientId);
+                    alert('Ocorrência excluída com sucesso!');
+                }
+            } catch (error) {
+
+                alert('Houve um erro ao excluir a ocorrência.');
+            }
+        }
+    };
+
+    const BuscarHistoricoOcorrenciaCliente = async (id) => {
+        try {
+            api.get(`${api.urlBase}/BuscarTodosContatoOcorrencia/${id}`, res => {
+                setHistoricoOcorrenciaCliente(res.data);
+            })
+        } catch (error) {
+            console.clear();
+            console.log(error);
+            alert('Houve um erro ao buscar o Histórico!');
+        }
+    };
 
     useEffect(() => {
         handdleUsuarioLogado();
         const id = GetParametro('clienteId');
         if (!id) {
             window.history.back();
+        } else {
+            setClienteId(id);
+            api.get(`BuscarClienteID/${id}`,
+                async (res) => {
+                    setClienteData(res.data);
+                    BuscarHistoricoOcorrenciaCliente(id);
+                },
+                (erro) => {
+                    alert('Houve um erro ao buscar o cliente.');
+                }
+            );
         }
-        setClienteId(id);
-        api.get(`BuscarClienteID/${id}`, res => {
-            setClienteData(res.data);
-            BuscarHistoricoOcorrenciaCliente(id);
-        }, erro => {
-            alert('Houve um erro ao buscar o cliente.')
-        })
-    }, [])
+    }, []);
 
     const AbrirDescricao = (desc) => {
         descRef.current.AbrirModal(desc);
-    }
+    };
 
-    const ExcluirOcorrencia = async (id) => {
-        var res = await window.confirm("Deseja realmente excluir essa ocorrencia?")
-        if (res) {
-            api.delete(`DeletarContatoOcorrencia/${id}`, res => {
-                BuscarHistoricoOcorrenciaCliente(clientId);
-                alert('Ocorrencia excluida com sucesso!');
-            }, err => {
-                alert('Houve um erro ao excluido a ocorrencia.')
-            })
-        }
-    }
 
     return (
         <NavBar usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
@@ -79,7 +96,7 @@ function HistoricoOcorrenciaCliente() {
                     <th>Ações</th>
                 </thead>
                 <tbody>
-                    {historicoOcorrenciaCliente.map(historico => (
+                    {historicoOcorrenciaCliente && historicoOcorrenciaCliente.length > 0 && historicoOcorrenciaCliente.map(historico => (
                         <tr>
                             <td>{historico.origem}</td>
                             <td>{historico.dataHoraOcorrencia}</td>
@@ -93,7 +110,7 @@ function HistoricoOcorrenciaCliente() {
                                     ContatoOcorrenciaId={historico.id}
                                 />
                                 <ButtonTooltip
-                                    onClick={() => ExcluirOcorrencia(historico.id)}
+                                    onClick={async () => await ExcluirOcorrencia(historico.id)}
                                     className='btn btn-danger'
                                     text={'Excluir Ocorrencia'}
                                     top={true}
@@ -102,6 +119,7 @@ function HistoricoOcorrenciaCliente() {
                             </td>
                         </tr>
                     ))}
+                    {historicoOcorrenciaCliente.length === 0 && <span>Nenhuma Contato/Ocorrencia Cadastrada</span>}
                 </tbody>
             </table>
         </NavBar>

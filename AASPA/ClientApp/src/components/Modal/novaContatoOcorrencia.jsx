@@ -73,6 +73,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                 BuscarHistoricoOcorrenciaCliente(cliente.cliente_id);
             }
             alert('Contato/Ocorrência adicionado com sucesso!')
+            setShow(false);
         }, err => {
             alert(err.response.data)
         })

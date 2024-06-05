@@ -21,6 +21,7 @@ export default () => {
     const BuscarTodosClientes = () => {
         api.get("BuscarTodosClientes", res => {
             setClientes([]);
+            setClientesFiltro([]);
             setClientes(res.data);
             setClientesFiltro(res.data);
         }, err => {

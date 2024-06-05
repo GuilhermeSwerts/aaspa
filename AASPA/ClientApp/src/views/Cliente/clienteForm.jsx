@@ -109,7 +109,7 @@ function ClienteForm({
                 <Col md={4}>
                     <FormGroup>
                         <Label for="telefoneFixo">Telefone Fixo</Label>
-                        <Input type="text" maxLength={14} name="telefoneFixo" id="telefoneFixo" value={Mascara.telefone(cliente.telefoneFixo)} onChange={handleChange} />
+                        <Input type="text" maxLength={14} name="telefoneFixo" id="telefoneFixo" value={Mascara.telefoneFixo(cliente.telefoneFixo)} onChange={handleChange} />
                     </FormGroup>
                 </Col>
                 <Col md={4}>
