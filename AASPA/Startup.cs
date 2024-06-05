@@ -35,6 +35,8 @@ namespace AASPA
             services.AddDbContext<MysqlContexto>(options => options
                 .UseMySql(Configuration["MySQLConnection:MySQLConnectionString"], new MySqlServerVersion(new Version(8, 0, 5))));
 
+            services.AddCors(x=> x.AddDefaultPolicy(c=> c.AllowAnyMethod().AllowAnyOrigin().AllowAnyHeader()));
+
             services.AddControllersWithViews(options =>
             {
                 options.Filters.Add(typeof(UnauthorizedMiddleware));
@@ -90,6 +92,8 @@ namespace AASPA
             app.UseSpaStaticFiles();
 
             app.UseRouting();
+
+            app.UseCors();
 
             app.UseAuthentication();
             app.UseAuthorization();
