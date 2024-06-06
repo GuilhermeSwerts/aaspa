@@ -13,5 +13,6 @@ namespace AASPA.Models.Response
         public string DataVinculo { get; set; }
         public string DataRemocaoVinculo { get; set; }
         public string VinculoAtivo { get; set; }
+        public int Id { get; set; }
     }
 }

@@ -50,6 +50,7 @@ namespace AASPA.Domain.Service
                 x.beneficio_id == log.log_beneficios_beneficio_id);
                 var logResponse = new LogBeneficioResponse
                 {
+                    Id = log.log_beneficios_id,
                     Nome = beneficio.beneficio_nome_beneficio,
                     Acao = log.log_beneficios_acao_id == 1 ? "ADICIONADO" : "REMOVIDO",
                     DataVinculo = log.log_beneficios_dt_cadastro.ToString("dd/MM/yyy HH:mm:ss"),
@@ -58,7 +59,7 @@ namespace AASPA.Domain.Service
                     : "-",
                     VinculoAtivo = log.log_beneficios_ativo ? "SIM" : "NÃO"
                 };
-                if (!response.Any(x=> x == logResponse))
+                if (!response.Any(x=> x.Id == logResponse.Id))
                     response.Add(logResponse);
             }
 
