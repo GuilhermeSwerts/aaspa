@@ -33,5 +33,6 @@ namespace AASPA.Repository.Maps
         public string cliente_funcaoAASPA { get; set; }
         public string cliente_email { get; set; }
         //public int cliente_usuario_id_fk { get; set; }
+        public bool cliente_situacao { get; set; }
     }
 }

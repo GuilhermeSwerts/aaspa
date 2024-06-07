@@ -65,7 +65,8 @@ namespace AASPA
             services.AddScoped<IMotivoContato, MotivoContatoService>();
             services.AddScoped<IHistoricoContatoOcorrencia, HistoricoContatoOcorrenciaService>();
             services.AddScoped<IUsuario, UsuarioService>();
-            
+            services.AddScoped<IRemessa, RemessaService>();
+
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
