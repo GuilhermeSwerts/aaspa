@@ -1,5 +1,7 @@
 ﻿using AASPA.Domain.Interface;
+using AASPA.Models.Response;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace AASPA.Controllers
@@ -22,12 +24,26 @@ namespace AASPA.Controllers
                 {
                     return BadRequest("Já existe remessa criada para o mês e ano informado!");
                 }
-                int idRegistro = _remessa.GerarRemessa(mes, ano);
-                return Ok(idRegistro);
+                RetornoRemessa retorno = _remessa.GerarRemessa(mes, ano);
+                return Ok(retorno);
             }
             catch (System.Exception ex)
             {
                 return StatusCode(500, $"Ocorreu um erro ao gerar a remessa. {ex.Message}");
+            }
+        }
+        [HttpGet]
+        [Route("/BuscarTodasRemessas")]
+        public ActionResult BuscarTodosClientes()
+        {
+            try
+            {
+                List<BuscarTodasRemessas> remessas = _remessa.BuscarTodasRemessas();
+                return Ok(remessas);
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
         }
     }
