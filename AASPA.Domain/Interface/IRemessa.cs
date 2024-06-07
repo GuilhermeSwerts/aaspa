@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AASPA.Models.Response;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,9 @@ namespace AASPA.Domain.Interface
 {
     public interface IRemessa
     {
-        int GerarRemessa(int mes, int ano);
+        List<BuscarTodasRemessas> BuscarTodasRemessas();
+        RetornoRemessa GerarRemessa(int mes, int ano);
         bool RemessaExiste(int mes, int ano);
+        string GerarArquivoRemessa(int idRegistro, int mes, int ano);
     }
 }

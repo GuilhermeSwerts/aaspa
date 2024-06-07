@@ -1,11 +1,14 @@
 ﻿using AASPA.Domain.Interface;
+using AASPA.Models.Response;
 using AASPA.Repository;
 using AASPA.Repository.Maps;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -23,22 +26,27 @@ namespace AASPA.Domain.Service
             _env = env;
         }
 
-        public int GerarRemessa(int mes, int ano)
+        public RetornoRemessa GerarRemessa(int mes, int ano)
         {            
             var clientes = _mysql.clientes.Where(x => x.cliente_dataCadastro.Month == mes && x.cliente_dataCadastro.Year == ano).ToList() ;
 
             var idRegistro = SalvarDadosRemessa(clientes, mes, ano);
 
-            GerarArquivoRemessa(idRegistro, mes, ano);            
+            string caminho = GerarArquivoRemessa(idRegistro, mes, ano);
 
-            return idRegistro;
+            return new RetornoRemessa 
+            {
+                caminho = caminho,
+                remessa_id = idRegistro,
+            };
         }
-        private int SalvarDadosRemessa(List<ClienteDb> clientes, int mes, int ano)
+        public int SalvarDadosRemessa(List<ClienteDb> clientes, int mes, int ano)
         {
             using var tran = _mysql.Database.BeginTransaction();
             var remessa = new RemessaDb
             {
-                remessa_mes_ano = $"{ano}-{mes.ToString().PadLeft(2, '0')}"
+                remessa_mes_ano = $"{ano}-{mes.ToString().PadLeft(2, '0')}",
+                remessa_data_criacao = DateTime.Now
             };
 
             _mysql.remessa.Add(remessa);
@@ -62,9 +70,11 @@ namespace AASPA.Domain.Service
 
             return idRemessa;
         }
-        private void GerarArquivoRemessa(int idRegistro, int mes, int ano)
+        public string GerarArquivoRemessa(int idRegistro, int mes, int ano)
         {
-            var caminhoArquivoSaida = Path.Combine(string.Join(_env.ContentRootPath, "Remessa"), $"D.SUB.GER.{idRegistro}.{ano}{mes.ToString().PadLeft(2, '0')}");
+            string nomeArquivo = $"D.SUB.GER.{idRegistro}.{ano}{mes.ToString().PadLeft(2, '0')}";
+            string diretorioBase = _env.ContentRootPath;
+            string caminhoArquivoSaida = Path.Combine(diretorioBase, "Remessa", nomeArquivo);
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Remessa")))){ Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Remessa"))); }
             List<string> ValorLinha = new List<string>();
             using (StreamWriter writer = new StreamWriter(caminhoArquivoSaida))
@@ -84,10 +94,32 @@ namespace AASPA.Domain.Service
                     writer.WriteLine(linha);
                 }
             }
+            return caminhoArquivoSaida;
         }
         public bool RemessaExiste(int mes, int ano)
         {
             return _mysql.remessa.Any(x => x.remessa_mes_ano == $"{mes}{ano}");
+        }
+        public List<BuscarTodasRemessas> BuscarTodasRemessas()
+        {
+            var listaTodasRemessas = new List<BuscarTodasRemessas>();
+
+            var retornos = _mysql.remessa.ToList();
+
+            foreach(var buscar in retornos)
+            {
+                int mes = int.Parse(buscar.remessa_mes_ano.Substring(5, 2));
+                var buscarTodasRemessas = new BuscarTodasRemessas()
+                {
+                    remessa_id = buscar.remessa_id,
+                    mes = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(mes).ToUpper(),
+                    ano = int.Parse(buscar.remessa_mes_ano.Substring(0,4), CultureInfo.CurrentCulture.DateTimeFormat),
+                    Data_Criacao = buscar.remessa_data_criacao
+                };
+
+                listaTodasRemessas.Add(buscarTodasRemessas);
+            }
+            return listaTodasRemessas;
         }
     }
 }
