@@ -9,12 +9,12 @@ import Loader from './components/Loader/loader';
 const baseUrl = document.getElementsByTagName('base')[0].getAttribute('href');
 const rootElement = document.getElementById('root');
 
-const blockDevTools = () => {
-  document.addEventListener("contextmenu", (e) => {
-    e.preventDefault();
-    alert('Context Menu Blocked in PROD!\nTo unlock it, you need to use a homologation or development version.\n\nMenu de Contexto Bloqueado no PROD!\nPara desbloqueá-lo, você precisa usar uma versão de homologação ou desenvolvimento.')
-  })
-}
+// const blockDevTools = () => {
+//   document.addEventListener("contextmenu", (e) => {
+//     e.preventDefault();
+//     alert('Context Menu Blocked in PROD!\nTo unlock it, you need to use a homologation or development version.\n\nMenu de Contexto Bloqueado no PROD!\nPara desbloqueá-lo, você precisa usar uma versão de homologação ou desenvolvimento.')
+//   })
+// }
 
 process.env.NODE_ENV === 'production' && blockDevTools();
 

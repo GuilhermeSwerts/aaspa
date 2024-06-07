@@ -35,6 +35,9 @@ function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
                                 <DropdownItem onClick={() => IrPara("gorigem")}>GERENCIAR ORIGEM</DropdownItem>
                                 <DropdownItem onClick={() => IrPara("gstatus")}>GERENCIAR STATUS</DropdownItem>
                                 <DropdownItem onClick={() => IrPara("gbeneficio")}>GERENCIAR BENEFICIOS</DropdownItem>
+                                <DropdownItem divider />
+                                <DropdownItem header>Relatórios</DropdownItem>
+                                <DropdownItem onClick={() => IrPara("rremessa")}>REMESSA</DropdownItem>
                             </DropdownMenu>
                         </Dropdown>}
 
