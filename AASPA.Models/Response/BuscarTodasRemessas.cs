@@ -8,9 +8,9 @@ namespace AASPA.Models.Response
 {
     public class BuscarTodasRemessas
     {
-        public int remessa_id { get; set; }
-        public string mes { get; set; }
-        public int ano { get; set; }
-        public DateTime Data_Criacao { get; set; }
+        public int RemessaId { get; set; }
+        public string Mes { get; set; }
+        public int Ano { get; set; }
+        public string DataCriacao { get; set; }
     }
 }

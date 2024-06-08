@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import { FaPlus } from 'react-icons/fa6';
-import ModalNovaRemessa from '../../components/Modal/novaRemessa';
+import ModalNovaRemessa from '../../../components/Modal/novaRemessa';
 
-const BuscarPorMesAno = ({ BuscarRemessas, DownloadRemessa, OnClick }) => {
+const BuscarPorMesAno = ({
+    mesSelecionado,
+    setMesSelecionado,
+    anoSelecionado,
+    setAnoSelecionado,
+    BuscarRemessas, DownloadRemessa, OnClick }) => {
     const meses = [
         { valor: 1, nome: 'Janeiro' },
         { valor: 2, nome: 'Fevereiro' },
@@ -21,15 +26,13 @@ const BuscarPorMesAno = ({ BuscarRemessas, DownloadRemessa, OnClick }) => {
     const anoAtual = new Date().getFullYear();
     const anos = Array.from({ length: 25 }, (_, i) => anoAtual - i);
 
-    const [mesSelecionado, setMesSelecionado] = useState('');
-    const [anoSelecionado, setAnoSelecionado] = useState('');
-
     return (
         <div>
             <div className='row'>
                 <div className="col-md-2">
                     <label htmlFor="">Selecione o mês:</label>
                     <select className='form-control' value={mesSelecionado} onChange={(e) => setMesSelecionado(e.target.value)}>
+                        <option value={null}>TODOS</option>
                         {meses.map((mes) => (
                             <option key={mes.valor} value={mes.valor}>
                                 {mes.nome}
@@ -40,6 +43,7 @@ const BuscarPorMesAno = ({ BuscarRemessas, DownloadRemessa, OnClick }) => {
                 <div className="col-md-2">
                     <label>Selecione o ano</label>
                     <select className='form-control' value={anoSelecionado} onChange={(e) => setAnoSelecionado(e.target.value)}>
+                        <option value={null}>TODOS</option>
                         {anos.map((ano) => (
                             <option key={ano} value={ano}>
                                 {ano}

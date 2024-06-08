@@ -15,7 +15,7 @@ import HistoricoPagamento from '../views/HistoricoPagamento';
 import Origem from '../views/Gerenciamento/Origem';
 import HistoricoOcorrenciaCliente from '../views/HistoricoContatoOcorrenciaCliente';
 import HistoricoContatoOcorrencia from '../views/HistoricoOcorrencia';
-
+import Remessa from '../views/Gerenciamento/Remessa/Remessa';
 
 export default _ => {
     return (
@@ -31,6 +31,7 @@ export default _ => {
 
             <Route exact path='/teste' component={Teste} />
 
+            <Route exact path='/rremessa' component={Remessa} />
             <Route exact path='/gorigem' component={Origem} />
             <Route exact path='/gmotivocontato' component={MotivoContato} />
             <Route exact path='/gstatus' component={Status} />
