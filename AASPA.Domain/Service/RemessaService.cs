@@ -72,7 +72,7 @@ namespace AASPA.Domain.Service
         }
         public string GerarArquivoRemessa(int idRegistro, int mes, int ano)
         {
-            string nomeArquivo = $"D.SUB.GER.{idRegistro}.{ano}{mes.ToString().PadLeft(2, '0')}";
+            string nomeArquivo = $"D.SUB.GER.176.{ano}{mes.ToString().PadLeft(2, '0')}";
             string diretorioBase = _env.ContentRootPath;
             string caminhoArquivoSaida = Path.Combine(diretorioBase, "Remessa", nomeArquivo);
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Remessa")))){ Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Remessa"))); }
@@ -98,7 +98,7 @@ namespace AASPA.Domain.Service
         }
         public bool RemessaExiste(int mes, int ano)
         {
-            return _mysql.remessa.Any(x => x.remessa_mes_ano == $"{mes}{ano}");
+            return _mysql.remessa.Any(x => x.remessa_mes_ano == $"{ano}{mes}");
         }
         public List<BuscarTodasRemessas> BuscarTodasRemessas()
         {
@@ -120,6 +120,20 @@ namespace AASPA.Domain.Service
                 listaTodasRemessas.Add(buscarTodasRemessas);
             }
             return listaTodasRemessas;
+        }
+        public string BuscarArquivo(string anoMes)
+        {
+            if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Remessa")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Remessa"))); }
+            string diretorioBase = Path.Combine(_env.ContentRootPath, "Remessa");
+            var path = string.Empty;
+
+            string[] todosLogs = Directory.GetFiles(diretorioBase);
+
+            path = todosLogs.FirstOrDefault(arquivo => Path.GetFileName(arquivo).Contains($"D.SUB.GER.176.{anoMes}"));
+
+            if (!File.Exists(path)) throw new Exception("Arquivo não encontrado");
+
+            return path;
         }
     }
 }
