@@ -29,8 +29,8 @@ function ClienteForm({
                 </Col>
                 <Col md={4}>
                     <FormGroup>
-                        <Label for="email">E-mail*</Label>
-                        <Input required type="email" name="email" id="email" value={cliente.email} onChange={handleChange} />
+                        <Label for="email">E-mail</Label>
+                        <Input type="email" name="email" id="email" value={cliente.email} onChange={handleChange} />
                     </FormGroup>
                 </Col>
             </Row>
@@ -49,8 +49,8 @@ function ClienteForm({
                 </Col>
                 <Col md={3}>
                     <FormGroup>
-                        <Label for="nome">Complemento*</Label>
-                        <Input required type="text" name="complemento" id="complemento" value={cliente.complemento} onChange={handleChange} />
+                        <Label for="nome">Complemento</Label>
+                        <Input type="text" name="complemento" id="complemento" value={cliente.complemento} onChange={handleChange} />
                     </FormGroup>
                 </Col>
             </Row>
@@ -101,8 +101,8 @@ function ClienteForm({
                 </Col>
                 <Col md={3}>
                     <FormGroup>
-                        <Label for="matriculaBeneficio">Matrícula/Benefício</Label>
-                        <Input type="text" name="matriculaBeneficio" id="matriculaBeneficio" value={cliente.matriculaBeneficio} onChange={handleChange} />
+                        <Label for="matriculaBeneficio">Matrícula/Benefício*</Label>
+                        <Input required type="text" name="matriculaBeneficio" id="matriculaBeneficio" value={cliente.matriculaBeneficio} onChange={handleChange} />
                     </FormGroup>
                 </Col>
             </Row>
@@ -131,8 +131,8 @@ function ClienteForm({
             <Row>
                 <Col md={6}>
                     <FormGroup>
-                        <Label for="nomeMae">Nome da Mãe</Label>
-                        <Input type="text" name="nomeMae" id="nomeMae" value={cliente.nomeMae} onChange={handleChange} />
+                        <Label for="nomeMae">Nome da Mãe*</Label>
+                        <Input required type="text" name="nomeMae" id="nomeMae" value={cliente.nomeMae} onChange={handleChange} />
                     </FormGroup>
                 </Col>
                 <Col md={6}>
@@ -145,8 +145,8 @@ function ClienteForm({
             <Row>
                 <Col md={4}>
                     <FormGroup>
-                        <Label for="funcaoAASPA">Função AASPA</Label>
-                        <Input type="text" name="funcaoAASPA" id="funcaoAASPA" value={cliente.funcaoAASPA} onChange={handleChange} />
+                        <Label for="funcaoAASPA">Função AASPA*</Label>
+                        <Input required type="text" name="funcaoAASPA" id="funcaoAASPA" value={cliente.funcaoAASPA} onChange={handleChange} />
                     </FormGroup>
                 </Col>
             </Row>

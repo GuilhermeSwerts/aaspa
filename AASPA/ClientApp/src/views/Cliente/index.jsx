@@ -29,7 +29,7 @@ function Cliente() {
         telefoneFixo: '',
         telefoneCelular: '',
         possuiWhatsapp: false,
-        funcaoAASPA: '',
+        funcaoAASPA: 'Associado',
         email: ''
     };
     const initStateCaptador = {

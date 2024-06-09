@@ -25,7 +25,18 @@ function Remessa() {
     }, [])
 
     const DownloadRemessa = (RemessaId) => {
-        alert(RemessaId)
+        api.get(`DownloadRemessa/${RemessaId}`, res => {
+            const { nomeArquivo, base64 } = res.data;
+            let csvContent = atob(base64);
+            var blob = new Blob([csvContent], { type: "data:application/octet-stream;base64" });
+            var url = window.URL.createObjectURL(blob);
+            var a = document.createElement("a");
+            a.href = url
+            a.download = nomeArquivo+'.txt';
+            a.click();
+        }, err => {
+            alert(err.response.data)
+        })
     }
 
     return (

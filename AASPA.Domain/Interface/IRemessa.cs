@@ -13,6 +13,6 @@ namespace AASPA.Domain.Interface
         RetornoRemessa GerarRemessa(int mes, int ano);
         bool RemessaExiste(int mes, int ano);
         string GerarArquivoRemessa(int idRegistro, int mes, int ano);
-        string BuscarArquivo(string anoMes);
+        BuscarArquivoResponse BuscarArquivo(int remessaId);
     }
 }

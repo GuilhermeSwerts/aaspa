@@ -26,7 +26,7 @@ namespace AASPA.Controllers
                     return BadRequest("Já existe remessa criada para o mês e ano informado!");
                 }
                 RetornoRemessa retorno = _remessa.GerarRemessa(mes, ano);
-                return Ok(retorno);
+                return Ok(retorno.remessa_id);
             }
             catch (System.Exception ex)
             {
@@ -48,15 +48,15 @@ namespace AASPA.Controllers
             }
         }
         [HttpGet]
-        [Route("/DownloadRemessa")]
-        public ActionResult DownloadRemessa(string anoMes)
+        [Route("/DownloadRemessa/{remessaId}")]
+        public ActionResult DownloadRemessa(int remessaId)
         {
             try
             {
-                var path = _remessa.BuscarArquivo(anoMes);
-                byte[] conteudoBytes = System.IO.File.ReadAllBytes(path);
-
-                return Ok(Convert.ToBase64String(conteudoBytes));
+                var response = _remessa.BuscarArquivo(remessaId);
+                byte[] conteudoBytes = System.IO.File.ReadAllBytes(response.Base64);
+                response.Base64 = Convert.ToBase64String(conteudoBytes);
+                return Ok(response);
             }
             catch(System.Exception ex)
             {

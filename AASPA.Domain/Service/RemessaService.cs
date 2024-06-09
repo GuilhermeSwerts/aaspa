@@ -134,8 +134,13 @@ namespace AASPA.Domain.Service
             }
             return listaTodasRemessas;
         }
-        public string BuscarArquivo(string anoMes)
+        public BuscarArquivoResponse BuscarArquivo(int remessaId)
         {
+            var remessaDb = _mysql.remessa.FirstOrDefault(x => x.remessa_id == remessaId)
+                ?? throw new Exception($"Remessa não encontrada. id: {remessaId}");
+
+            var anoMes = remessaDb.remessa_ano_mes.Replace("-","");
+
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Remessa")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Remessa"))); }
             string diretorioBase = Path.Combine(_env.ContentRootPath, "Remessa");
             var path = string.Empty;
@@ -146,7 +151,11 @@ namespace AASPA.Domain.Service
 
             if (!File.Exists(path)) throw new Exception("Arquivo não encontrado");
 
-            return path;
+            return new BuscarArquivoResponse
+            {
+                NomeArquivo= $"D.SUB.GER.176.{anoMes}",
+                Base64 = path
+            };
         }
     }
 }
