@@ -1,6 +1,7 @@
 ﻿using AASPA.Domain.Interface;
 using AASPA.Models.Response;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -42,6 +43,22 @@ namespace AASPA.Controllers
                 return Ok(remessas);
             }
             catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpGet]
+        [Route("/DownloadRemessa")]
+        public ActionResult DownloadRemessa(string anoMes)
+        {
+            try
+            {
+                var path = _remessa.BuscarArquivo(anoMes);
+                byte[] conteudoBytes = System.IO.File.ReadAllBytes(path);
+
+                return Ok(Convert.ToBase64String(conteudoBytes));
+            }
+            catch(System.Exception ex)
             {
                 return BadRequest(ex.Message);
             }
