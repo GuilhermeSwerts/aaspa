@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace AASPA.Models.Response
 {
-    public class BuscarTodasRemessas
+    public class BuscarRemessasResponse
     {
         public int RemessaId { get; set; }
-        public string Mes { get; set; }
+        public int Mês { get; set; }
         public int Ano { get; set; }
         public string DataCriacao { get; set; }
     }

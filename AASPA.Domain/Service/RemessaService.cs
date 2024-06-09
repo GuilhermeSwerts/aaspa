@@ -27,14 +27,14 @@ namespace AASPA.Domain.Service
         }
 
         public RetornoRemessa GerarRemessa(int mes, int ano)
-        {            
-            var clientes = _mysql.clientes.Where(x => x.cliente_dataCadastro.Month == mes && x.cliente_dataCadastro.Year == ano).ToList() ;
+        {
+            var clientes = _mysql.clientes.Where(x => x.cliente_dataCadastro.Month == mes && x.cliente_dataCadastro.Year == ano).ToList();
 
             var idRegistro = SalvarDadosRemessa(clientes, mes, ano);
 
             string caminho = GerarArquivoRemessa(idRegistro, mes, ano);
 
-            return new RetornoRemessa 
+            return new RetornoRemessa
             {
                 caminho = caminho,
                 remessa_id = idRegistro,
@@ -45,7 +45,7 @@ namespace AASPA.Domain.Service
             using var tran = _mysql.Database.BeginTransaction();
             var remessa = new RemessaDb
             {
-                remessa_mes_ano = $"{ano}-{mes.ToString().PadLeft(2, '0')}",
+                remessa_ano_mes = $"{ano}-{mes.ToString().PadLeft(2,'0')}",
                 remessa_data_criacao = DateTime.Now
             };
 
@@ -75,7 +75,7 @@ namespace AASPA.Domain.Service
             string nomeArquivo = $"D.SUB.GER.176.{ano}{mes.ToString().PadLeft(2, '0')}";
             string diretorioBase = _env.ContentRootPath;
             string caminhoArquivoSaida = Path.Combine(diretorioBase, "Remessa", nomeArquivo);
-            if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Remessa")))){ Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Remessa"))); }
+            if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Remessa")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Remessa"))); }
             List<string> ValorLinha = new List<string>();
             using (StreamWriter writer = new StreamWriter(caminhoArquivoSaida))
             {
@@ -83,7 +83,7 @@ namespace AASPA.Domain.Service
 
                 var clientes = _mysql.registro_remessa.Where(x => x.remessa_id == idRegistro).ToList();
 
-                foreach(var cliente in clientes)
+                foreach (var cliente in clientes)
                 {
                     ValorLinha.Add($"1{cliente.registro_numero_beneficio}{cliente.registro_codigo_operacao}000{cliente.registro_decimo_terceiro}{cliente.registro_valor_percentual_desconto}".PadRight(45));
                 }
@@ -98,23 +98,36 @@ namespace AASPA.Domain.Service
         }
         public bool RemessaExiste(int mes, int ano)
         {
-            return _mysql.remessa.Any(x => x.remessa_mes_ano == $"{ano}{mes}");
+            return _mysql.remessa.Any(x => x.remessa_ano_mes == $"{ano}-{mes.ToString().PadLeft(2, '0')}");
         }
-        public List<BuscarTodasRemessas> BuscarTodasRemessas()
+        public List<BuscarTodasRemessas> BuscarTodasRemessas(int? ano, int? mes)
         {
             var listaTodasRemessas = new List<BuscarTodasRemessas>();
 
-            var retornos = _mysql.remessa.ToList();
+            var filtro = ano.HasValue && mes.HasValue
+                ? $"{ano}-{mes.ToString().PadLeft(2, '0')}"
+                : ano.HasValue && !mes.HasValue
+                    ? $"{ano}-"
+                    : !ano.HasValue && mes.HasValue
+                        ? $"-{mes.ToString().PadLeft(2, '0')}"
+                        : null;
 
-            foreach(var buscar in retornos)
+            var retornos = _mysql.remessa
+                .Where(
+                    x => x.remessa_id > 0 && 
+                    (string.IsNullOrEmpty(filtro) || x.remessa_ano_mes.Contains(filtro))
+                ).ToList();
+
+            foreach (var buscar in retornos)
             {
-                int mes = int.Parse(buscar.remessa_mes_ano.Substring(5, 2));
+                int mesDaRemessa = int.Parse(buscar.remessa_ano_mes.Split('-')[1]);
+                int anoDaRemessa = int.Parse(buscar.remessa_ano_mes.Split('-')[0]);
                 var buscarTodasRemessas = new BuscarTodasRemessas()
                 {
-                    remessa_id = buscar.remessa_id,
-                    mes = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(mes).ToUpper(),
-                    ano = int.Parse(buscar.remessa_mes_ano.Substring(0,4), CultureInfo.CurrentCulture.DateTimeFormat),
-                    Data_Criacao = buscar.remessa_data_criacao
+                    RemessaId = buscar.remessa_id,
+                    Mes = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(mesDaRemessa).ToUpper(),
+                    Ano = anoDaRemessa,
+                    DataCriacao = buscar.remessa_data_criacao.ToString()
                 };
 
                 listaTodasRemessas.Add(buscarTodasRemessas);

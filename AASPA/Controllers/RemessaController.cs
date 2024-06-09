@@ -34,12 +34,12 @@ namespace AASPA.Controllers
             }
         }
         [HttpGet]
-        [Route("/BuscarTodasRemessas")]
-        public ActionResult BuscarTodosClientes()
+        [Route("/BuscarRemessas")]
+        public ActionResult BuscarTodosClientes([FromQuery] int? mes, [FromQuery] int? ano)
         {
             try
             {
-                List<BuscarTodasRemessas> remessas = _remessa.BuscarTodasRemessas();
+                List<BuscarTodasRemessas> remessas = _remessa.BuscarTodasRemessas(ano, mes);
                 return Ok(remessas);
             }
             catch (System.Exception ex)
