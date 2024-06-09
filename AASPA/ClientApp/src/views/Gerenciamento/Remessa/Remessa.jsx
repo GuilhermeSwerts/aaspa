@@ -32,7 +32,7 @@ function Remessa() {
             var url = window.URL.createObjectURL(blob);
             var a = document.createElement("a");
             a.href = url
-            a.download = nomeArquivo+'.txt';
+            a.download = nomeArquivo;
             a.click();
         }, err => {
             alert(err.response.data)
