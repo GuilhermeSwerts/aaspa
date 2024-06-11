@@ -16,7 +16,7 @@ const rootElement = document.getElementById('root');
 //   })
 // }
 
-process.env.NODE_ENV === 'production' && blockDevTools();
+//process.env.NODE_ENV === 'production' && blockDevTools();
 
 ReactDOM.render(
   <BrowserRouter basename={baseUrl}>

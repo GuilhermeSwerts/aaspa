@@ -1,8 +1,10 @@
 ﻿using AASPA.Domain.Interface;
 using AASPA.Models.Response;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace AASPA.Controllers
@@ -25,7 +27,7 @@ namespace AASPA.Controllers
                 {
                     return BadRequest("Já existe remessa criada para o mês e ano informado!");
                 }
-                RetornoRemessa retorno = _remessa.GerarRemessa(mes, ano);
+                RetornoRemessaResponse retorno = _remessa.GerarRemessa(mes, ano);
                 return Ok(retorno.remessa_id);
             }
             catch (System.Exception ex)
@@ -61,6 +63,20 @@ namespace AASPA.Controllers
             catch(System.Exception ex)
             {
                 return BadRequest(ex.Message);
+            }
+        }
+        [HttpPost]
+        [Route("LerRetornoRemessa")]
+        public async Task<ActionResult> LerRetorno(IFormFile file)
+        {
+            try
+            {
+                var retorno = await _remessa.LerRetorno(file);
+                return Ok(retorno);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
             }
         }
     }

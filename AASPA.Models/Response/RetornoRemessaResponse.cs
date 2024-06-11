@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AASPA.Models.Response
 {
-    public class RetornoRemessa
+    public class RetornoRemessaResponse
     {
         public string caminho { get; set; }
         public int remessa_id { get; set; }

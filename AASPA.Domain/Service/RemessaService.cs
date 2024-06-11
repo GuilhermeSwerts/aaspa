@@ -2,6 +2,7 @@
 using AASPA.Models.Response;
 using AASPA.Repository;
 using AASPA.Repository.Maps;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
@@ -26,7 +27,7 @@ namespace AASPA.Domain.Service
             _env = env;
         }
 
-        public RetornoRemessa GerarRemessa(int mes, int ano)
+        public RetornoRemessaResponse GerarRemessa(int mes, int ano)
         {
             var clientes = _mysql.clientes.Where(x => x.cliente_dataCadastro.Month == mes && x.cliente_dataCadastro.Year == ano).ToList();
 
@@ -34,7 +35,7 @@ namespace AASPA.Domain.Service
 
             string caminho = GerarArquivoRemessa(idRegistro, mes, ano);
 
-            return new RetornoRemessa
+            return new RetornoRemessaResponse
             {
                 caminho = caminho,
                 remessa_id = idRegistro,
@@ -156,6 +157,72 @@ namespace AASPA.Domain.Service
                 NomeArquivo= $"D.SUB.GER.176.{anoMes}",
                 Base64 = path
             };
+        }
+        public async Task<string> LerRetorno(IFormFile file)
+        {
+            var anomes = file.FileName.Substring(14, 6);
+            if (file == null || file.Length == 0)
+            {
+                throw new Exception("Nenhum arquivo foi enviado.");
+            }
+            else if (!file.FileName.Contains($"D.SUB.GER.177."))
+            {
+                throw new Exception("Arquivo com nome fora do formato!");
+            }
+
+            try
+            {
+                var retorno_remessa = new RetornoRemessaDb
+                {
+                    NomeArquivo = file.FileName,
+                    DataImportacao = DateTime.Now,
+                };
+                _mysql.retornosremessa.Add(retorno_remessa);
+
+                using (var memoryStream = new MemoryStream())
+                {
+                    await file.CopyToAsync(memoryStream);
+                    memoryStream.Position = 0;
+
+                    using (var reader = new StreamReader(memoryStream, Encoding.UTF8))
+                    {
+                        string content = await reader.ReadToEndAsync();
+
+                        var linhas = content.Split('\n');                    
+
+                        foreach (var line in linhas)
+                        {
+                            if (int.Parse(line.Substring(0, 1)) == 0)
+                            {
+                                if(line.Substring(1, 10).Trim() != "AASPA")
+                                {
+                                    throw new Exception("Arquivo não pertence a AASPA");
+                                }
+                            }
+                            else if (int.Parse(line.Substring(0, 1)) == 1)
+                            {
+                                DateTime date;
+                                var retorno = new RegistroRetornoRemessaDb()
+                                {
+                                    NumeroBeneficio = int.Parse(line.Substring(1, 10)),
+                                    CodigoOperacao = int.Parse(line.Substring(11,1)),
+                                    CodigoResultado = int.Parse(line.Substring(12,1)),
+                                    MotivoRejeicao = int.Parse(line.Substring(13,3)),
+                                    ValorDesconto = int.Parse(line.Substring(16,5)),
+                                    DataInicioDesconto = DateTime.Parse(line.Substring(21,8)).Date,
+                                    CodigoEspecieBeneficio = int.Parse(line.Substring(29, 2))
+                                };
+                            }
+                        }
+
+                        return content;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using AASPA.Models.Response;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,9 +11,10 @@ namespace AASPA.Domain.Interface
     public interface IRemessa
     {
         List<BuscarTodasRemessas> BuscarTodasRemessas(int? ano, int? mes);
-        RetornoRemessa GerarRemessa(int mes, int ano);
+        RetornoRemessaResponse GerarRemessa(int mes, int ano);
         bool RemessaExiste(int mes, int ano);
         string GerarArquivoRemessa(int idRegistro, int mes, int ano);
         BuscarArquivoResponse BuscarArquivo(int remessaId);
+        Task<string> LerRetorno(IFormFile file);
     }
 }
