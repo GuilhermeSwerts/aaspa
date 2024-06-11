@@ -1,4 +1,5 @@
 ﻿using AASPA.Domain.Interface;
+using AASPA.Models.Enum;
 using AASPA.Models.Requests;
 using AASPA.Models.Response;
 using AASPA.Repository;
@@ -52,6 +53,12 @@ namespace AASPA.Domain.Service
             using var tran = _mysql.Database.BeginTransaction();
             try
             {
+                if(request.status_id_novo == (int)EStatus.Deletado)
+                {
+                    var cliente = _mysql.clientes.FirstOrDefault(x=> x.cliente_id == request.cliente_id);
+                    cliente.cliente_situacao = false;
+                    _mysql.SaveChanges();
+                }
 
                 _mysql.log_status.Add(new LogStatusDb
                 {

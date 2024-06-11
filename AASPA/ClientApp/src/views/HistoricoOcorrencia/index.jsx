@@ -4,7 +4,7 @@ import { AuthContext } from '../../context/AuthContext';
 import { api } from '../../api/api';
 import { Mascara } from '../../util/mascara';
 import { ButtonTooltip } from '../../components/Inputs/ButtonTooltip';
-import { TbZoomMoney } from "react-icons/tb";
+import * as Enum from '../../util/enum';
 import NovaContatoOcorrencia from '../../components/Modal/novaContatoOcorrencia';
 import { FaHistory } from 'react-icons/fa';
 
@@ -75,26 +75,30 @@ function HistoricoContatoOcorrencia() {
                     </tr>
                 </thead>
                 <tbody>
-                    {clientesFiltro.map(cliente => (
-                        <tr>
-                            <td>{Mascara.cpf(cliente.cliente.cliente_cpf)}</td>
-                            <td>{cliente.cliente.cliente_nome}</td>
-                            <td>{Mascara.telefone(cliente.cliente.cliente_telefoneCelular)}</td>
-                            <td>{Mascara.data(cliente.cliente.cliente_dataCadastro)}</td>
-                            <td>{cliente.statusAtual.status_nome}</td>
-                            <td>{cliente.captador.captador_nome}</td>
-                            <td style={{ display: 'flex', gap: 5 }}>
-                                <ButtonTooltip
-                                    onClick={() => window.location.href = `/historicoocorrenciacliente?clienteId=${cliente.cliente.cliente_id}`}
-                                    className='btn btn-success'
-                                    text={'Historico Contatos/Ocorrências'}
-                                    top={true}
-                                    textButton={<FaHistory size={25} />}
-                                />
-                                <NovaContatoOcorrencia cliente={cliente.cliente} />
-                            </td>
-                        </tr>
-                    ))}
+                    {clientesFiltro.map(cliente => {
+                        if (cliente.statusAtual.status_id != Enum.EStatus.Deletado)
+                            return (
+                                <tr>
+                                    <td>{Mascara.cpf(cliente.cliente.cliente_cpf)}</td>
+                                    <td>{cliente.cliente.cliente_nome}</td>
+                                    <td>{Mascara.telefone(cliente.cliente.cliente_telefoneCelular)}</td>
+                                    <td>{Mascara.data(cliente.cliente.cliente_dataCadastro)}</td>
+                                    <td>{cliente.statusAtual.status_nome}</td>
+                                    <td>{cliente.captador.captador_nome}</td>
+                                    <td style={{ display: 'flex', gap: 5 }}>
+                                        <ButtonTooltip
+                                            onClick={() => window.location.href = `/historicoocorrenciacliente?clienteId=${cliente.cliente.cliente_id}`}
+                                            className='btn btn-success'
+                                            text={'Historico Contatos/Ocorrências'}
+                                            top={true}
+                                            textButton={<FaHistory size={25} />}
+                                        />
+                                        {cliente.statusAtual.status_id !== Enum.EStatus.Deletado && cliente.statusAtual.status_id !== Enum.EStatus.Inativo 
+                                        && <NovaContatoOcorrencia cliente={cliente.cliente} />}
+                                    </td>
+                                </tr>
+                            )
+                    })}
                     {clientes.length == 0 && <span>Nenhum cliente foi encontrado...</span>}
                 </tbody>
             </table>

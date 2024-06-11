@@ -6,6 +6,7 @@ import { Mascara } from '../../util/mascara';
 import { ButtonTooltip } from '../../components/Inputs/ButtonTooltip';
 import { TbZoomMoney } from "react-icons/tb";
 import NovoPagamento from '../../components/Modal/NovoPagamento';
+import * as Enum from '../../util/enum';
 
 function Pagamentos() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext)
@@ -80,13 +81,14 @@ function Pagamentos() {
                             <td>{cliente.captador.captador_nome}</td>
                             <td style={{ display: 'flex', gap: 5 }}>
                                 <ButtonTooltip
-                                    onClick={() => window.location.href= `/historicopagamento?clienteId=${cliente.cliente.cliente_id}`}
+                                    onClick={() => window.location.href = `/historicopagamento?clienteId=${cliente.cliente.cliente_id}`}
                                     className='btn btn-success'
                                     text={'Historico De Pagamentos'}
                                     top={true}
                                     textButton={<TbZoomMoney size={25} />}
                                 />
-                                <NovoPagamento ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />
+                                {cliente.statusAtual.status_id !== Enum.EStatus.Deletado && cliente.statusAtual.status_id !== Enum.EStatus.Inativo
+                                    && <NovoPagamento ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />}
                             </td>
                         </tr>
                     ))}

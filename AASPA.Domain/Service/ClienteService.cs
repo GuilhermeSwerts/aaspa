@@ -35,11 +35,21 @@ namespace AASPA.Domain.Service
                 var benIds = _mysql.log_beneficios.Where(x => x.log_beneficios_cliente_id == clienteId && x.log_beneficios_ativo).ToList().Select(x => x.log_beneficios_beneficio_id).ToList();
                 var beneficios = _mysql.beneficios.Where(x => benIds.Contains(x.beneficio_id)).ToList();
 
+                var ultimoStatus = _mysql.log_status
+                    .Where(l => l.log_status_cliente_id == cliente.cliente_id)
+                    .Max(l => l.log_status_id);
+                StatusDb statusDb;
+
+                var idStatus = _mysql.log_status.FirstOrDefault(x => x.log_status_id == ultimoStatus).log_status_novo_id;
+
+                statusDb = _mysql.status.FirstOrDefault(x => x.status_id == idStatus);
+
                 return new BuscarClienteByIdResponse
                 {
                     Captador = captador,
                     Cliente = cliente,
-                    Beneficios = beneficios
+                    Beneficios = beneficios,
+                    StatusAtual = statusDb
                 };
 
             }
@@ -196,6 +206,7 @@ namespace AASPA.Domain.Service
             var clientes = (from cli in _mysql.clientes
                             join vin in _mysql.vinculo_cliente_captador on cli.cliente_id equals vin.vinculo_cliente_id
                             join cpt in _mysql.captadores on vin.vinculo_captador_id equals cpt.captador_id
+                            where cli.cliente_situacao
                             select new BuscarClienteByIdResponse
                             {
                                 Captador = cpt,
