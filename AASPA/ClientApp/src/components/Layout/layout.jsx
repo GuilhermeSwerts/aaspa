@@ -23,8 +23,8 @@ function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
                     <img style={{ marginLeft: 20 }} src={Logo} alt="logo" width={80} />
                     <ul style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                         <li onClick={() => IrPara('')} className={pagina_atual === 'CLIENTES' ? 'selected' : ''} >CLIENTES</li>
-                        <li  onClick={() => IrPara('hstcocontatoocorrencia')} className={pagina_atual === 'HISTORICO CONTATOS' ? 'selected' : ''}>HISTORICO CONTATOS/OCORRENCIA</li>
-                        <li onClick={() => IrPara("beneficios")} className={pagina_atual === 'BENEFICIOS' ? 'selected' : ''} >BENEFICIOS</li>
+                        <li  onClick={() => IrPara('hstcocontatoocorrencia')} className={pagina_atual === 'HISTORICO CONTATOS' ? 'selected' : ''}>HISTÓRICO CONTATOS/OCORRÊNCIA</li>
+                        <li onClick={() => IrPara("beneficios")} className={pagina_atual === 'BENEFICIOS' ? 'selected' : ''} >BENEFÍCIOS</li>
                         <li onClick={() => IrPara("pagamentos")} className={pagina_atual === 'PAGAMENTOS' ? 'selected' : ''} >PAGAMENTOS</li>
 
                         {usuario_tipo === 1 && <Dropdown style={{ background: 'none', border: 'none' }} isOpen={dropdownOpen} toggle={toggleDropdown} direction={'left'}>
