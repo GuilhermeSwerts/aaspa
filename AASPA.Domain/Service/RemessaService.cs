@@ -125,7 +125,7 @@ namespace AASPA.Domain.Service
                 var buscarTodasRemessas = new BuscarTodasRemessas()
                 {
                     RemessaId = buscar.remessa_id,
-                    Mes = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(mesDaRemessa).ToUpper(),
+                    Mes = CultureInfo.CreateSpecificCulture("pt-BR").DateTimeFormat.GetMonthName(mesDaRemessa).ToUpper(),
                     Ano = anoDaRemessa,
                     DataCriacao = buscar.remessa_data_criacao.ToString()
                 };
