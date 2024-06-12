@@ -85,7 +85,7 @@ namespace AASPA.Domain.Service
 
                 foreach (var cliente in clientes)
                 {
-                    ValorLinha.Add($"1{cliente.registro_numero_beneficio}{cliente.registro_codigo_operacao}000{cliente.registro_decimo_terceiro}{cliente.registro_valor_percentual_desconto}".PadRight(45));
+                    ValorLinha.Add($"1{cliente.registro_numero_beneficio.PadLeft(10,'0')}{cliente.registro_codigo_operacao}000{cliente.registro_decimo_terceiro}{cliente.registro_valor_percentual_desconto.ToString().PadLeft(5,'0')}".PadRight(45));
                 }
                 ValorLinha.Add($"9{clientes.Count.ToString().PadLeft(6, '0')}".PadRight(45));
 
