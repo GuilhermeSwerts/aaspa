@@ -1,4 +1,5 @@
-﻿using AASPA.Domain.Interface;
+﻿using AASPA.Domain.CustonException;
+using AASPA.Domain.Interface;
 using AASPA.Models.Requests;
 using AASPA.Models.Response;
 using AASPA.Repository;
@@ -117,9 +118,9 @@ namespace AASPA.Domain.Service
             {
                 string cpf = novoCliente.Cliente.Cpf.Replace(".", "").Replace("-", "");
                 if (_mysql.clientes.Any(x => x.cliente_cpf == cpf))
-                    throw new Exception($"Cliente com o cpf: {cpf} já cadastrado.");
+                    throw new ClienteException($"Cliente com o cpf: {cpf} já cadastrado.");
 
-                var cliente = new Repository.Maps.ClienteDb
+                var cliente = new ClienteDb
                 {
                     cliente_cpf = cpf,
                     cliente_nome = novoCliente.Cliente.Nome,
@@ -131,16 +132,17 @@ namespace AASPA.Domain.Service
                     cliente_numero = novoCliente.Cliente.Numero,
                     cliente_complemento = novoCliente.Cliente.Complemento,
                     cliente_dataNasc = novoCliente.Cliente.DataNasc,
-                    cliente_nrDocto = novoCliente.Cliente.NrDocto,
+                    cliente_nrDocto = novoCliente.Cliente.NrDocto ?? string.Empty,
                     cliente_empregador = novoCliente.Cliente.Empregador,
                     cliente_matriculaBeneficio = novoCliente.Cliente.MatriculaBeneficio,
                     cliente_nomeMae = novoCliente.Cliente.NomeMae,
                     cliente_nomePai = novoCliente.Cliente.NomePai,
-                    cliente_telefoneFixo = novoCliente.Cliente.TelefoneFixo.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", ""),
+                    cliente_telefoneFixo = novoCliente.Cliente.TelefoneFixo != null ? novoCliente.Cliente.TelefoneFixo.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "") : null,
                     cliente_telefoneCelular = novoCliente.Cliente.TelefoneCelular.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", ""),
                     cliente_possuiWhatsapp = novoCliente.Cliente.PossuiWhatsapp,
                     cliente_funcaoAASPA = novoCliente.Cliente.FuncaoAASPA,
-                    cliente_email = novoCliente.Cliente.Email
+                    cliente_email = novoCliente.Cliente.Email,
+                    cliente_situacao = true
                 };
                 _mysql.clientes.Add(cliente);
                 _mysql.SaveChanges();
@@ -176,6 +178,10 @@ namespace AASPA.Domain.Service
 
                 tran.Commit();
 
+            }
+            catch (ClienteException ce)
+            {
+                throw new ClienteException(ce.Message);
             }
             catch (Exception ex)
             {
