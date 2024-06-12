@@ -52,12 +52,12 @@ namespace AASPA.Domain.Service
             _mysql.remessa.Add(remessa);
             _mysql.SaveChanges();
             int idRemessa = remessa.remessa_id;
-
+            
             foreach (var clienteDb in clientes)
             {
                 _mysql.registro_remessa.Add(new RegistroRemessaDb
                 {
-                    registro_numero_beneficio = clienteDb.cliente_matriculaBeneficio,
+                    registro_numero_beneficio = clienteDb.cliente_matriculaBeneficio.Length > 10? clienteDb.cliente_matriculaBeneficio.Substring(0,10) : clienteDb.cliente_matriculaBeneficio.PadLeft(10,'0'),
                     registro_codigo_operacao = clienteDb.cliente_situacao ? 1 : 5,
                     registro_decimo_terceiro = 0,
                     registro_valor_percentual_desconto = 0,
@@ -85,7 +85,7 @@ namespace AASPA.Domain.Service
 
                 foreach (var cliente in clientes)
                 {
-                    ValorLinha.Add($"1{cliente.registro_numero_beneficio.PadLeft(10,'0')}{cliente.registro_codigo_operacao}000{cliente.registro_decimo_terceiro}{cliente.registro_valor_percentual_desconto.ToString().PadLeft(5,'0')}".PadRight(45));
+                    ValorLinha.Add($"1{cliente.registro_numero_beneficio}{cliente.registro_codigo_operacao}000{cliente.registro_decimo_terceiro}{cliente.registro_valor_percentual_desconto.ToString().PadLeft(5, '0')}".PadRight(45));
                 }
                 ValorLinha.Add($"9{clientes.Count.ToString().PadLeft(6, '0')}".PadRight(45));
 
