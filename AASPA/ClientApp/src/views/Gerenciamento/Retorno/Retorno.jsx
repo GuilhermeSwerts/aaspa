@@ -45,11 +45,21 @@ function Retorno() {
     const HabilitarImportacao = () => {
         setImportar(true);
     }
-    const BuscarRetorno = (mes, ano) => {
+    const BuscarRetorno = () => {
+        const mesCorrente = moment().format('MM');
+        const anoCorrente = moment().format('YYYY');
+        let ano = anoSelecionado ? anoSelecionado : anoCorrente;
+        let mes = mesSelecionado ? mesSelecionado : mesCorrente;
+        setMesSelecionado(parseInt(mes));
+        setAnoSelecionado(ano);
         axios.post(`BuscarRetorno?mes=${mes}&ano=${ano}`)
             .then(response => {
                 console.log('Resposta da API:', response.data);
-                setRetorno(response.data);
+                if (response.status == 204) {
+                    setRetorno({ retorno: [] })
+                } else {
+                    setRetorno(response.data)
+                }
                 console.log('Valor retorno idretorno', retorno);
             })
             .catch(error => {
@@ -60,21 +70,14 @@ function Retorno() {
 
     useEffect(() => {
         handdleUsuarioLogado();
-        const mesCorrente = moment().format('MM');
-        const anoCorrente = moment().format('YYYY');
-
-        setMesSelecionado(mesCorrente);
-        setAnoSelecionado(anoCorrente);
-
-        BuscarRetorno(mesCorrente, anoCorrente);
+        BuscarRetorno();
         setImportar(0);
     }, []);
 
     return (
         <NavBar usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
             <Row>
-                <Col md="8">
-                    <div>
+                <Col md="6">
                         <BuscarPorMesAno
                             mesSelecionado={mesSelecionado}
                             setMesSelecionado={setMesSelecionado}
@@ -83,44 +86,34 @@ function Retorno() {
                             BuscarRemessas={BuscarRetorno}
                             OnClick={BuscarRetorno}
                         />
-                    </div>
                 </Col>
-                <Col md="3">
-                    <div>
+                <Col md="12" style={{marginTop:'2rem'}}>
                         {!importar && (
                             <Button color="primary" onClick={HabilitarImportacao}>Importar Arquivo</Button>
                         )}
                         {importar === true && (
-                            <>
-                                <div className="container mt-4">
-                                    <Row>
-                                        <Col>
-                                            <div className="p-3 border rounded">
-                                                <FormGroup>
-                                                    <Input
-                                                        onChange={handleFileChange}
-                                                        type="file"
-                                                        id="fileID"
-                                                        style={{ display: 'none' }}
-                                                    />
-                                                    {fileName && <p>Arquivo selecionado: {fileName}</p>}
-                                                    <br />
-                                                    <div className="d-flex justify-content-center mt-2">
-                                                        <Label for="fileID" className="btn btn-secondary mx-2">
-                                                            Selecionar Arquivo
-                                                        </Label>
-                                                        <Button color="primary" onClick={handleSubmit} className="mx-2">
-                                                            Enviar Retorno
-                                                        </Button>
-                                                    </div>
-                                                </FormGroup>
-                                            </div>
-                                        </Col>
-                                    </Row>
-                                </div>
-                            </>
+                        <Col md="12">
+                            <Row>                               
+                                <Col md="6">
+                                    <Label for="fileID" className="btn btn-secondary" style={{marginTop: '8px', marginRight: '10px'}}>
+                                        Selecionar Arquivo
+                                    </Label>
+                                    <Button color="primary" onClick={handleSubmit}>
+                                        Enviar Retorno
+                                    </Button>
+                                </Col>
+                                <Col md="6">
+                                    <Input
+                                        onChange={handleFileChange}
+                                        type="file"
+                                        id="fileID"
+                                        style={{ display: 'none' }}
+                                    />
+                                    {fileName && <p>Arquivo selecionado: {fileName}</p>}
+                                </Col>
+                            </Row>                               
+                         </Col>
                         )}
-                    </div>
                 </Col>
             </Row>                                    
             <br />

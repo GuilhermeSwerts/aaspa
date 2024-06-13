@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "date-fns": "^3.6.0",
+    "moment": "^2.30.1"
+  }
+}

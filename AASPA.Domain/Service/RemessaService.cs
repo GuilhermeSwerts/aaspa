@@ -265,7 +265,8 @@ namespace AASPA.Domain.Service
         {
             try
             {
-                var retorno = _mysql.retornos_remessa.FirstOrDefault(x => x.AnoMes == (ano + mes.ToString().PadLeft(2,'0')).ToString());
+                var anomes = (ano + mes.ToString().PadLeft(2, '0')).ToString();
+                var retorno = _mysql.retornos_remessa.FirstOrDefault(x => x.AnoMes == anomes);
 
                 if (retorno != null)
                 {
