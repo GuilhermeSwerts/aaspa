@@ -10,9 +10,9 @@ namespace AASPA.Repository.Maps
     public class RetornoRemessaDb
     {
         [Key]
-        public int RetornoId { get; set; }
+        public int Retorno_Id { get; set; }
         public string AnoMes { get; set; }
-        public int RemessaId { get; set; }
-        public DateTime? DataImportacao { get; set; }
+        public int? Remessa_Id { get; set; }
+        public DateTime? Data_Importacao { get; set; }
     }
 }

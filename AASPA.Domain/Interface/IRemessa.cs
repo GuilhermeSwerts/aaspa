@@ -16,5 +16,6 @@ namespace AASPA.Domain.Interface
         string GerarArquivoRemessa(int idRegistro, int mes, int ano);
         BuscarArquivoResponse BuscarArquivo(int remessaId);
         Task<string> LerRetorno(IFormFile file);
+        BuscarRetornoResponse BuscarRetorno(int mes, int ano);
     }
 }

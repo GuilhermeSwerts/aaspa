@@ -38,6 +38,7 @@ function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
                                 <DropdownItem divider />
                                 <DropdownItem header>Relatórios</DropdownItem>
                                 <DropdownItem onClick={() => IrPara("rremessa")}>REMESSA</DropdownItem>
+                                <DropdownItem onClick={() => IrPara("rretorno")}>RETORNO</DropdownItem>
                             </DropdownMenu>
                         </Dropdown>}
 

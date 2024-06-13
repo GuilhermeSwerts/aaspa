@@ -9,13 +9,13 @@ namespace AASPA.Repository.Maps
     public class RegistroRetornoRemessaDb
     {
         public int Id { get; set; }
-        public int NumeroBeneficio { get; set; }
-        public int CodigoOperacao { get; set; }
-        public int CodigoResultado { get; set; }
-        public int MotivoRejeicao { get; set; }
-        public decimal ValorDesconto { get; set; }
-        public DateTime DataInicioDesconto { get; set; }
-        public int CodigoEspecieBeneficio { get; set; }
-        public int? RetornoRemessaId { get; set; }
+        public double Numero_Beneficio { get; set; }
+        public int Codigo_Operacao { get; set; }
+        public int Codigo_Resultado { get; set; }
+        public int Motivo_Rejeicao { get; set; }
+        public decimal Valor_Desconto { get; set; }
+        public DateTime Data_Inicio_Desconto { get; set; }
+        public int Codigo_Especie_Beneficio { get; set; }
+        public int? Retorno_Remessa_Id { get; set; }
     }
 }

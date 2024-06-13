@@ -67,7 +67,7 @@ namespace AASPA.Controllers
         }
         [HttpPost]
         [Route("LerRetornoRemessa")]
-        public async Task<ActionResult> LerRetorno(IFormFile file)
+        public async Task<ActionResult> LerRetornoRemessa(IFormFile file)
         {
             try
             {
@@ -77,6 +77,20 @@ namespace AASPA.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
+            }
+        }
+        [HttpPost]
+        [Route("BuscarRetorno")]
+        public ActionResult BuscarRetorno([FromQuery] int mes, [FromQuery] int ano)
+        {
+            try
+            {
+                BuscarRetornoResponse retorno = _remessa.BuscarRetorno(mes, ano);
+                return Ok(retorno);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
             }
         }
     }

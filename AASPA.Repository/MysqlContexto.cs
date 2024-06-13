@@ -29,7 +29,7 @@ namespace AASPA.Repository
         public DbSet<VinculoClienteCaptadorDb> vinculo_cliente_captador { get; set; }
         public DbSet<RegistroRemessaDb> registro_remessa { get; set; }
         public DbSet<RemessaDb> remessa { get; set; }
-        public DbSet<RetornoRemessaDb> retornosremessa { get; set; }
-        public DbSet<RegistroRetornoRemessaDb> registrosretornoremessa { get; set; }
+        public DbSet<RetornoRemessaDb> retornos_remessa { get; set; }
+        public DbSet<RegistroRetornoRemessaDb> registros_retorno_remessa { get; set; }
     }
 }
