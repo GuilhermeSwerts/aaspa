@@ -13,7 +13,7 @@ namespace AASPA.Repository.Maps
         public int captador_id { get; set; }
         public string captador_cpf_cnpj { get; set; }
         public string captador_nome { get; set; }
-        public string captador_descricao { get; set; }
+        public string? captador_descricao { get; set; }
         public bool captador_e_cnpj { get; set; }
         
     }
