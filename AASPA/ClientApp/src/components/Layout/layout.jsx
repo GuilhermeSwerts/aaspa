@@ -25,6 +25,7 @@ function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
     const toggleMenu = () => {
         setShowMenu(!showMenu)
 
+
         document.querySelector('.sidebar').classList.toggle("open");
         document.querySelector('.btn-toggle-menu').classList.toggle('btn-toggle-menu-open');
         document.querySelector('.dashboard').classList.toggle('opening');
@@ -79,6 +80,7 @@ function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
                         <DropdownMenu>
                             <DropdownItem header>Relatórios</DropdownItem>
                             <DropdownItem onClick={() => IrPara("rremessa")}>REMESSA</DropdownItem>
+                            <DropdownItem onClick={() => IrPara("rretorno")}>REMESSA</DropdownItem>
                         </DropdownMenu>
                     </Dropdown>}
                 </div>
