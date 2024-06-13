@@ -11,6 +11,7 @@ import ModalEditarStatusAtual from '../../components/Modal/editarStatusAtual';
 import ModalLogStatus from '../../components/Modal/LogStatus';
 import ModalLogBeneficios from '../../components/Modal/ModalLogBeneficios';
 import { TbZoomMoney } from 'react-icons/tb';
+import * as Enum from '../../util/enum';
 
 export default () => {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -82,47 +83,55 @@ export default () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {clientesFiltro.map(cliente => (
-                        <tr>
-                            <td>{Mascara.cpf(cliente.cliente.cliente_cpf)}</td>
-                            <td>{cliente.cliente.cliente_nome}</td>
-                            <td>{Mascara.telefone(cliente.cliente.cliente_telefoneCelular)}</td>
-                            <td>{Mascara.data(cliente.cliente.cliente_dataCadastro)}</td>
-                            <td>{cliente.statusAtual.status_nome}</td>
-                            <td>{cliente.captador.captador_nome}</td>
-                            <td><select className='form-control'>
-                                {cliente.beneficios.map(beneficio => (
-                                    <option value={beneficio.beneficio_id}>{beneficio.beneficio_nome_beneficio}</option>
-                                ))}
-                            </select></td>
-                            <td style={{ display: 'flex', gap: 5 }}>
-                                <ButtonTooltip
-                                    onClick={() => window.location.href = `/historicopagamento?clienteId=${cliente.cliente.cliente_id}`}
-                                    className='btn btn-success'
-                                    text={'Historico De Pagamentos'}
-                                    top={true}
-                                    textButton={<TbZoomMoney size={25} />}
-                                />
-                                <ButtonTooltip
-                                    onClick={() => window.location.href = `/historicoocorrenciacliente?clienteId=${cliente.cliente.cliente_id}`}
-                                    className='btn btn-success'
-                                    text={'Historico Contatos/Ocorrências'}
-                                    top={true}
-                                    textButton={<RiChatHistoryLine size={25} />}
-                                />
-                                <ModalLogStatus ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />
-                                <ModalLogBeneficios ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />
-                                <ButtonTooltip
-                                    onClick={() => window.location.href = `/cliente?clienteId=${cliente.cliente.cliente_id}`}
-                                    className='btn btn-warning'
-                                    text={'Editar Dados Do Cliente'}
-                                    top={true}
-                                    textButton={<FaUserEdit color='#fff' size={25} />}
-                                />
-                                <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />
-                            </td>
-                        </tr>
-                    ))}
+                    {clientesFiltro.map(cliente => {
+                        if (cliente.statusAtual.status_id != Enum.EStatus.Deletado)
+                            return (
+                                <tr>
+                                    <td>{Mascara.cpf(cliente.cliente.cliente_cpf)}</td>
+                                    <td>{cliente.cliente.cliente_nome}</td>
+                                    <td>{Mascara.telefone(cliente.cliente.cliente_telefoneCelular)}</td>
+                                    <td>{Mascara.data(cliente.cliente.cliente_dataCadastro)}</td>
+                                    <td>{cliente.statusAtual.status_nome}</td>
+                                    <td>{cliente.captador.captador_nome}</td>
+                                    <td><select className='form-control'>
+                                        {cliente.beneficios.map(beneficio => (
+                                            <option value={beneficio.beneficio_id}>{beneficio.beneficio_nome_beneficio}</option>
+                                        ))}
+                                    </select></td>
+                                    {cliente.statusAtual.status_id !== Enum.EStatus.Deletado && cliente.statusAtual.status_id !== Enum.EStatus.Inativo
+                                        && <td style={{ display: 'flex', gap: 5 }}>
+                                            <ButtonTooltip
+                                                onClick={() => window.location.href = `/historicopagamento?clienteId=${cliente.cliente.cliente_id}`}
+                                                className='btn btn-success'
+                                                text={'Historico De Pagamentos'}
+                                                top={true}
+                                                textButton={<TbZoomMoney size={25} />}
+                                            />
+                                            <ButtonTooltip
+                                                onClick={() => window.location.href = `/historicoocorrenciacliente?clienteId=${cliente.cliente.cliente_id}`}
+                                                className='btn btn-success'
+                                                text={'Historico Contatos/Ocorrências'}
+                                                top={true}
+                                                textButton={<RiChatHistoryLine size={25} />}
+                                            />
+                                            <ModalLogStatus ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />
+                                            <ModalLogBeneficios ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />
+                                            <ButtonTooltip
+                                                onClick={() => window.location.href = `/cliente?clienteId=${cliente.cliente.cliente_id}`}
+                                                className='btn btn-warning'
+                                                text={'Editar Dados'}
+                                                top={true}
+                                                textButton={<FaUserEdit color='#fff' size={25} />}
+                                            />
+                                            <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />
+                                        </td>}
+                                    {cliente.statusAtual.status_id == Enum.EStatus.Deletado || cliente.statusAtual.status_id == Enum.EStatus.Inativo
+                                        && <td>
+                                            <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />
+                                        </td>}
+                                </tr>
+                            )
+                    })}
                     {clientes.length == 0 && <span>Nenhum cliente foi encontrado...</span>}
                 </tbody>
             </table>

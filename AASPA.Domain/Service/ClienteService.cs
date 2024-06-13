@@ -1,4 +1,5 @@
-﻿using AASPA.Domain.Interface;
+﻿using AASPA.Domain.CustonException;
+using AASPA.Domain.Interface;
 using AASPA.Models.Requests;
 using AASPA.Models.Response;
 using AASPA.Repository;
@@ -35,11 +36,21 @@ namespace AASPA.Domain.Service
                 var benIds = _mysql.log_beneficios.Where(x => x.log_beneficios_cliente_id == clienteId && x.log_beneficios_ativo).ToList().Select(x => x.log_beneficios_beneficio_id).ToList();
                 var beneficios = _mysql.beneficios.Where(x => benIds.Contains(x.beneficio_id)).ToList();
 
+                var ultimoStatus = _mysql.log_status
+                    .Where(l => l.log_status_cliente_id == cliente.cliente_id)
+                    .Max(l => l.log_status_id);
+                StatusDb statusDb;
+
+                var idStatus = _mysql.log_status.FirstOrDefault(x => x.log_status_id == ultimoStatus).log_status_novo_id;
+
+                statusDb = _mysql.status.FirstOrDefault(x => x.status_id == idStatus);
+
                 return new BuscarClienteByIdResponse
                 {
                     Captador = captador,
                     Cliente = cliente,
-                    Beneficios = beneficios
+                    Beneficios = beneficios,
+                    StatusAtual = statusDb
                 };
 
             }
@@ -107,9 +118,9 @@ namespace AASPA.Domain.Service
             {
                 string cpf = novoCliente.Cliente.Cpf.Replace(".", "").Replace("-", "");
                 if (_mysql.clientes.Any(x => x.cliente_cpf == cpf))
-                    throw new Exception($"Cliente com o cpf: {cpf} já cadastrado.");
+                    throw new ClienteException($"Cliente com o cpf: {cpf} já cadastrado.");
 
-                var cliente = new Repository.Maps.ClienteDb
+                var cliente = new ClienteDb
                 {
                     cliente_cpf = cpf,
                     cliente_nome = novoCliente.Cliente.Nome,
@@ -121,16 +132,17 @@ namespace AASPA.Domain.Service
                     cliente_numero = novoCliente.Cliente.Numero,
                     cliente_complemento = novoCliente.Cliente.Complemento,
                     cliente_dataNasc = novoCliente.Cliente.DataNasc,
-                    cliente_nrDocto = novoCliente.Cliente.NrDocto,
+                    cliente_nrDocto = novoCliente.Cliente.NrDocto ?? string.Empty,
                     cliente_empregador = novoCliente.Cliente.Empregador,
                     cliente_matriculaBeneficio = novoCliente.Cliente.MatriculaBeneficio,
                     cliente_nomeMae = novoCliente.Cliente.NomeMae,
                     cliente_nomePai = novoCliente.Cliente.NomePai,
-                    cliente_telefoneFixo = novoCliente.Cliente.TelefoneFixo.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", ""),
+                    cliente_telefoneFixo = novoCliente.Cliente.TelefoneFixo != null ? novoCliente.Cliente.TelefoneFixo.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "") : null,
                     cliente_telefoneCelular = novoCliente.Cliente.TelefoneCelular.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", ""),
                     cliente_possuiWhatsapp = novoCliente.Cliente.PossuiWhatsapp,
                     cliente_funcaoAASPA = novoCliente.Cliente.FuncaoAASPA,
-                    cliente_email = novoCliente.Cliente.Email
+                    cliente_email = novoCliente.Cliente.Email,
+                    cliente_situacao = true
                 };
                 _mysql.clientes.Add(cliente);
                 _mysql.SaveChanges();
@@ -167,6 +179,10 @@ namespace AASPA.Domain.Service
                 tran.Commit();
 
             }
+            catch (ClienteException ce)
+            {
+                throw new ClienteException(ce.Message);
+            }
             catch (Exception ex)
             {
                 tran.Rollback();
@@ -196,6 +212,7 @@ namespace AASPA.Domain.Service
             var clientes = (from cli in _mysql.clientes
                             join vin in _mysql.vinculo_cliente_captador on cli.cliente_id equals vin.vinculo_cliente_id
                             join cpt in _mysql.captadores on vin.vinculo_captador_id equals cpt.captador_id
+                            where cli.cliente_situacao
                             select new BuscarClienteByIdResponse
                             {
                                 Captador = cpt,

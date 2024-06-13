@@ -4,6 +4,7 @@ import { api } from '../../api/api';
 import { FaEdit } from 'react-icons/fa';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { FiMoreHorizontal } from 'react-icons/fi';
+import * as Enum from '../../util/enum';
 
 function ModalEditarStatusAtual({ BuscarTodosClientes, ClienteId, StatusId }) {
 
@@ -30,9 +31,21 @@ function ModalEditarStatusAtual({ BuscarTodosClientes, ClienteId, StatusId }) {
     }, [])
 
     const handleSubmit = async () => {
-        if (novoStatus === StatusId) {
+        if (novoStatus == StatusId) {
             alert("Escolha um status diferente do atual.");
             return;
+        }
+
+        if (novoStatus == Enum.EStatus.Inativo) {
+            if (!(await window.confirm("Deseja realmente inativar esse cliente?\nVocê não poderá realizar alterações até que seja reativado.\n Deseja continuar?"))) {
+                return;
+            }
+        }
+
+        if (novoStatus == Enum.EStatus.Deletado) {
+            if (!(await window.confirm("Deseja realmente deletar esse cliente?"))) {
+                return;
+            }
         }
 
         var formData = new FormData();
@@ -41,7 +54,7 @@ function ModalEditarStatusAtual({ BuscarTodosClientes, ClienteId, StatusId }) {
         formData.append("cliente_id", ClienteId);
 
         api.post("AlterarStatusCliente", formData, async res => {
-            await alert("A pagina será recarregada\nPor favor aguarde...");
+            alert("Status atualizado com sucesso!");
             BuscarTodosClientes();
             setShow(false);
         }, err => {
@@ -54,7 +67,7 @@ function ModalEditarStatusAtual({ BuscarTodosClientes, ClienteId, StatusId }) {
             <ButtonTooltip
                 onClick={() => setShow(true)}
                 className='btn btn-danger'
-                text={'Editar Status Cliente'}
+                text={'Editar Status'}
                 top={true}
                 textButton={<FiMoreHorizontal size={25} />}
             />

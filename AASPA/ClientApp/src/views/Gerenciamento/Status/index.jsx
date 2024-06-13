@@ -60,7 +60,7 @@ function Status() {
                         <tr>
                             <td>{item.status_id}</td>
                             <td>{item.status_nome}</td>
-                            <td><ModalEditarStatus BuscarTodosStatus={BuscarTodosStatus} StatusId={item.status_id} /></td>
+                            <td>{item.status_id != 1 && item.status_id != 2 && item.status_id != 3 && <ModalEditarStatus BuscarTodosStatus={BuscarTodosStatus} StatusId={item.status_id} />}</td>
                         </tr>
                     ))}
                 </tbody>

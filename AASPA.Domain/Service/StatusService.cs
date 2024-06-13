@@ -1,10 +1,12 @@
 ﻿using AASPA.Domain.Interface;
+using AASPA.Models.Enum;
 using AASPA.Models.Requests;
 using AASPA.Models.Response;
 using AASPA.Repository;
 using AASPA.Repository.Maps;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Text;
@@ -23,12 +25,11 @@ namespace AASPA.Domain.Service
 
         public List<BuscarLogStatusClienteIdResponse> BuscarLogStatusClienteId(int clienteId, DateTime? dtInicio = null, DateTime? dtFim = null)
         {
-
             var logs = _mysql.log_status
-            .Where(x => x.log_status_id > 0
-                && (dtInicio == null || x.log_status_dt_cadastro >= DateTime.Parse(DateTime.Parse(dtInicio.ToString()).ToString("dd/MM/yyyy 00:00:00")))
-                && (dtFim == null || x.log_status_dt_cadastro <= DateTime.Parse(DateTime.Parse(dtFim.ToString()).ToString("dd/MM/yyyy 23:59:59")))
-            ).ToList();
+     .Where(x => x.log_status_id > 0
+         && (dtInicio == null || x.log_status_dt_cadastro >= dtInicio)
+         && (dtFim == null || x.log_status_dt_cadastro <= dtFim)
+     ).ToList();
 
             List<BuscarLogStatusClienteIdResponse> response = new();
             foreach (var log in logs)
@@ -52,6 +53,12 @@ namespace AASPA.Domain.Service
             using var tran = _mysql.Database.BeginTransaction();
             try
             {
+                if(request.status_id_novo == (int)EStatus.Deletado)
+                {
+                    var cliente = _mysql.clientes.FirstOrDefault(x=> x.cliente_id == request.cliente_id);
+                    cliente.cliente_situacao = false;
+                    _mysql.SaveChanges();
+                }
 
                 _mysql.log_status.Add(new LogStatusDb
                 {

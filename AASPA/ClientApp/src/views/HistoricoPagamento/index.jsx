@@ -8,6 +8,7 @@ import { ButtonTooltip } from '../../components/Inputs/ButtonTooltip';
 import { FaPencil, FaTrash } from 'react-icons/fa6';
 import NovoPagamento from '../../components/Modal/NovoPagamento';
 import EditarPagamento from '../../components/Modal/editarPagamento';
+import * as Enum from '../../util/enum';
 
 function HistoricoPagamento() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -53,7 +54,7 @@ function HistoricoPagamento() {
         }
     }
 
-    const ConverterMoeda = atual => atual.toLocaleString('pt-br',{style: 'currency', currency: 'BRL'}); 
+    const ConverterMoeda = atual => atual.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
 
     return (
         <NavBar usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
@@ -63,7 +64,8 @@ function HistoricoPagamento() {
                     <h4>Cliente: {clienteData.cliente.cliente_nome}</h4>
                     <h4>CPF: {Mascara.cpf(clienteData.cliente.cliente_cpf)}</h4>
                 </div>
-                <NovoPagamento BuscarPagamentos={BuscarPagamentos} ClienteId={clienteData.cliente.cliente_id} ClienteNome={clienteData.cliente.cliente_nome} />
+                {clienteData.statusAtual && clienteData.statusAtual.status_id !== Enum.EStatus.Deletado && clienteData.statusAtual.status_id !== Enum.EStatus.Inativo
+                    && <NovoPagamento BuscarPagamentos={BuscarPagamentos} ClienteId={clienteData.cliente.cliente_id} ClienteNome={clienteData.cliente.cliente_nome} />}
             </div>
             <table className='table table-striped'>
                 <thead>

@@ -10,6 +10,7 @@ import { FaEye, FaTrash } from 'react-icons/fa6';
 import { ButtonTooltip } from '../../components/Inputs/ButtonTooltip';
 import ModalEditarContatoOcorrencia from '../../components/Modal/editarContatoOcorrencia';
 import axios from 'axios';
+import * as Enum from '../../util/enum';
 
 function HistoricoOcorrenciaCliente(props) {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -84,7 +85,8 @@ function HistoricoOcorrenciaCliente(props) {
                     <h4>Contato: {clienteData.cliente.cliente_nome}</h4>
                     <h4>CPF: {Mascara.cpf(clienteData.cliente.cliente_cpf)}</h4>
                 </div>
-                <ModalContatoOcorrencia BuscarHistoricoOcorrenciaCliente={BuscarHistoricoOcorrenciaCliente} cliente={clienteData.cliente} />
+                {clienteData.statusAtual && clienteData.statusAtual.status_id !== Enum.EStatus.Deletado && clienteData.statusAtual.status_id !== Enum.EStatus.Inativo
+                    && <ModalContatoOcorrencia BuscarHistoricoOcorrenciaCliente={BuscarHistoricoOcorrenciaCliente} cliente={clienteData.cliente} />}
             </div>
             <table className='table table-striped'>
                 <thead>

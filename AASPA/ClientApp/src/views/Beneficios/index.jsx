@@ -5,6 +5,7 @@ import { api } from '../../api/api';
 import { Mascara } from '../../util/mascara';
 import ModalVincularBeneficios from '../../components/Modal/ModalVincularBeneficios';
 import ModalLogBeneficios from '../../components/Modal/ModalLogBeneficios';
+import * as Enum from '../../util/enum';
 
 function Beneficios() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -89,8 +90,9 @@ function Beneficios() {
                                 ))}
                             </select></td>
                             <td style={{ display: 'flex', gap: 5 }}>
-                                <ModalVincularBeneficios BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id}/>
-                                <ModalLogBeneficios ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome}/>
+                                {cliente.statusAtual.status_id !== Enum.EStatus.Deletado && cliente.statusAtual.status_id !== Enum.EStatus.Inativo
+                                    && <ModalVincularBeneficios BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} />}
+                                <ModalLogBeneficios ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />
                             </td>
                         </tr>
                     ))}

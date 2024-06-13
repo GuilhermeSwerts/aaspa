@@ -49,34 +49,35 @@ function ClienteForm({
                 </Col>
                 <Col md={3}>
                     <FormGroup>
-                        <Label for="nome">Complemento</Label>
-                        <Input type="text" name="complemento" id="complemento" value={cliente.complemento} onChange={handleChange} />
+                        <Label for="endereco">Número*</Label>
+                        <Input required maxLength={5} type="text" name="numero" id="numero" value={cliente.numero} onChange={handleChange} />
                     </FormGroup>
+
                 </Col>
             </Row>
             <Row>
-                <Col md={5}>
-                    <FormGroup>
-                        <Label for="nome">localidade*</Label>
-                        <Input required type="text" name="localidade" id="localidade" value={cliente.localidade} onChange={handleChange} />
-                    </FormGroup>
-                </Col>
                 <Col md={2}>
                     <FormGroup>
                         <Label for="endereco">Bairro*</Label>
                         <Input required type="text" name="bairro" id="bairro" value={cliente.bairro} onChange={handleChange} />
                     </FormGroup>
                 </Col>
+                <Col md={5}>
+                    <FormGroup>
+                        <Label for="nome">Cidade*</Label>
+                        <Input required type="text" name="localidade" id="localidade" value={cliente.localidade} onChange={handleChange} />
+                    </FormGroup>
+                </Col>
                 <Col md={2}>
                     <FormGroup>
-                        <Label for="endereco">Uf*</Label>
+                        <Label for="endereco">UF*</Label>
                         <Input required type="text" name="uf" id="uf" value={cliente.uf} onChange={handleChange} />
                     </FormGroup>
                 </Col>
                 <Col md={3}>
                     <FormGroup>
-                        <Label for="endereco">Numero*</Label>
-                        <Input required maxLength={5} type="text" name="numero" id="numero" value={cliente.numero} onChange={handleChange} />
+                        <Label for="nome">Complemento</Label>
+                        <Input type="text" name="complemento" id="complemento" value={cliente.complemento} onChange={handleChange} />
                     </FormGroup>
                 </Col>
             </Row>
