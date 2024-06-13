@@ -31,14 +31,14 @@ namespace AASPA.Domain.Service
         {
             var logs = _mysql.log_beneficios.Where(x => 
             x.log_beneficios_cliente_id == clienteId
-             && (dtInicio == null || x.log_beneficios_dt_cadastro >= DateTime.Parse(DateTime.Parse(dtInicio.ToString()).ToString("dd/MM/yyyy 00:00:00")))
-             && (dtFim == null || x.log_beneficios_dt_cadastro <= DateTime.Parse(DateTime.Parse(dtFim.ToString()).ToString("dd/MM/yyyy 23:59:59")))
+             && (dtInicio == null || x.log_beneficios_dt_cadastro >= dtInicio)
+             && (dtFim == null || x.log_beneficios_dt_cadastro <= dtFim)
             ).ToList();
 
             var logsRemovidos = _mysql.log_beneficios.Where(x =>
             x.log_beneficios_cliente_id == clienteId
-             && (dtInicio == null || x.log_beneficios_dt_removido >= DateTime.Parse(DateTime.Parse(dtInicio.ToString()).ToString("dd/MM/yyyy 00:00:00")))
-             && (dtFim == null || x.log_beneficios_dt_removido <= DateTime.Parse(DateTime.Parse(dtFim.ToString()).ToString("dd/MM/yyyy 23:59:59")))
+             && (dtInicio == null || x.log_beneficios_dt_removido >= dtInicio)
+             && (dtFim == null || x.log_beneficios_dt_removido <= dtFim)
             ).ToList();
 
             logs.AddRange(logsRemovidos);
