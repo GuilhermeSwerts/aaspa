@@ -172,12 +172,19 @@ namespace AASPA.Domain.Service
 
             try
             {
-                var retorno_remessa = new RetornoRemessaDb
+                using var tran = _mysql.Database.BeginTransaction();
+
+                var remessa_id = _mysql.remessa.FirstOrDefault(x => x.remessa_ano_mes == file.FileName.Substring(15, 6)).remessa_id;
+                var retorno = new RetornoRemessaDb()
                 {
-                    NomeArquivo = file.FileName,
                     DataImportacao = DateTime.Now,
-                };
-                _mysql.retornosremessa.Add(retorno_remessa);
+                    AnoMes = file.FileName,
+                    RemessaId = remessa_id
+                }
+                _mysql.retornosremessa.Add(retorno);
+                _mysql.SaveChanges();
+
+                var idRetorno = retorno.RetornoId;
 
                 using (var memoryStream = new MemoryStream())
                 {
@@ -202,7 +209,7 @@ namespace AASPA.Domain.Service
                             else if (int.Parse(line.Substring(0, 1)) == 1)
                             {
                                 DateTime date;
-                                var retorno = new RegistroRetornoRemessaDb()
+                                var registroretorno = new RegistroRetornoRemessaDb()
                                 {
                                     NumeroBeneficio = int.Parse(line.Substring(1, 10)),
                                     CodigoOperacao = int.Parse(line.Substring(11,1)),
@@ -210,11 +217,14 @@ namespace AASPA.Domain.Service
                                     MotivoRejeicao = int.Parse(line.Substring(13,3)),
                                     ValorDesconto = int.Parse(line.Substring(16,5)),
                                     DataInicioDesconto = DateTime.Parse(line.Substring(21,8)).Date,
-                                    CodigoEspecieBeneficio = int.Parse(line.Substring(29, 2))
+                                    CodigoEspecieBeneficio = int.Parse(line.Substring(29, 2)),
+                                    RetornoRemessaId = idRetorno
                                 };
+                                _mysql.registrosretornoremessa.Add(registroretorno);
+                                _mysql.SaveChanges();
                             }
                         }
-
+                        tran.Commit();
                         return content;
                     }
                 }

@@ -11,7 +11,8 @@ namespace AASPA.Repository.Maps
     {
         [Key]
         public int RetornoId { get; set; }
-        public string NomeArquivo { get; set; }
+        public string AnoMes { get; set; }
+        public int RemessaId { get; set; }
         public DateTime? DataImportacao { get; set; }
     }
 }
