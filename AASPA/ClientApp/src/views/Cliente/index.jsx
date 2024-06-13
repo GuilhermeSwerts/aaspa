@@ -98,13 +98,19 @@ function Cliente() {
     };
 
     const getLogadouro = (event) => {
-        let cep = event.target.value;
-        const url = `https://viacep.com.br/ws/${cep.replace('.', '').replace('.', '').replace('-', '')}/json/`;
+        let cep = event.target.value.replace('.', '').replace('.', '').replace('-', '');
+        if (cep.length < 8) return;
+
+        const url = `https://viacep.com.br/ws/${cep}/json/`;
         fetch(url)
             .then(response => {
                 return response.json();
             })
             .then(data => {
+                if (data.erro) {
+                    alert("CEP invalido!");
+                }
+
                 setCliente({
                     ...cliente,
                     cep: cep,
@@ -113,7 +119,9 @@ function Cliente() {
                     localidade: data.localidade,
                     uf: data.uf
                 })
-            }).catch(erro => console.log(erro))
+            }).catch(erro => {
+                console.log(erro)
+            })
     }
 
     const handdleEnviarFormulario = () => {
