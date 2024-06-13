@@ -33,7 +33,8 @@ namespace AASPA
             services.AddControllersWithViews();
 
             services.AddDbContext<MysqlContexto>(options => options
-                .UseMySql(Configuration["MySQLConnection:MySQLConnectionString"], new MySqlServerVersion(new Version(8, 0, 5))));
+                .UseMySql(Configuration["MySQLConnection:MySQLConnectionString"], new MySqlServerVersion(new Version(8, 0, 5)))
+                .EnableSensitiveDataLogging());
 
             services.AddCors(x=> x.AddDefaultPolicy(c=> c.AllowAnyMethod().AllowAnyOrigin().AllowAnyHeader()));
 
