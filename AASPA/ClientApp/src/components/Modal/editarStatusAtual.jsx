@@ -67,7 +67,7 @@ function ModalEditarStatusAtual({ BuscarTodosClientes, ClienteId, StatusId }) {
             <ButtonTooltip
                 onClick={() => setShow(true)}
                 className='btn btn-danger'
-                text={'Editar Status Cliente'}
+                text={'Editar Status'}
                 top={true}
                 textButton={<FiMoreHorizontal size={25} />}
             />

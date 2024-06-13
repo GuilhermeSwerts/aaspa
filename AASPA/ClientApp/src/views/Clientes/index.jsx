@@ -119,7 +119,7 @@ export default () => {
                                             <ButtonTooltip
                                                 onClick={() => window.location.href = `/cliente?clienteId=${cliente.cliente.cliente_id}`}
                                                 className='btn btn-warning'
-                                                text={'Editar Dados Do Cliente'}
+                                                text={'Editar Dados'}
                                                 top={true}
                                                 textButton={<FaUserEdit color='#fff' size={25} />}
                                             />
