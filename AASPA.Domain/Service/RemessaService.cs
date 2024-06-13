@@ -29,17 +29,25 @@ namespace AASPA.Domain.Service
 
         public RetornoRemessaResponse GerarRemessa(int mes, int ano)
         {
-            var clientes = _mysql.clientes.Where(x => x.cliente_dataCadastro.Month == mes && x.cliente_dataCadastro.Year == ano).ToList();
-
-            var idRegistro = SalvarDadosRemessa(clientes, mes, ano);
-
-            string caminho = GerarArquivoRemessa(idRegistro, mes, ano);
-
-            return new RetornoRemessaResponse
+            try
             {
-                caminho = caminho,
-                remessa_id = idRegistro,
-            };
+                var clientes = _mysql.clientes.Where(x => x.cliente_dataCadastro.Month == mes && x.cliente_dataCadastro.Year == ano).ToList();
+
+                var idRegistro = SalvarDadosRemessa(clientes, mes, ano);
+
+                string caminho = GerarArquivoRemessa(idRegistro, mes, ano);
+
+                return new RetornoRemessaResponse
+                {
+                    caminho = caminho,
+                    remessa_id = idRegistro,
+                };
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
         public int SalvarDadosRemessa(List<ClienteDb> clientes, int mes, int ano)
         {
@@ -180,7 +188,7 @@ namespace AASPA.Domain.Service
                     DataImportacao = DateTime.Now,
                     AnoMes = file.FileName,
                     RemessaId = remessa_id
-                }
+                };
                 _mysql.retornosremessa.Add(retorno);
                 _mysql.SaveChanges();
 
