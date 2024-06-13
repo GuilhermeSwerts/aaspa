@@ -44,6 +44,9 @@ function Cliente() {
         api.get(`BuscarClienteID/${id}`, res => {
             const clt = res.data.cliente;
             const cpt = res.data.captador;
+
+            const dtNasc = clt.cliente_dataNasc.replace("T00:00:00","");
+
             setCliente({
                 cpf: clt.cliente_cpf,
                 nome: clt.cliente_nome,
@@ -54,7 +57,7 @@ function Cliente() {
                 uf: clt.cliente_uf,
                 numero: clt.cliente_numero,
                 complemento: clt.cliente_complemento,
-                dataNasc: clt.cliente_dataNasc,
+                dataNasc: dtNasc,
                 nrDocto: clt.cliente_nrDocto,
                 empregador: clt.cliente_empregador,
                 matriculaBeneficio: clt.cliente_matriculaBeneficio,
