@@ -56,16 +56,16 @@ function ClienteForm({
                 </Col>
             </Row>
             <Row>
-                <Col md={5}>
-                    <FormGroup>
-                        <Label for="nome">Localidade*</Label>
-                        <Input required type="text" name="localidade" id="localidade" value={cliente.localidade} onChange={handleChange} />
-                    </FormGroup>
-                </Col>
                 <Col md={2}>
                     <FormGroup>
                         <Label for="endereco">Bairro*</Label>
                         <Input required type="text" name="bairro" id="bairro" value={cliente.bairro} onChange={handleChange} />
+                    </FormGroup>
+                </Col>
+                <Col md={5}>
+                    <FormGroup>
+                        <Label for="nome">Cidade*</Label>
+                        <Input required type="text" name="localidade" id="localidade" value={cliente.localidade} onChange={handleChange} />
                     </FormGroup>
                 </Col>
                 <Col md={2}>
