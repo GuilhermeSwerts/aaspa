@@ -89,6 +89,8 @@ namespace AASPA.Domain.Service
                 cliente.cliente_possuiWhatsapp = novoCliente.Cliente.PossuiWhatsapp;
                 cliente.cliente_funcaoAASPA = novoCliente.Cliente.FuncaoAASPA ?? "";
                 cliente.cliente_email = novoCliente.Cliente.Email ?? "";
+                cliente.cliente_estado_civil = novoCliente.Cliente.EstadoCivil;
+                cliente.cliente_sexo = novoCliente.Cliente.Sexo ?? 0;
 
                 _mysql.SaveChanges();
 
@@ -97,7 +99,7 @@ namespace AASPA.Domain.Service
                 var captador = _mysql.captadores.FirstOrDefault(x => x.captador_id == vinculo.vinculo_captador_id);
                 captador.captador_cpf_cnpj = captadorCpfCnpj;
                 captador.captador_nome = novoCliente.Captador.Nome;
-                captador.captador_descricao = novoCliente.Captador.Descricao;
+                captador.captador_descricao = novoCliente.Captador.Descricao ?? "";
                 captador.captador_e_cnpj = captadorCpfCnpj.Length > 11;
 
                 _mysql.SaveChanges();
@@ -142,7 +144,9 @@ namespace AASPA.Domain.Service
                     cliente_possuiWhatsapp = novoCliente.Cliente.PossuiWhatsapp,
                     cliente_funcaoAASPA = novoCliente.Cliente.FuncaoAASPA ?? "",
                     cliente_email = novoCliente.Cliente.Email ?? "",
-                    cliente_situacao = true
+                    cliente_situacao = true,
+                    cliente_estado_civil = novoCliente.Cliente.EstadoCivil,
+                    cliente_sexo = novoCliente.Cliente.Sexo
                 };
                 _mysql.clientes.Add(cliente);
                 _mysql.SaveChanges();
@@ -168,7 +172,7 @@ namespace AASPA.Domain.Service
                     {
                         captador_cpf_cnpj = captadorCpfCnpj,
                         captador_nome = novoCliente.Captador.Nome,
-                        captador_descricao = novoCliente.Captador.Descricao,
+                        captador_descricao = novoCliente.Captador.Descricao ?? "",
                         captador_e_cnpj = captadorCpfCnpj.Length > 11,
                     };
                     _mysql.captadores.Add(captador);
