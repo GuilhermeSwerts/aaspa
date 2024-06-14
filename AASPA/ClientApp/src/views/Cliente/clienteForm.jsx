@@ -72,54 +72,6 @@ function ClienteForm({
                 </Col>
             </Row>
             <hr />
-            <h4>Dados do Endereço:</h4>
-            <small style={{ color: 'red', textAlign: 'center' }}>Campos com * são obrigatórios</small>
-            <br />
-            <Row>
-                <Col md={2}>
-                    <FormGroup>
-                        <Label for="nome">CEP*</Label>
-                        <Input required maxLength={9} type="text" name="cep" id="cep" value={Mascara.cep(cliente.cep)} onChange={e => { handleChange(e); getLogadouro(e) }} />
-                    </FormGroup>
-                </Col>
-                <Col md={4}>
-                    <FormGroup>
-                        <Label for="endereco">Logradouro*</Label>
-                        <Input required type="text" name="logradouro" id="logradouro" value={cliente.logradouro} onChange={handleChange} />
-                    </FormGroup>
-                </Col>
-                <Col md={2}>
-                    <FormGroup>
-                        <Label for="endereco">Número*</Label>
-                        <Input required maxLength={5} type="text" name="numero" id="numero" value={cliente.numero} onChange={handleChange} />
-                    </FormGroup>
-                </Col>
-                <Col md={4}>
-                    <FormGroup>
-                        <Label for="nome">Complemento</Label>
-                        <Input type="text" name="complemento" id="complemento" value={cliente.complemento} onChange={handleChange} />
-                    </FormGroup>
-                </Col>
-                <Col md={6}>
-                    <FormGroup>
-                        <Label for="endereco">Bairro*</Label>
-                        <Input required type="text" name="bairro" id="bairro" value={cliente.bairro} onChange={handleChange} />
-                    </FormGroup>
-                </Col>
-                <Col md={4}>
-                    <FormGroup>
-                        <Label for="nome">Cidade*</Label>
-                        <Input required type="text" name="localidade" id="localidade" value={cliente.localidade} onChange={handleChange} />
-                    </FormGroup>
-                </Col>
-                <Col md={2}>
-                    <FormGroup>
-                        <Label for="endereco">UF*</Label>
-                        <Input required type="text" name="uf" id="uf" value={cliente.uf} onChange={handleChange} />
-                    </FormGroup>
-                </Col>
-            </Row>
-            <hr />
             <h4>Dados Gerais:</h4>
             <small style={{ color: 'red', textAlign: 'center' }}>Campos com * são obrigatórios</small>
             <br />
@@ -172,6 +124,54 @@ function ClienteForm({
                     <FormGroup>
                         <Label for="funcaoAASPA">Função AASPA*</Label>
                         <Input required type="text" name="funcaoAASPA" id="funcaoAASPA" value={cliente.funcaoAASPA} onChange={handleChange} />
+                    </FormGroup>
+                </Col>
+            </Row>
+            <hr />
+            <h4>Dados do Endereço:</h4>
+            <small style={{ color: 'red', textAlign: 'center' }}>Campos com * são obrigatórios</small>
+            <br />
+            <Row>
+                <Col md={2}>
+                    <FormGroup>
+                        <Label for="nome">CEP*</Label>
+                        <Input required maxLength={9} type="text" name="cep" id="cep" value={Mascara.cep(cliente.cep)} onChange={e => { handleChange(e); getLogadouro(e) }} />
+                    </FormGroup>
+                </Col>
+                <Col md={4}>
+                    <FormGroup>
+                        <Label for="endereco">Logradouro*</Label>
+                        <Input required type="text" name="logradouro" id="logradouro" value={cliente.logradouro} onChange={handleChange} />
+                    </FormGroup>
+                </Col>
+                <Col md={2}>
+                    <FormGroup>
+                        <Label for="endereco">Número*</Label>
+                        <Input required maxLength={5} type="text" name="numero" id="numero" value={cliente.numero} onChange={handleChange} />
+                    </FormGroup>
+                </Col>
+                <Col md={4}>
+                    <FormGroup>
+                        <Label for="nome">Complemento</Label>
+                        <Input type="text" name="complemento" id="complemento" value={cliente.complemento} onChange={handleChange} />
+                    </FormGroup>
+                </Col>
+                <Col md={6}>
+                    <FormGroup>
+                        <Label for="endereco">Bairro*</Label>
+                        <Input required type="text" name="bairro" id="bairro" value={cliente.bairro} onChange={handleChange} />
+                    </FormGroup>
+                </Col>
+                <Col md={4}>
+                    <FormGroup>
+                        <Label for="nome">Cidade*</Label>
+                        <Input required type="text" name="localidade" id="localidade" value={cliente.localidade} onChange={handleChange} />
+                    </FormGroup>
+                </Col>
+                <Col md={2}>
+                    <FormGroup>
+                        <Label for="endereco">UF*</Label>
+                        <Input required type="text" name="uf" id="uf" value={cliente.uf} onChange={handleChange} />
                     </FormGroup>
                 </Col>
             </Row>
