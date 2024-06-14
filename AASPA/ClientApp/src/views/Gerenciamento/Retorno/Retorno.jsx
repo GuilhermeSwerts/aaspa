@@ -132,7 +132,7 @@ function Retorno() {
                                 <h5>Dados Remessa:</h5>
                                 <h6>Id Remessa: {retorno.idRemessa}</h6>
                                 <h6>Nome Arquivo Remessa: {retorno.nomeArquivoRemessa}</h6>
-                                <h6>Data Importação Remessa: {retorno.dataHoraGeracaoRemessa ? format(new Date(retorno.dataHoraGeracaoRemessa), "dd-MM-yyyy hh:mm:ss", { locale: ptBR }) : ''}</h6>
+                                <h6>Data Geração Remessa: {retorno.dataHoraGeracaoRemessa ? format(new Date(retorno.dataHoraGeracaoRemessa), "dd-MM-yyyy hh:mm:ss", { locale: ptBR }) : ''}</h6>
                             </Col>
                         </Row>                      
                         
