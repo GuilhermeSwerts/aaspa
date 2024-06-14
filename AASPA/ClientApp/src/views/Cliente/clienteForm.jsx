@@ -90,8 +90,8 @@ function ClienteForm({
                 </Col>
                 <Col md={3}>
                     <FormGroup>
-                        <Label for="nrDocumento">Nr. Documento (RG/CNH etc)</Label>
-                        <Input type="text" maxLength={10} name="nrDocto" id="nrDocto" value={cliente.nrDocto} onChange={handleChange} />
+                        <Label for="nrDocumento">Nr. Documento (RG/CNH etc)*</Label>
+                        <Input required type="text" maxLength={10} name="nrDocto" id="nrDocto" value={cliente.nrDocto} onChange={handleChange} />
                     </FormGroup>
                 </Col>
                 <Col md={3}>
