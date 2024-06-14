@@ -37,7 +37,7 @@ function Retorno() {
         const formData = new FormData();
         formData.append('file', file);
         api.post("LerRetornoRemessa", formData, res => {
-
+            BuscarRetorno();
         }, err => {
             alert(err.response.data)
         })
@@ -120,11 +120,22 @@ function Retorno() {
             <br />
             {retorno && (
                 <>
-                    <h2>Retorno</h2>
                     <div className="p-3 border rounded">
-                        <h6>Id do Retorno: {retorno.idRetorno}</h6>
-                        <h6>Data de Importação: {retorno.dataImportacao ? format(new Date(retorno.dataImportacao), "dd-MM-yyyy", { locale: ptBR }) : ''}</h6>
-                        <h6>AnoMês: {retorno.anoMes}</h6>
+                        <Row>
+                            <Col md='6'>
+                                <h5>Dados Retorno:</h5>
+                                <h6>Id do Retorno: {retorno.idRetorno}</h6>
+                                <h6>Nome Arquivo Retonro: {retorno.nomeArquivoRetorno}</h6>
+                                <h6>Data de Importação: {retorno.dataImportacao ? format(new Date(retorno.dataImportacao), "dd-MM-yyyy hh:mm:ss", { locale: ptBR }) : ''}</h6>
+                            </Col>
+                            <Col md='6'>
+                                <h5>Dados Remessa:</h5>
+                                <h6>Id Remessa: {retorno.idRemessa}</h6>
+                                <h6>Nome Arquivo Remessa: {retorno.nomeArquivoRemessa}</h6>
+                                <h6>Data Geração Remessa: {retorno.dataHoraGeracaoRemessa ? format(new Date(retorno.dataHoraGeracaoRemessa), "dd-MM-yyyy hh:mm:ss", { locale: ptBR }) : ''}</h6>
+                            </Col>
+                        </Row>                      
+                        
                     </div>
                     <table className='table table-striped'>
                         <thead>
@@ -148,7 +159,7 @@ function Retorno() {
                                     <td>{remessa.codigo_Resultado}</td>
                                     <td>{remessa.motivo_Rejeicao}</td>
                                     <td>{remessa.valor_Desconto}</td>
-                                    <td>{remessa.data_Inicio_Desconto}</td>
+                                    <td>{remessa.data_Inicio_Desconto? format(new Date(remessa.data_Inicio_Desconto), "dd-MM-yyyy", { locale: ptBR }) : ''}</td>
                                     <td>{remessa.codigo_Especie_Beneficio}</td>
                                 </tr>
                             ))}

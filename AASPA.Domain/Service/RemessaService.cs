@@ -32,11 +32,13 @@ namespace AASPA.Domain.Service
         {
             try
             {
+                string nomeArquivo = $"D.SUB.GER.176.{ano}{mes.ToString().PadLeft(2, '0')}";
+
                 var clientes = _mysql.clientes.Where(x => x.cliente_dataCadastro.Month == mes && x.cliente_dataCadastro.Year == ano).ToList();
 
-                var idRegistro = SalvarDadosRemessa(clientes, mes, ano);
+                var idRegistro = SalvarDadosRemessa(clientes, mes, ano, nomeArquivo);
 
-                string caminho = GerarArquivoRemessa(idRegistro, mes, ano);
+                string caminho = GerarArquivoRemessa(idRegistro, mes, ano, nomeArquivo);
 
                 return new RetornoRemessaResponse
                 {
@@ -50,13 +52,14 @@ namespace AASPA.Domain.Service
                 throw;
             }
         }
-        public int SalvarDadosRemessa(List<ClienteDb> clientes, int mes, int ano)
+        public int SalvarDadosRemessa(List<ClienteDb> clientes, int mes, int ano, string nomeArquivo)
         {
             using var tran = _mysql.Database.BeginTransaction();
             var remessa = new RemessaDb
             {
-                remessa_ano_mes = $"{ano}-{mes.ToString().PadLeft(2,'0')}",
-                remessa_data_criacao = DateTime.Now
+                remessa_ano_mes = $"{ano}{mes.ToString().PadLeft(2,'0')}",
+                remessa_data_criacao = DateTime.Now,
+                nome_arquivo_remessa = nomeArquivo
             };
 
             _mysql.remessa.Add(remessa);
@@ -80,9 +83,8 @@ namespace AASPA.Domain.Service
 
             return idRemessa;
         }
-        public string GerarArquivoRemessa(int idRegistro, int mes, int ano)
-        {
-            string nomeArquivo = $"D.SUB.GER.176.{ano}{mes.ToString().PadLeft(2, '0')}";
+        public string GerarArquivoRemessa(int idRegistro, int mes, int ano, string nomeArquivo)
+        {            
             string diretorioBase = _env.ContentRootPath;
             string caminhoArquivoSaida = Path.Combine(diretorioBase, "Remessa", nomeArquivo);
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Remessa")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Remessa"))); }
@@ -130,8 +132,8 @@ namespace AASPA.Domain.Service
 
             foreach (var buscar in retornos)
             {
-                int mesDaRemessa = int.Parse(buscar.remessa_ano_mes.Split('-')[1]);
-                int anoDaRemessa = int.Parse(buscar.remessa_ano_mes.Split('-')[0]);
+                int mesDaRemessa = int.Parse(buscar.remessa_ano_mes.Substring(4,2));
+                int anoDaRemessa = int.Parse(buscar.remessa_ano_mes.Substring(0,4));
                 var buscarTodasRemessas = new BuscarTodasRemessas()
                 {
                     RemessaId = buscar.remessa_id,
@@ -194,6 +196,7 @@ namespace AASPA.Domain.Service
                     {
                         Data_Importacao = DateTime.Now,
                         AnoMes = file.FileName.Substring(14,6),
+                        Nome_Arquivo_Retorno = file.FileName,
                         Remessa_Id = remessa.remessa_id
                     }; 
                 }
@@ -203,6 +206,7 @@ namespace AASPA.Domain.Service
                     {
                         Data_Importacao = DateTime.Now,
                         AnoMes = file.FileName.Substring(14,6),
+                        Nome_Arquivo_Retorno= file.FileName,
                     };
                 }
                 _mysql.retornos_remessa.Add(retorno);
@@ -267,17 +271,23 @@ namespace AASPA.Domain.Service
             {
                 var anomes = (ano + mes.ToString().PadLeft(2, '0')).ToString();
                 var retorno = _mysql.retornos_remessa.FirstOrDefault(x => x.AnoMes == anomes);
+                
 
                 if (retorno != null)
                 {
+                    var remessa = _mysql.remessa.FirstOrDefault(x => x.remessa_id == retorno.Remessa_Id);
                     var registroretorno = _mysql.registros_retorno_remessa.Where(x => x.Retorno_Remessa_Id == retorno.Retorno_Id).ToList();
                     List<RetornoRemessaDb> ret = new List<RetornoRemessaDb>();
+                    
 
                     return new BuscarRetornoResponse
                     {
                         DataImportacao = retorno.Data_Importacao,
                         IdRetorno = retorno.Retorno_Id,
-                        AnoMes = retorno.AnoMes,
+                        IdRemessa = remessa.remessa_id,
+                        NomeArquivoRemessa = remessa.nome_arquivo_remessa,
+                        DataHoraGeracaoRemessa = remessa.remessa_data_criacao,
+                        NomeArquivoRetorno = retorno.Nome_Arquivo_Retorno,
                         Retornos = registroretorno
                     }; 
                 }
