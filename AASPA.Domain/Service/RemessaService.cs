@@ -187,28 +187,20 @@ namespace AASPA.Domain.Service
                 using var tran = _mysql.Database.BeginTransaction();
 
                 var remessa = _mysql.remessa.FirstOrDefault(x => x.remessa_ano_mes == anomes);
-
-                RetornoRemessaDb retorno;
-
-                if (remessa != null)
+                if (remessa == null)
                 {
-                    retorno = new RetornoRemessaDb()
-                    {
-                        Data_Importacao = DateTime.Now,
-                        AnoMes = file.FileName.Substring(14,6),
-                        Nome_Arquivo_Retorno = file.FileName,
-                        Remessa_Id = remessa.remessa_id
-                    }; 
+                    throw new Exception("Não existe nenhuma remessa para o retorno importado!");
                 }
-                else
+
+                    RetornoRemessaDb retorno;
+                retorno = new RetornoRemessaDb()
                 {
-                    retorno = new RetornoRemessaDb()
-                    {
-                        Data_Importacao = DateTime.Now,
-                        AnoMes = file.FileName.Substring(14,6),
-                        Nome_Arquivo_Retorno= file.FileName,
-                    };
-                }
+                    Data_Importacao = DateTime.Now,
+                    AnoMes = file.FileName.Substring(14,6),
+                    Nome_Arquivo_Retorno = file.FileName,
+                    Remessa_Id = remessa.remessa_id
+                }; 
+               
                 _mysql.retornos_remessa.Add(retorno);
                 _mysql.SaveChanges();
 
@@ -256,7 +248,7 @@ namespace AASPA.Domain.Service
                             }
                         }
                         tran.Commit();
-                        return content;
+                        return anomes;
                     }
                 }
             }
