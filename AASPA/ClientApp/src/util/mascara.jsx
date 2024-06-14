@@ -20,6 +20,7 @@ export const Mascara = {
         return v
     },
     cpfOrCnpj: function cpfOrCnpj(v) {
+        if(!v) return;
         if (v.length > 11) {
             v = this.cnpj(v);
         } else {
@@ -41,6 +42,8 @@ export const Mascara = {
         }
     },
     telefone: function telefone(v) {
+        if(!v) return;
+
         v = v.replace(/\D/g, "")
         v = v.replace(/(\d{1})(\d)/, "($1$2")
         v = v.replace(/(\d{2})(\d)/, "$1) $2")
@@ -48,6 +51,7 @@ export const Mascara = {
         return v
     },
     telefoneFixo: function telefoneFixo(v) {
+        if(!v) return;
         v = v.replace(/\D/g, "")
         v = v.replace(/(\d{1})(\d)/, "($1$2")
         v = v.replace(/(\d{2})(\d)/, "$1) $2")
@@ -55,6 +59,7 @@ export const Mascara = {
         return v
     },
     moeda: function moeda(v) {
+        if(!v) return;
         return v.replace(/[^\d,]/g, "")
             .replace(/\./g, ",")
             .replace(/(\d)(?=(\d{0})+(?!\d))/g, '$1')

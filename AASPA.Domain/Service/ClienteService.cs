@@ -70,25 +70,25 @@ namespace AASPA.Domain.Service
                     throw new Exception($"Cliente com id: ${novoCliente.Cliente.Id} não cadastrado.");
 
                 cliente.cliente_cpf = cpf;
-                cliente.cliente_nome = novoCliente.Cliente.Nome;
+                cliente.cliente_nome = novoCliente.Cliente.Nome ?? "";
                 cliente.cliente_cep = novoCliente.Cliente.Cep.Replace(".", "").Replace("-", "");
-                cliente.cliente_logradouro = novoCliente.Cliente.Logradouro;
-                cliente.cliente_bairro = novoCliente.Cliente.Bairro;
-                cliente.cliente_localidade = novoCliente.Cliente.Localidade;
-                cliente.cliente_uf = novoCliente.Cliente.Uf;
-                cliente.cliente_numero = novoCliente.Cliente.Numero;
-                cliente.cliente_complemento = novoCliente.Cliente.Complemento;
+                cliente.cliente_logradouro = novoCliente.Cliente.Logradouro ?? "";
+                cliente.cliente_bairro = novoCliente.Cliente.Bairro ?? "";
+                cliente.cliente_localidade = novoCliente.Cliente.Localidade ?? "";
+                cliente.cliente_uf = novoCliente.Cliente.Uf ?? "";
+                cliente.cliente_numero = novoCliente.Cliente.Numero ?? "";
+                cliente.cliente_complemento = novoCliente.Cliente.Complemento ?? "";
                 cliente.cliente_dataNasc = novoCliente.Cliente.DataNasc;
-                cliente.cliente_nrDocto = novoCliente.Cliente.NrDocto;
-                cliente.cliente_empregador = novoCliente.Cliente.Empregador;
-                cliente.cliente_matriculaBeneficio = novoCliente.Cliente.MatriculaBeneficio;
-                cliente.cliente_nomeMae = novoCliente.Cliente.NomeMae;
-                cliente.cliente_nomePai = novoCliente.Cliente.NomePai;
-                cliente.cliente_telefoneFixo = novoCliente.Cliente.TelefoneFixo.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "");
-                cliente.cliente_telefoneCelular = novoCliente.Cliente.TelefoneCelular.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "");
+                cliente.cliente_nrDocto = novoCliente.Cliente.NrDocto ?? "";
+                cliente.cliente_empregador = novoCliente.Cliente.Empregador ?? "";
+                cliente.cliente_matriculaBeneficio = novoCliente.Cliente.MatriculaBeneficio ?? "";
+                cliente.cliente_nomeMae = novoCliente.Cliente.NomeMae ?? "";
+                cliente.cliente_nomePai = novoCliente.Cliente.NomePai ?? "";
+                cliente.cliente_telefoneFixo = novoCliente.Cliente.TelefoneFixo != null ? novoCliente.Cliente.TelefoneFixo.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "") : "";
+                cliente.cliente_telefoneCelular = novoCliente.Cliente.TelefoneCelular != null ? novoCliente.Cliente.TelefoneCelular.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "") : "";
                 cliente.cliente_possuiWhatsapp = novoCliente.Cliente.PossuiWhatsapp;
-                cliente.cliente_funcaoAASPA = novoCliente.Cliente.FuncaoAASPA;
-                cliente.cliente_email = novoCliente.Cliente.Email;
+                cliente.cliente_funcaoAASPA = novoCliente.Cliente.FuncaoAASPA ?? "";
+                cliente.cliente_email = novoCliente.Cliente.Email ?? "";
 
                 _mysql.SaveChanges();
 
@@ -123,25 +123,25 @@ namespace AASPA.Domain.Service
                 var cliente = new ClienteDb
                 {
                     cliente_cpf = cpf,
-                    cliente_nome = novoCliente.Cliente.Nome,
+                    cliente_nome = novoCliente.Cliente.Nome ?? "",
                     cliente_cep = novoCliente.Cliente.Cep.Replace(".", "").Replace("-", ""),
-                    cliente_logradouro = novoCliente.Cliente.Logradouro,
-                    cliente_bairro = novoCliente.Cliente.Bairro,
-                    cliente_localidade = novoCliente.Cliente.Localidade,
-                    cliente_uf = novoCliente.Cliente.Uf,
-                    cliente_numero = novoCliente.Cliente.Numero,
-                    cliente_complemento = novoCliente.Cliente.Complemento,
+                    cliente_logradouro = novoCliente.Cliente.Logradouro ?? "",
+                    cliente_bairro = novoCliente.Cliente.Bairro ?? "",
+                    cliente_localidade = novoCliente.Cliente.Localidade ?? "",
+                    cliente_uf = novoCliente.Cliente.Uf ?? "",
+                    cliente_numero = novoCliente.Cliente.Numero ?? "",
+                    cliente_complemento = novoCliente.Cliente.Complemento ?? "",
                     cliente_dataNasc = novoCliente.Cliente.DataNasc,
                     cliente_nrDocto = novoCliente.Cliente.NrDocto ?? string.Empty,
-                    cliente_empregador = novoCliente.Cliente.Empregador,
-                    cliente_matriculaBeneficio = novoCliente.Cliente.MatriculaBeneficio,
-                    cliente_nomeMae = novoCliente.Cliente.NomeMae,
-                    cliente_nomePai = novoCliente.Cliente.NomePai,
+                    cliente_empregador = novoCliente.Cliente.Empregador ?? "",
+                    cliente_matriculaBeneficio = novoCliente.Cliente.MatriculaBeneficio ?? "",
+                    cliente_nomeMae = novoCliente.Cliente.NomeMae ?? "",
+                    cliente_nomePai = novoCliente.Cliente.NomePai ?? "",
                     cliente_telefoneFixo = novoCliente.Cliente.TelefoneFixo != null ? novoCliente.Cliente.TelefoneFixo.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "") : null,
                     cliente_telefoneCelular = novoCliente.Cliente.TelefoneCelular.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", ""),
                     cliente_possuiWhatsapp = novoCliente.Cliente.PossuiWhatsapp,
-                    cliente_funcaoAASPA = novoCliente.Cliente.FuncaoAASPA,
-                    cliente_email = novoCliente.Cliente.Email,
+                    cliente_funcaoAASPA = novoCliente.Cliente.FuncaoAASPA ?? "",
+                    cliente_email = novoCliente.Cliente.Email ?? "",
                     cliente_situacao = true
                 };
                 _mysql.clientes.Add(cliente);
