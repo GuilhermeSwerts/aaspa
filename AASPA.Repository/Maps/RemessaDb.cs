@@ -12,6 +12,7 @@ namespace AASPA.Repository.Maps
         [Key]
         public int remessa_id { get; set; }
         public string remessa_ano_mes { get; set; }
+        public string nome_arquivo_remessa { get; set; }
         public DateTime remessa_data_criacao { get; set; }
     }
 }
