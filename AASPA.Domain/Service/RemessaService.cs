@@ -2,6 +2,7 @@
 using AASPA.Models.Response;
 using AASPA.Repository;
 using AASPA.Repository.Maps;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -26,19 +28,27 @@ namespace AASPA.Domain.Service
             _env = env;
         }
 
-        public RetornoRemessa GerarRemessa(int mes, int ano)
+        public RetornoRemessaResponse GerarRemessa(int mes, int ano)
         {
-            var clientes = _mysql.clientes.Where(x => x.cliente_dataCadastro.Month == mes && x.cliente_dataCadastro.Year == ano).ToList();
-
-            var idRegistro = SalvarDadosRemessa(clientes, mes, ano);
-
-            string caminho = GerarArquivoRemessa(idRegistro, mes, ano);
-
-            return new RetornoRemessa
+            try
             {
-                caminho = caminho,
-                remessa_id = idRegistro,
-            };
+                var clientes = _mysql.clientes.Where(x => x.cliente_dataCadastro.Month == mes && x.cliente_dataCadastro.Year == ano).ToList();
+
+                var idRegistro = SalvarDadosRemessa(clientes, mes, ano);
+
+                string caminho = GerarArquivoRemessa(idRegistro, mes, ano);
+
+                return new RetornoRemessaResponse
+                {
+                    caminho = caminho,
+                    remessa_id = idRegistro,
+                };
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
         public int SalvarDadosRemessa(List<ClienteDb> clientes, int mes, int ano)
         {
@@ -156,6 +166,127 @@ namespace AASPA.Domain.Service
                 NomeArquivo= $"D.SUB.GER.176.{anoMes}",
                 Base64 = path
             };
+        }
+        public async Task<string> LerRetorno(IFormFile file)
+        {
+            string content;
+            var anomes = file.FileName.Substring(14, 6);
+            if (file == null || file.Length == 0)
+            {
+                throw new Exception("Nenhum arquivo foi enviado.");
+            }
+            else if (!file.FileName.Contains($"D.SUB.GER.177."))
+            {
+                throw new Exception("Arquivo com nome fora do formato!");
+            }
+
+            try
+            {
+                using var tran = _mysql.Database.BeginTransaction();
+
+                var remessa = _mysql.remessa.FirstOrDefault(x => x.remessa_ano_mes == anomes);
+
+                RetornoRemessaDb retorno;
+
+                if (remessa != null)
+                {
+                    retorno = new RetornoRemessaDb()
+                    {
+                        Data_Importacao = DateTime.Now,
+                        AnoMes = file.FileName.Substring(14,6),
+                        Remessa_Id = remessa.remessa_id
+                    }; 
+                }
+                else
+                {
+                    retorno = new RetornoRemessaDb()
+                    {
+                        Data_Importacao = DateTime.Now,
+                        AnoMes = file.FileName.Substring(14,6),
+                    };
+                }
+                _mysql.retornos_remessa.Add(retorno);
+                _mysql.SaveChanges();
+
+                var idRetorno = retorno.Retorno_Id;
+
+                using (var memoryStream = new MemoryStream())
+                {
+                    await file.CopyToAsync(memoryStream);
+                    memoryStream.Position = 0;
+
+                    using (var reader = new StreamReader(memoryStream, Encoding.UTF8))
+                    {
+                        content = await reader.ReadToEndAsync();
+
+                        var linhas = content.Split('\n');                    
+
+                        foreach (var line in linhas)
+                        {
+                            if (!string.IsNullOrWhiteSpace(line))
+                            {
+                                if (int.Parse(line.Substring(0, 1)) == 0)
+                                {
+                                    if (line.Substring(1, 10).Trim() != "AASPA")
+                                    {
+                                        throw new Exception("Arquivo não pertence a AASPA");
+                                    }
+                                }
+                                else if (int.Parse(line.Substring(0, 1)) == 1)
+                                {
+                                    DateTime date;
+                                    var registroretorno = new RegistroRetornoRemessaDb()
+                                    {
+                                        Numero_Beneficio = double.Parse(line.Substring(1, 10)),
+                                        Codigo_Operacao = int.Parse(line.Substring(11, 1)),
+                                        Codigo_Resultado = int.Parse(line.Substring(12, 1)),
+                                        Motivo_Rejeicao = int.Parse(line.Substring(13, 3)),
+                                        Valor_Desconto = decimal.Parse(line.Substring(16, 5)),
+                                        Data_Inicio_Desconto = line.Substring(21, 8) == "00000000" ? DateTime.ParseExact(DateTime.Now.ToString("yyyyMMdd", CultureInfo.InvariantCulture), "yyyyMMdd", CultureInfo.InvariantCulture) : DateTime.ParseExact(line.Substring(21, 8), "yyyyMMdd", CultureInfo.InvariantCulture),
+                                        Codigo_Especie_Beneficio = int.Parse(line.Substring(29, 2)),
+                                        Retorno_Remessa_Id = idRetorno
+                                    };
+                                    _mysql.registros_retorno_remessa.Add(registroretorno);
+                                    _mysql.SaveChanges();
+                                } 
+                            }
+                        }
+                        tran.Commit();
+                        return content;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+        public BuscarRetornoResponse BuscarRetorno(int mes, int ano)
+        {
+            try
+            {
+                var anomes = (ano + mes.ToString().PadLeft(2, '0')).ToString();
+                var retorno = _mysql.retornos_remessa.FirstOrDefault(x => x.AnoMes == anomes);
+
+                if (retorno != null)
+                {
+                    var registroretorno = _mysql.registros_retorno_remessa.Where(x => x.Retorno_Remessa_Id == retorno.Retorno_Id).ToList();
+                    List<RetornoRemessaDb> ret = new List<RetornoRemessaDb>();
+
+                    return new BuscarRetornoResponse
+                    {
+                        DataImportacao = retorno.Data_Importacao,
+                        IdRetorno = retorno.Retorno_Id,
+                        AnoMes = retorno.AnoMes,
+                        Retornos = registroretorno
+                    }; 
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
     }
 }
