@@ -35,6 +35,8 @@ namespace AASPA.Models.Requests
         public bool PossuiWhatsapp { get; set; }
         public string FuncaoAASPA { get; set; }
         public string Email { get; set; } = string.Empty;
+        public int EstadoCivil { get; set; }
+        public int? Sexo { get; set; }
     }
 
     public class NovoCaptador 

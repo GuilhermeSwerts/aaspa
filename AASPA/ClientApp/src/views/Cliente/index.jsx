@@ -30,7 +30,9 @@ function Cliente() {
         telefoneCelular: '',
         possuiWhatsapp: false,
         funcaoAASPA: 'Associado',
-        email: ''
+        email: '',
+        sexo: 0,
+        estadoCivil: 1
     };
     const initStateCaptador = {
         cpfOuCnpj: '',
@@ -45,7 +47,7 @@ function Cliente() {
             const clt = res.data.cliente;
             const cpt = res.data.captador;
 
-            const dtNasc = clt.cliente_dataNasc.replace("T00:00:00","");
+            const dtNasc = clt.cliente_dataNasc.replace("T00:00:00", "");
 
             setCliente({
                 cpf: clt.cliente_cpf,
@@ -67,7 +69,9 @@ function Cliente() {
                 telefoneCelular: clt.cliente_telefoneCelular,
                 possuiWhatsapp: clt.cliente_possuiWhatsapp,
                 funcaoAASPA: clt.cliente_funcaoAASPA,
-                email: clt.cliente_email
+                email: clt.cliente_email,
+                estadoCivil: clt.cliente_estado_civil,
+                sexo: clt.cliente_sexo
             })
             setCaptador({
                 cpfOuCnpj: cpt.captador_cpf_cnpj,
@@ -166,6 +170,8 @@ function Cliente() {
         formData.append('Cliente[PossuiWhatsapp]', cliente.possuiWhatsapp);
         formData.append('Cliente[FuncaoAASPA]', cliente.funcaoAASPA);
         formData.append('Cliente[Email]', cliente.email);
+        formData.append('Cliente[EstadoCivil]', cliente.estadoCivil);
+        formData.append('Cliente[Sexo]', cliente.sexo);
 
         // Captador
         formData.append('Captador[cpfOuCnpj]', captador.cpfOuCnpj);
@@ -174,7 +180,7 @@ function Cliente() {
     }
 
     return (
-        <NavBar usuario_nome={usuario && usuario.usuario_nome}>
+        <NavBar usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
             <ClienteForm
                 Mascara={Mascara}
                 captador={captador}
