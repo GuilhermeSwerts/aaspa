@@ -88,7 +88,7 @@ function HistoricoContatoOcorrencia() {
                                     <td style={{ display: 'flex', gap: 5 }}>
                                         <ButtonTooltip
                                             onClick={() => window.location.href = `/historicoocorrenciacliente?clienteId=${cliente.cliente.cliente_id}`}
-                                            className='btn btn-success'
+                                            className='btn btn-danger'
                                             text={'Historico Contatos/Ocorrências'}
                                             top={true}
                                             textButton={<FaHistory size={25} />}

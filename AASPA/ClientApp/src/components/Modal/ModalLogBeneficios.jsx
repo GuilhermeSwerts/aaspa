@@ -35,6 +35,7 @@ function ModalLogBeneficios({ ClienteId, ClienteNome }) {
     return (
         <form>
             <ButtonTooltip
+                backgroundColor={'#009900'}
                 onClick={() => setShow(true)}
                 className='btn btn-success'
                 text={'Log Beneficio'}
@@ -45,7 +46,7 @@ function ModalLogBeneficios({ ClienteId, ClienteNome }) {
                 <ModalHeader>
                     Log Beneficio De: {ClienteNome}
                 </ModalHeader>
-                <small style={{textAlign:'center'}}>Filtro: Data cadastro do log.</small>
+                <small style={{ textAlign: 'center' }}>Filtro: Data cadastro do log.</small>
                 <Row>
                     <Col md={1} />
                     <Col md={4}>

@@ -97,6 +97,13 @@ namespace AASPA.Controllers
         {
             try
             {
+
+                if (dtFim.HasValue)
+                {
+                    var v = dtFim.Value.ToString().Replace(" 00:00:00", " 23:59:59");
+                    dtFim = DateTime.Parse(v);
+                }
+
                 var logs = _service.BuscarLogStatusClienteId(clienteId, dtInicio, dtFim);
                 return Ok(logs);    
             }

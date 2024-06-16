@@ -65,6 +65,7 @@ function ModalEditarStatusAtual({ BuscarTodosClientes, ClienteId, StatusId }) {
     return (
         <form>
             <ButtonTooltip
+                backgroundColor={'#00cc00'}
                 onClick={() => setShow(true)}
                 className='btn btn-danger'
                 text={'Editar Status'}

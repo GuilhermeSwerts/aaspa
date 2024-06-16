@@ -47,7 +47,7 @@ function ClienteForm({
                         <select required name="sexo" value={cliente.sexo} onChange={handleChange} id="sexo" className='form-control'>
                             <option value="0">Selecione</option>
                             <option value="1">Masculino</option>
-                            <option value="2">Femenino</option>
+                            <option value="2">Feminino</option>
                             <option value="3">Outros</option>
                         </select>
                     </FormGroup>

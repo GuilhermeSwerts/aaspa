@@ -16,7 +16,7 @@ function Beneficios() {
     const BuscarTodosClientes = () => {
         api.get("BuscarTodosClientes", res => {
             setClientes([]);
-            setClientes([]);
+            setClientesFiltro([]);
             setClientes(res.data);
             setClientesFiltro(res.data);
         }, err => {

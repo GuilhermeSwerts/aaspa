@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const ButtonTooltip = ({ text, textButton, className, onClick, top = false, disabled = false }) => {
+const ButtonTooltip = ({ text, textButton, className, onClick, top = false, disabled = false, backgroundColor = null }) => {
 
     const [show, setShow] = useState(false);
 
@@ -18,7 +18,7 @@ const ButtonTooltip = ({ text, textButton, className, onClick, top = false, disa
                 disabled={disabled}
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
-                style={{ cursor: 'pointer' }}
+                style={backgroundColor ? { cursor: 'pointer', backgroundColor: backgroundColor } : { cursor: 'pointer' }}
                 className={className}
                 onClick={onClick}
                 type='button'
@@ -42,7 +42,7 @@ const ButtonTooltip = ({ text, textButton, className, onClick, top = false, disa
             >
                 {text}
             </div>
-        </div>
+        </div >
     );
 };
 

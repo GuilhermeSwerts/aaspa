@@ -73,25 +73,29 @@ function Pagamentos() {
                     </tr>
                 </thead>
                 <tbody>
-                    {clientesFiltro.map(cliente => (
-                        <tr>
-                            <td>{Mascara.cpf(cliente.cliente.cliente_cpf)}</td>
-                            <td>{cliente.cliente.cliente_nome}</td>
-                            <td>{cliente.statusAtual.status_nome}</td>
-                            <td>{cliente.captador.captador_nome}</td>
-                            <td style={{ display: 'flex', gap: 5 }}>
-                                <ButtonTooltip
-                                    onClick={() => window.location.href = `/historicopagamento?clienteId=${cliente.cliente.cliente_id}`}
-                                    className='btn btn-success'
-                                    text={'Historico De Pagamentos'}
-                                    top={true}
-                                    textButton={<TbZoomMoney size={25} />}
-                                />
-                                {cliente.statusAtual.status_id !== Enum.EStatus.Deletado && cliente.statusAtual.status_id !== Enum.EStatus.Inativo
-                                    && <NovoPagamento ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />}
-                            </td>
-                        </tr>
-                    ))}
+                    {clientesFiltro.map(cliente => {
+
+                        if (cliente.statusAtual.status_id != Enum.EStatus.Deletado)
+                            return (
+                                <tr>
+                                    <td>{Mascara.cpf(cliente.cliente.cliente_cpf)}</td>
+                                    <td>{cliente.cliente.cliente_nome}</td>
+                                    <td>{cliente.statusAtual.status_nome}</td>
+                                    <td>{cliente.captador.captador_nome}</td>
+                                    <td style={{ display: 'flex', gap: 5 }}>
+                                        <ButtonTooltip
+                                            onClick={() => window.location.href = `/historicopagamento?clienteId=${cliente.cliente.cliente_id}`}
+                                            className='btn btn-danger'
+                                            text={'Historico De Pagamentos'}
+                                            top={true}
+                                            textButton={<TbZoomMoney size={25} />}
+                                        />
+                                        {cliente.statusAtual.status_id !== Enum.EStatus.Deletado && cliente.statusAtual.status_id !== Enum.EStatus.Inativo
+                                            && <NovoPagamento ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />}
+                                    </td>
+                                </tr>
+                            )
+                    })}
                     {clientes.length == 0 && <span>Nenhum cliente foi encontrado...</span>}
                 </tbody>
             </table>

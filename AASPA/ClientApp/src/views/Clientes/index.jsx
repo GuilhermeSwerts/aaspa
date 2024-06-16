@@ -45,6 +45,24 @@ export default () => {
             setClientesFiltro(clientes);
     }
 
+    const onChangeFiltroStatus = ({ target }) => {
+        setClientesFiltro([]);
+        const { value } = target;
+        if (value == 1) {
+            const filtro = clientes.filter(x => x.statusAtual.status_id != Enum.EStatus.Deletado);
+            setClientesFiltro(filtro);
+        } else if (value == 2) {
+            const filtro = clientes.filter(x => x.statusAtual.status_id != Enum.EStatus.Inativo);
+            debugger
+            setClientesFiltro(filtro);
+        } else if (value == 3) {
+            const filtro = clientes.filter(x => x.statusAtual.status_id != Enum.EStatus.Ativo);
+            setClientesFiltro(filtro);
+        } else {
+            setClientesFiltro(clientes);
+        }
+    }
+
     return (
         <NavBar pagina_atual={'CLIENTES'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
 
@@ -66,6 +84,16 @@ export default () => {
                 </div>}
                 <div style={{ marginTop: '22px' }} className="col-md-2">
                     <button type='button' onClick={() => window.location.href = '/cliente'} className='btn btn-primary'>Novo Cliente</button>
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-md-2">
+                    <span>Status:</span>
+                    <select className='form-control' onChange={onChangeFiltroStatus}>
+                        <option value={1}>ATIVOS E INATIVOS</option>
+                        <option value={2}>ATIVOS</option>
+                        <option value={3}>INATIVOS</option>
+                    </select>
                 </div>
             </div>
             <br />
@@ -101,6 +129,7 @@ export default () => {
                                     {cliente.statusAtual.status_id !== Enum.EStatus.Deletado && cliente.statusAtual.status_id !== Enum.EStatus.Inativo
                                         && <td style={{ display: 'flex', gap: 5 }}>
                                             <ButtonTooltip
+                                                backgroundColor={'#004d00'}
                                                 onClick={() => window.location.href = `/historicopagamento?clienteId=${cliente.cliente.cliente_id}`}
                                                 className='btn btn-success'
                                                 text={'Historico De Pagamentos'}
@@ -108,6 +137,7 @@ export default () => {
                                                 textButton={<TbZoomMoney size={25} />}
                                             />
                                             <ButtonTooltip
+                                                backgroundColor={'#006600'}
                                                 onClick={() => window.location.href = `/historicoocorrenciacliente?clienteId=${cliente.cliente.cliente_id}`}
                                                 className='btn btn-success'
                                                 text={'Historico Contatos/Ocorrências'}
@@ -117,6 +147,7 @@ export default () => {
                                             <ModalLogStatus ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />
                                             <ModalLogBeneficios ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />
                                             <ButtonTooltip
+                                                backgroundColor={'#00b300'}
                                                 onClick={() => window.location.href = `/cliente?clienteId=${cliente.cliente.cliente_id}`}
                                                 className='btn btn-warning'
                                                 text={'Editar Dados'}

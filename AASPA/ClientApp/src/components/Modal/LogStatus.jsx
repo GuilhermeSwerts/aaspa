@@ -36,6 +36,7 @@ function ModalLogStatus({ ClienteId, ClienteNome }) {
     return (
         <form>
             <ButtonTooltip
+                backgroundColor={'#008000'}
                 onClick={() => setShow(true)}
                 className='btn btn-success'
                 text={'Log Status'}
