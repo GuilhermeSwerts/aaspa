@@ -8,7 +8,8 @@ function ClienteForm({
     captador,
     cliente,
     Mascara,
-    onSubmit }) {
+    onSubmit,
+    isEdit = false }) {
     return (
         <form onSubmit={e => { e.preventDefault(); onSubmit() }}>
             <button type='button' className='btn btn-link' onClick={() => window.location.href = '/'}>Voltar</button>
@@ -124,6 +125,12 @@ function ClienteForm({
                     <FormGroup>
                         <Label for="funcaoAASPA">Função AASPA*</Label>
                         <Input required type="text" name="funcaoAASPA" id="funcaoAASPA" value={cliente.funcaoAASPA} onChange={handleChange} />
+                    </FormGroup>
+                </Col>
+                <Col md={4}>
+                    <FormGroup>
+                        <Label for="funcaoAASPA">Data Cadastro*</Label>
+                        <Input disabled={isEdit} required type="date" name="dataCad" id="dataCad" value={cliente.dataCad} onChange={handleChange} />
                     </FormGroup>
                 </Col>
             </Row>

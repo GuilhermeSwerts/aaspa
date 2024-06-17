@@ -32,7 +32,8 @@ function Cliente() {
         funcaoAASPA: 'Associado',
         email: '',
         sexo: 0,
-        estadoCivil: 1
+        estadoCivil: 1,
+        dataCad:''
     };
     const initStateCaptador = {
         cpfOuCnpj: '',
@@ -48,7 +49,7 @@ function Cliente() {
             const cpt = res.data.captador;
 
             const dtNasc = clt.cliente_dataNasc.replace("T00:00:00", "");
-
+            debugger;
             setCliente({
                 cpf: clt.cliente_cpf,
                 nome: clt.cliente_nome,
@@ -71,7 +72,8 @@ function Cliente() {
                 funcaoAASPA: clt.cliente_funcaoAASPA,
                 email: clt.cliente_email,
                 estadoCivil: clt.cliente_estado_civil,
-                sexo: clt.cliente_sexo
+                sexo: clt.cliente_sexo,
+                dataCad: clt.cliente_dataCadastro.split('T')[0]
             })
             setCaptador({
                 cpfOuCnpj: cpt.captador_cpf_cnpj,
@@ -172,7 +174,8 @@ function Cliente() {
         formData.append('Cliente[Email]', cliente.email);
         formData.append('Cliente[EstadoCivil]', cliente.estadoCivil);
         formData.append('Cliente[Sexo]', cliente.sexo);
-
+        formData.append('Cliente[DataCad]', cliente.dataCad);
+        
         // Captador
         formData.append('Captador[cpfOuCnpj]', captador.cpfOuCnpj);
         formData.append('Captador[nome]', captador.nome);
@@ -189,6 +192,7 @@ function Cliente() {
                 handleChange={handleChange}
                 handleChangeCaptador={handleChangeCaptador}
                 onSubmit={handdleEnviarFormulario}
+                isEdit={clienteId > 0}
             />
         </NavBar>
     );

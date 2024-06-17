@@ -8,10 +8,6 @@ import { FaUsers } from "react-icons/fa";
 import { FaHandHoldingUsd } from "react-icons/fa";
 import { GiReceiveMoney } from "react-icons/gi";
 import { RiContactsBookUploadLine } from "react-icons/ri";
-import { RiContactsBook3Fill } from "react-icons/ri";
-import { TbStatusChange } from "react-icons/tb";
-import { FaGears } from 'react-icons/fa6';
-
 
 function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
     const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -81,6 +77,7 @@ function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
                             <DropdownItem header>Relatórios</DropdownItem>
                             <DropdownItem onClick={() => IrPara("rremessa")}>REMESSA</DropdownItem>
                             <DropdownItem onClick={() => IrPara("rretorno")}>RETORNO</DropdownItem>
+                            <DropdownItem onClick={()=> IrPara("rrepassefinanceiro")}>REPASSE | FINANCEIRO</DropdownItem>
                         </DropdownMenu>
                     </Dropdown>}
                 </div>

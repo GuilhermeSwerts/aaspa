@@ -17,6 +17,8 @@ import HistoricoOcorrenciaCliente from '../views/HistoricoContatoOcorrenciaClien
 import HistoricoContatoOcorrencia from '../views/HistoricoOcorrencia';
 import Remessa from '../views/Gerenciamento/Remessa/Remessa';
 import Retorno from '../views/Gerenciamento/Retorno/Retorno'
+import RepasseFinanceiro from '../views/Gerenciamento/RepasseFinanceiro/RepasseFinanceiro'
+
 
 export default _ => {
     return (
@@ -32,6 +34,7 @@ export default _ => {
 
             <Route exact path='/teste' component={Teste} />
 
+            <Route exact path='/rrepassefinanceiro' component={RepasseFinanceiro} />
             <Route exact path='/rretorno' component={Retorno} />
             <Route exact path='/rremessa' component={Remessa} />
             <Route exact path='/gorigem' component={Origem} />
