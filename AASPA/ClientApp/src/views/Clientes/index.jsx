@@ -53,7 +53,6 @@ export default () => {
             setClientesFiltro(filtro);
         } else if (value == 2) {
             const filtro = clientes.filter(x => x.statusAtual.status_id != Enum.EStatus.Inativo);
-            debugger
             setClientesFiltro(filtro);
         } else if (value == 3) {
             const filtro = clientes.filter(x => x.statusAtual.status_id != Enum.EStatus.Ativo);

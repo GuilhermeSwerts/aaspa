@@ -49,7 +49,7 @@ function Cliente() {
             const cpt = res.data.captador;
 
             const dtNasc = clt.cliente_dataNasc.replace("T00:00:00", "");
-
+            debugger;
             setCliente({
                 cpf: clt.cliente_cpf,
                 nome: clt.cliente_nome,
@@ -72,7 +72,8 @@ function Cliente() {
                 funcaoAASPA: clt.cliente_funcaoAASPA,
                 email: clt.cliente_email,
                 estadoCivil: clt.cliente_estado_civil,
-                sexo: clt.cliente_sexo
+                sexo: clt.cliente_sexo,
+                dataCad: clt.cliente_dataCadastro.split('T')[0]
             })
             setCaptador({
                 cpfOuCnpj: cpt.captador_cpf_cnpj,
