@@ -69,6 +69,7 @@ namespace AASPA.Domain.Service
                 var cliente = _mysql.clientes.FirstOrDefault(x => x.cliente_id == novoCliente.Cliente.Id) ??
                     throw new Exception($"Cliente com id: ${novoCliente.Cliente.Id} não cadastrado.");
 
+                cliente.cliente_dataCadastro = novoCliente.Cliente.DataCad;
                 cliente.cliente_cpf = cpf;
                 cliente.cliente_nome = novoCliente.Cliente.Nome ?? "";
                 cliente.cliente_cep = novoCliente.Cliente.Cep.Replace(".", "").Replace("-", "");

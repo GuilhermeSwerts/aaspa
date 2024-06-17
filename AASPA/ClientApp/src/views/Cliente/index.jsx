@@ -32,7 +32,8 @@ function Cliente() {
         funcaoAASPA: 'Associado',
         email: '',
         sexo: 0,
-        estadoCivil: 1
+        estadoCivil: 1,
+        dataCad:''
     };
     const initStateCaptador = {
         cpfOuCnpj: '',
@@ -172,7 +173,8 @@ function Cliente() {
         formData.append('Cliente[Email]', cliente.email);
         formData.append('Cliente[EstadoCivil]', cliente.estadoCivil);
         formData.append('Cliente[Sexo]', cliente.sexo);
-
+        formData.append('Cliente[DataCad]', cliente.dataCad);
+        
         // Captador
         formData.append('Captador[cpfOuCnpj]', captador.cpfOuCnpj);
         formData.append('Captador[nome]', captador.nome);
@@ -189,6 +191,7 @@ function Cliente() {
                 handleChange={handleChange}
                 handleChangeCaptador={handleChangeCaptador}
                 onSubmit={handdleEnviarFormulario}
+                isEdit={clienteId > 0}
             />
         </NavBar>
     );
