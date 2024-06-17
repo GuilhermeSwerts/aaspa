@@ -4,7 +4,7 @@ import { api } from '../../api/api';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { FaPlus } from 'react-icons/fa6';
 
-function ModalNovaRemessa({ BuscarRemessas,DownloadRemessa }) {
+function ModalNovaRemessa({ BuscarRemessas, DownloadRemessa }) {
     const [show, setShow] = useState(false);
 
     const meses = [
@@ -28,6 +28,9 @@ function ModalNovaRemessa({ BuscarRemessas,DownloadRemessa }) {
     const [anoSelecionado, setAnoSelecionado] = useState(anoAtual);
     const [mesSelecionado, setMesSelecionado] = useState(mesAtual);
 
+    const [dateInit, setdateInit] = useState('');
+    const [dateFim, setDateFim] = useState('');
+
     const anos = Array.from({ length: 25 }, (_, i) => anoAtual - i);
 
     const initState = () => {
@@ -36,7 +39,7 @@ function ModalNovaRemessa({ BuscarRemessas,DownloadRemessa }) {
     }
 
     const handdleSubmit = () => {
-        api.get(`GerarRemessa?mes=${mesSelecionado}&ano=${anoSelecionado}`, async res => {
+        api.get(`GerarRemessa?mes=${mesSelecionado}&ano=${anoSelecionado}&dateInit=${dateInit}&dateEnd=${dateFim}`, async res => {
             initState();
             setShow(false);
             const id = res.data;
@@ -55,26 +58,46 @@ function ModalNovaRemessa({ BuscarRemessas,DownloadRemessa }) {
             <Modal isOpen={show}>
                 <form onSubmit={e => { e.preventDefault(); handdleSubmit() }}>
                     <ModalHeader>
-                        Adicionar Origem
+                        Gerar Remessa
                     </ModalHeader>
                     <ModalBody>
-                        <label htmlFor="">Selecione o mês:</label>
-                        <select required className='form-control' value={mesSelecionado} onChange={(e) => setMesSelecionado(e.target.value)}>
-                            {meses.map((mes) => (
-                                <option key={mes.valor} value={mes.valor}>
-                                    {mes.nome}
-                                </option>
-                            ))}
-                        </select>
-                        <br />
-                        <label>Selecione o ano</label>
-                        <select required className='form-control' value={anoSelecionado} onChange={(e) => setAnoSelecionado(e.target.value)}>
-                            {anos.map((ano) => (
-                                <option key={ano} value={ano}>
-                                    {ano}
-                                </option>
-                            ))}
-                        </select>
+                        <h5>Período:</h5>
+                        <Row>
+                            <Col md={6}>
+                                <label htmlFor="">De:</label>
+                                <input onChange={e => setdateInit(e.target.value)} className='form-control' type="date" value={dateInit} name="dateInit" id="dateInit" />
+                            </Col>
+                            <Col md={6}>
+                                <label>Até</label>
+                                <input onChange={e => setDateFim(e.target.value)} value={dateFim} className='form-control' type="date" name="dateFim" id="dateFim" />
+                            </Col>
+                        </Row>
+
+                        <hr />
+
+                        <h5>Mês/Ano competente:</h5>
+                        <Row>
+                            <Col md={6}>
+                                <label htmlFor="">Selecione o mês:</label>
+                                <select required className='form-control' value={mesSelecionado} onChange={(e) => setMesSelecionado(e.target.value)}>
+                                    {meses.map((mes) => (
+                                        <option key={mes.valor} value={mes.valor}>
+                                            {mes.nome}
+                                        </option>
+                                    ))}
+                                </select>
+                            </Col>
+                            <Col md={6}>
+                                <label>Selecione o ano</label>
+                                <select required className='form-control' value={anoSelecionado} onChange={(e) => setAnoSelecionado(e.target.value)}>
+                                    {anos.map((ano) => (
+                                        <option key={ano} value={ano}>
+                                            {ano}
+                                        </option>
+                                    ))}
+                                </select>
+                            </Col>
+                        </Row>
                     </ModalBody>
                     <ModalFooter>
                         <button type='button' onClick={() => { initState(); setShow(false) }} className='btn btn-danger'>Fechar</button>

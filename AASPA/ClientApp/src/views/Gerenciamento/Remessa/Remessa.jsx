@@ -58,6 +58,7 @@ function Remessa() {
                         <th>Remessa ID</th>
                         <th>Mês</th>
                         <th>Ano</th>
+                        <th>Período</th>
                         <th>Data Criação</th>
                         <th>Download</th>
                     </tr>
@@ -67,6 +68,7 @@ function Remessa() {
                         <td>{remessa.remessaId}</td>
                         <td>{remessa.mes}</td>
                         <td>{remessa.ano}</td>
+                        <td>{remessa.periodo}</td>
                         <td>{remessa.dataCriacao}</td>
                         <td><button onClick={_ => DownloadRemessa(remessa.remessaId)} className='btn btn-info'><FaDownload size={20} color='#fff' /></button></td>
                     </tr>))}

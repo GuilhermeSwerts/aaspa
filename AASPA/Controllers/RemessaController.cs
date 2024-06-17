@@ -19,15 +19,17 @@ namespace AASPA.Controllers
 
         [HttpGet]
         [Route("/GerarRemessa")]
-        public IActionResult GerarRemessa([FromQuery] int mes, [FromQuery] int ano)
+        public IActionResult GerarRemessa([FromQuery] int mes, [FromQuery] int ano, [FromQuery] DateTime dateInit, [FromQuery] DateTime dateEnd)
         {
             try
             {
                 if (_remessa.RemessaExiste(mes, ano))
                 {
-                    return BadRequest("Já existe remessa criada para o mês e ano informado!");
+                    return BadRequest($"Já existe remessa criada para o período informado.");
                 }
-                RetornoRemessaResponse retorno = _remessa.GerarRemessa(mes, ano);
+
+                RetornoRemessaResponse retorno = _remessa.GerarRemessa(mes, ano, dateInit, dateEnd);
+
                 return Ok(retorno.remessa_id);
             }
             catch (System.Exception ex)
