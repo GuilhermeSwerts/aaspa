@@ -34,11 +34,13 @@ namespace AASPA.Domain.Service
             {
                 string nomeArquivo = $"D.SUB.GER.176.{ano}{mes.ToString().PadLeft(2, '0')}";
 
-                var clientes = _mysql.clientes.Where(x => x.cliente_dataCadastro.Month == mes && x.cliente_dataCadastro.Year == ano).ToList();
+                var clientes = RecuperarClientesAtivosExcluidos();
 
                 var idRegistro = SalvarDadosRemessa(clientes, mes, ano, nomeArquivo);
 
                 string caminho = GerarArquivoRemessa(idRegistro, mes, ano, nomeArquivo);
+
+                AtualizarClienteIdRemessa(clientes, idRegistro);
 
                 return new RetornoRemessaResponse
                 {
@@ -52,6 +54,20 @@ namespace AASPA.Domain.Service
                 throw;
             }
         }
+
+        private void AtualizarClienteIdRemessa(List<ClienteDb> clientes, int remessa_id)
+        {
+            using var tran = _mysql.Database.BeginTransaction();
+            foreach (var cliente in clientes)
+            {
+                cliente.cliente_remessa_id = remessa_id;
+
+                _mysql.clientes.Update(cliente);
+                _mysql.SaveChanges();
+            }
+            tran.Commit();
+        }
+
         public int SalvarDadosRemessa(List<ClienteDb> clientes, int mes, int ano, string nomeArquivo)
         {
             using var tran = _mysql.Database.BeginTransaction();
@@ -172,6 +188,7 @@ namespace AASPA.Domain.Service
         public async Task<string> LerRetorno(IFormFile file)
         {
             string content;
+            var repasse = file.FileName.Substring(14, 3);
             var anomes = file.FileName.Substring(14, 6);
             if (file == null || file.Length == 0)
             {
@@ -288,6 +305,32 @@ namespace AASPA.Domain.Service
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
+            }
+        }
+        public List<ClienteDb> RecuperarClientesAtivosExcluidos()
+        {
+            using (var context = _mysql)
+            {
+                var query = from c in context.clientes
+                            join l in
+                                (from l1 in context.log_status
+                                 join l2 in
+                                     (from ls in context.log_status
+                                      group ls by ls.log_status_cliente_id into g
+                                      select new
+                                      {
+                                          log_status_cliente_id = g.Key,
+                                          max_date = g.Max(x => x.log_status_dt_cadastro)
+                                      })
+                                 on new { l1.log_status_cliente_id, l1.log_status_dt_cadastro }
+                                 equals new { l2.log_status_cliente_id, log_status_dt_cadastro = l2.max_date }
+                                 select l1)
+                            on c.cliente_id equals l.log_status_cliente_id
+                            where c.cliente_remessa_id == 0 && l.log_status_novo_id != 2
+                            select c;
+
+                var result = query.ToList();
+                return result;
             }
         }
     }
