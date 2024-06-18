@@ -25,6 +25,7 @@ namespace AASPA.Models.Requests
         public string Numero { get; set; }
         public string Complemento { get; set; } = string.Empty;
         public DateTime DataNasc { get; set; }
+        public DateTime DataCad { get; set; } = DateTime.Now;
         public string NrDocto { get; set; } = string.Empty;
         public string Empregador { get; set; } = string.Empty;
         public string MatriculaBeneficio { get; set; }

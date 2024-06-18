@@ -23,28 +23,54 @@ namespace AASPA.Domain.Service
     {
         private readonly MysqlContexto _mysql;
         private readonly IHostEnvironment _env;
-        private readonly IStatus _status;
+        private readonly IStatus _statusService;
+        private readonly ICliente _clienteService;
 
-        public RemessaService(MysqlContexto mysql, IHostEnvironment env, IStatus status)
+        public RemessaService(MysqlContexto mysql, IHostEnvironment env, IStatus statusService, ICliente clienteService)
         {
             _mysql = mysql;
             _env = env;
-            _status = status;
+            _statusService = statusService;
+            _clienteService = clienteService;
         }
 
-        public RetornoRemessaResponse GerarRemessa(int mes, int ano)
+        public void VincularRemessaCliente(int clienteId, int remessaId)
+        {
+            var cliente = _mysql.clientes.FirstOrDefault(x => x.cliente_id == clienteId);
+            cliente.cliente_remessa_id = remessaId;
+            _mysql.SaveChanges();
+        }
+
+        public RetornoRemessaResponse GerarRemessa(int mes, int ano, DateTime dateInit, DateTime dateEnd)
         {
             try
             {
                 string nomeArquivo = $"D.SUB.GER.176.{ano}{mes.ToString().PadLeft(2, '0')}";
 
-                var clientes = RecuperarClientesAtivosExcluidos();
+                var clientes = RecuperarClientesAtivosExcluidos(dateInit, dateEnd);
 
-                var idRegistro = SalvarDadosRemessa(clientes, mes, ano, nomeArquivo);
+                clientes = RecuperarClientesAtivosExcluidosLegados(dateEnd, clientes);
+
+                var idRegistro = SalvarDadosRemessa(clientes, mes, ano, nomeArquivo, dateInit, dateEnd);
 
                 string caminho = GerarArquivoRemessa(idRegistro, mes, ano, nomeArquivo);
 
-                AtualizarClienteIdRemessa(clientes, idRegistro);
+                foreach (var cliente in clientes)
+                {
+                    var clienteData = _clienteService.BuscarClienteID(cliente.cliente_id);
+
+                    var statusNovo = clienteData.StatusAtual.status_id == (int)EStatus.AtivoAguardandoAverbacao ?
+                        (int)EStatus.Ativo : (int)EStatus.Deletado;
+
+                    _statusService.AlterarStatusCliente(new AlterarStatusClienteRequest
+                    {
+                        cliente_id = cliente.cliente_id,
+                        status_id_antigo = clienteData.StatusAtual.status_id,
+                        status_id_novo = statusNovo,
+                    });
+
+                    VincularRemessaCliente(cliente.cliente_id, idRegistro);
+                }
 
                 return new RetornoRemessaResponse
                 {
@@ -59,38 +85,60 @@ namespace AASPA.Domain.Service
             }
         }
 
-        private void AtualizarClienteIdRemessa(List<ClienteDb> clientes, int remessa_id)
+        private List<ClienteDb> RecuperarClientesAtivosExcluidosLegados(DateTime dateEnd, List<ClienteDb> clientes)
         {
-            using var tran = _mysql.Database.BeginTransaction();
-            foreach (var cliente in clientes)
-            {
-                cliente.cliente_remessa_id = remessa_id;
+            var result = (from c in _mysql.clientes
+                          join l in
+                              (from l1 in _mysql.log_status
+                               join l2 in
+                                   (from ls in _mysql.log_status
+                                    group ls by ls.log_status_cliente_id into g
+                                    select new
+                                    {
+                                        log_status_cliente_id = g.Key,
+                                        max_date = g.Max(x => x.log_status_dt_cadastro)
+                                    })
+                               on new { l1.log_status_cliente_id, l1.log_status_dt_cadastro }
+                               equals new { l2.log_status_cliente_id, log_status_dt_cadastro = l2.max_date }
+                               select l1)
+                          on c.cliente_id equals l.log_status_cliente_id
+                          where c.cliente_remessa_id == 0 && new List<int> { (int)EStatus.AtivoAguardandoAverbacao, (int)EStatus.ExcluidoAguardandoEnvio }.Contains(l.log_status_novo_id)
+                          select c).ToList();
 
-                _mysql.clientes.Update(cliente);
-                _mysql.SaveChanges();
+            result = result
+                .Where(x => x.cliente_dataCadastro > dateEnd.AddDays(1)).ToList();
+
+            foreach (var item in result)
+            {
+                if(!clientes.Any(x=> x.cliente_id == item.cliente_id))
+                {
+                    clientes.Add(item);
+                }
             }
-            tran.Commit();
+
+            return clientes;
         }
 
-        public int SalvarDadosRemessa(List<ClienteDb> clientes, int mes, int ano, string nomeArquivo)
+        public int SalvarDadosRemessa(List<ClienteDb> clientes, int mes, int ano, string nomeArquivo, DateTime dateInit, DateTime dateEnd)
         {
-            using var tran = _mysql.Database.BeginTransaction();
             var remessa = new RemessaDb
             {
-                remessa_ano_mes = $"{ano}{mes.ToString().PadLeft(2,'0')}",
+                remessa_ano_mes = $"{ano}{mes.ToString().PadLeft(2, '0')}",
                 remessa_data_criacao = DateTime.Now,
-                nome_arquivo_remessa = nomeArquivo
+                nome_arquivo_remessa = nomeArquivo,
+                remessa_periodo_de = dateInit,
+                remessa_periodo_ate = dateEnd
             };
 
             _mysql.remessa.Add(remessa);
             _mysql.SaveChanges();
             int idRemessa = remessa.remessa_id;
-            
+
             foreach (var clienteDb in clientes)
             {
                 _mysql.registro_remessa.Add(new RegistroRemessaDb
                 {
-                    registro_numero_beneficio = clienteDb.cliente_matriculaBeneficio.Length > 10? clienteDb.cliente_matriculaBeneficio.Substring(0,10) : clienteDb.cliente_matriculaBeneficio.PadLeft(10,'0'),
+                    registro_numero_beneficio = clienteDb.cliente_matriculaBeneficio.Length > 10 ? clienteDb.cliente_matriculaBeneficio.Substring(0, 10) : clienteDb.cliente_matriculaBeneficio.PadLeft(10, '0'),
                     registro_codigo_operacao = clienteDb.cliente_situacao ? 1 : 5,
                     registro_decimo_terceiro = 0,
                     registro_valor_percentual_desconto = 0,
@@ -99,12 +147,11 @@ namespace AASPA.Domain.Service
             }
 
             _mysql.SaveChanges();
-            tran.Commit();
 
             return idRemessa;
         }
         public string GerarArquivoRemessa(int idRegistro, int mes, int ano, string nomeArquivo)
-        {            
+        {
             string diretorioBase = _env.ContentRootPath;
             string caminhoArquivoSaida = Path.Combine(diretorioBase, "Remessa", nomeArquivo);
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Remessa")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Remessa"))); }
@@ -130,7 +177,7 @@ namespace AASPA.Domain.Service
         }
         public bool RemessaExiste(int mes, int ano)
         {
-            return _mysql.remessa.Any(x => x.remessa_ano_mes == $"{ano}-{mes.ToString().PadLeft(2, '0')}");
+            return _mysql.remessa.Any(x => x.remessa_ano_mes == $"{ano}{mes.ToString().PadLeft(2, '0')}");
         }
         public List<BuscarTodasRemessas> BuscarTodasRemessas(int? ano, int? mes)
         {
@@ -146,20 +193,21 @@ namespace AASPA.Domain.Service
 
             var retornos = _mysql.remessa
                 .Where(
-                    x => x.remessa_id > 0 && 
+                    x => x.remessa_id > 0 &&
                     (string.IsNullOrEmpty(filtro) || x.remessa_ano_mes.Contains(filtro))
                 ).ToList();
 
             foreach (var buscar in retornos)
             {
-                int mesDaRemessa = int.Parse(buscar.remessa_ano_mes.Substring(4,2));
-                int anoDaRemessa = int.Parse(buscar.remessa_ano_mes.Substring(0,4));
+                int mesDaRemessa = int.Parse(buscar.remessa_ano_mes.Substring(4, 2));
+                int anoDaRemessa = int.Parse(buscar.remessa_ano_mes.Substring(0, 4));
                 var buscarTodasRemessas = new BuscarTodasRemessas()
                 {
                     RemessaId = buscar.remessa_id,
                     Mes = CultureInfo.CreateSpecificCulture("pt-BR").DateTimeFormat.GetMonthName(mesDaRemessa).ToUpper(),
                     Ano = anoDaRemessa,
-                    DataCriacao = buscar.remessa_data_criacao.ToString()
+                    DataCriacao = buscar.remessa_data_criacao.ToString(),
+                    Periodo = "De " + buscar.remessa_periodo_de.ToString("dd/MM/yyyy") + " até " + buscar.remessa_periodo_ate.ToString("dd/MM/yyyy")
                 };
 
                 listaTodasRemessas.Add(buscarTodasRemessas);
@@ -171,7 +219,7 @@ namespace AASPA.Domain.Service
             var remessaDb = _mysql.remessa.FirstOrDefault(x => x.remessa_id == remessaId)
                 ?? throw new Exception($"Remessa não encontrada. id: {remessaId}");
 
-            var anoMes = remessaDb.remessa_ano_mes.Replace("-","");
+            var anoMes = remessaDb.remessa_ano_mes.Replace("-", "");
 
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Remessa")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Remessa"))); }
             string diretorioBase = Path.Combine(_env.ContentRootPath, "Remessa");
@@ -185,7 +233,7 @@ namespace AASPA.Domain.Service
 
             return new BuscarArquivoResponse
             {
-                NomeArquivo= $"D.SUB.GER.176.{anoMes}",
+                NomeArquivo = $"D.SUB.GER.176.{anoMes}",
                 Base64 = path
             };
         }
@@ -310,15 +358,15 @@ namespace AASPA.Domain.Service
                     throw new Exception("Não existe nenhuma remessa para o retorno importado!");
                 }
 
-                    RetornoRemessaDb retorno;
+                RetornoRemessaDb retorno;
                 retorno = new RetornoRemessaDb()
                 {
                     Data_Importacao = DateTime.Now,
-                    AnoMes = file.FileName.Substring(14,6),
+                    AnoMes = file.FileName.Substring(14, 6),
                     Nome_Arquivo_Retorno = file.FileName,
                     Remessa_Id = remessa.remessa_id
-                }; 
-               
+                };
+
                 _mysql.retornos_remessa.Add(retorno);
                 _mysql.SaveChanges();
 
@@ -333,7 +381,7 @@ namespace AASPA.Domain.Service
                     {
                         content = await reader.ReadToEndAsync();
 
-                        var linhas = content.Split('\n');                    
+                        var linhas = content.Split('\n');
 
                         foreach (var line in linhas)
                         {
@@ -366,7 +414,7 @@ namespace AASPA.Domain.Service
                                     };
                                     _mysql.registros_retorno_remessa.Add(registroretorno);
                                     _mysql.SaveChanges();
-                                } 
+                                }
                             }
                         }
                         tran.Commit();
@@ -403,14 +451,14 @@ namespace AASPA.Domain.Service
             {
                 var anomes = (ano + mes.ToString().PadLeft(2, '0')).ToString();
                 var retorno = _mysql.retornos_remessa.FirstOrDefault(x => x.AnoMes == anomes);
-                
+
 
                 if (retorno != null)
                 {
                     var remessa = _mysql.remessa.FirstOrDefault(x => x.remessa_id == retorno.Remessa_Id);
                     var registroretorno = _mysql.registros_retorno_remessa.Where(x => x.Retorno_Remessa_Id == retorno.Retorno_Id).ToList();
                     List<RetornoRemessaDb> ret = new List<RetornoRemessaDb>();
-                    
+
 
                     return new BuscarRetornoResponse
                     {
@@ -421,7 +469,7 @@ namespace AASPA.Domain.Service
                         DataHoraGeracaoRemessa = remessa.remessa_data_criacao,
                         NomeArquivoRetorno = retorno.Nome_Arquivo_Retorno,
                         Retornos = registroretorno
-                    }; 
+                    };
                 }
                 return null;
             }
@@ -430,31 +478,30 @@ namespace AASPA.Domain.Service
                 throw new Exception(ex.Message);
             }
         }
-        public List<ClienteDb> RecuperarClientesAtivosExcluidos()
+        public List<ClienteDb> RecuperarClientesAtivosExcluidos(DateTime dateInit, DateTime dateEnd)
         {
-            using (var context = _mysql)
-            {
-                var query = from c in context.clientes
-                            join l in
-                                (from l1 in context.log_status
-                                 join l2 in
-                                     (from ls in context.log_status
-                                      group ls by ls.log_status_cliente_id into g
-                                      select new
-                                      {
-                                          log_status_cliente_id = g.Key,
-                                          max_date = g.Max(x => x.log_status_dt_cadastro)
-                                      })
-                                 on new { l1.log_status_cliente_id, l1.log_status_dt_cadastro }
-                                 equals new { l2.log_status_cliente_id, log_status_dt_cadastro = l2.max_date }
-                                 select l1)
-                            on c.cliente_id equals l.log_status_cliente_id
-                            where c.cliente_remessa_id == 0 && l.log_status_novo_id != 2
-                            select c;
+            var result = (from c in _mysql.clientes
+                          join l in
+                              (from l1 in _mysql.log_status
+                               join l2 in
+                                   (from ls in _mysql.log_status
+                                    group ls by ls.log_status_cliente_id into g
+                                    select new
+                                    {
+                                        log_status_cliente_id = g.Key,
+                                        max_date = g.Max(x => x.log_status_dt_cadastro)
+                                    })
+                               on new { l1.log_status_cliente_id, l1.log_status_dt_cadastro }
+                               equals new { l2.log_status_cliente_id, log_status_dt_cadastro = l2.max_date }
+                               select l1)
+                          on c.cliente_id equals l.log_status_cliente_id
+                          where c.cliente_remessa_id == 0 && new List<int> { (int)EStatus.AtivoAguardandoAverbacao, (int)EStatus.ExcluidoAguardandoEnvio }.Contains(l.log_status_novo_id)
+                          select c).ToList();
 
-                var result = query.ToList();
-                return result;
-            }
+            result = result
+                .Where(x => x.cliente_dataCadastro >= dateInit && x.cliente_dataCadastro < dateEnd.AddDays(1)).ToList();
+
+            return result;
         }
     }
 }

@@ -12,5 +12,6 @@ namespace AASPA.Models.Response
         public string Mes { get; set; }
         public int Ano { get; set; }
         public string DataCriacao { get; set; }
+        public string Periodo { get; set; }
     }
 }
