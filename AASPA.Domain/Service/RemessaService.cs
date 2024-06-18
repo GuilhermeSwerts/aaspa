@@ -528,17 +528,50 @@ namespace AASPA.Domain.Service
                     (string.IsNullOrEmpty(filtro) || x.remessa_ano_mes.Contains(filtro))
                 ).FirstOrDefault();
 
+            if(remessa == null )
+            {
+                return new
+                {
+                    remessa = new RemessaDb { },
+                    retorno = new RetornoRemessaDb { },
+                    repasses = new RetornoFinanceiroDb { },
+                    dadosRepasse = new List<RegistroRetornoFinanceiroDb>()
+                };
+            }
+
             var retorno = _mysql.retornos_remessa
                 .Where(
                     x => x.Retorno_Id > 0 &&
                     (string.IsNullOrEmpty(filtro) || x.Remessa_Id == remessa.remessa_id)
                 ).FirstOrDefault();
 
+            if (retorno == null)
+            {
+                return new
+                {
+                    remessa,
+                    retorno = new RetornoRemessaDb { },
+                    repasses = new RetornoFinanceiroDb { },
+                    dadosRepasse = new List<RegistroRetornoFinanceiroDb>()
+                };
+            }
+
             var repasses = _mysql.retorno_financeiro
                 .Where(
                     x => x.remessa_id > 0 &&
                     (string.IsNullOrEmpty(filtro) || x.retorno_id == retorno.Retorno_Id)
                 ).FirstOrDefault();
+
+            if (repasses == null)
+            {
+                return new
+                {
+                    remessa,
+                    retorno,
+                    repasses = new RetornoFinanceiroDb { },
+                    dadosRepasse = new List<RegistroRetornoFinanceiroDb>()
+                };
+            }
 
             var dadosRepasse = _mysql.registro_retorno_financeiro
                 .Where(x => x.retorno_financeiro_id == repasses.retorno_financeiro_id)
