@@ -40,7 +40,7 @@ const BuscarRepassePorMesAno = ({
                     </select>
                 </div>
                 <div className="col-md-4">
-                    <label>Selecione o ano</label>
+                    <label>Selecione o ano:</label>
                     <select className='form-control' value={anoSelecionado} onChange={(e) => setAnoSelecionado(e.target.value)}>
                         {anos.map((ano) => (
                             <option key={ano} value={ano}>

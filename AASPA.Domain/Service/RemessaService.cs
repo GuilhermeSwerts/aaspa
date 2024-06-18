@@ -184,11 +184,11 @@ namespace AASPA.Domain.Service
             var listaTodasRemessas = new List<BuscarTodasRemessas>();
 
             var filtro = ano.HasValue && mes.HasValue
-                ? $"{ano}-{mes.ToString().PadLeft(2, '0')}"
+                ? $"{ano}{mes.ToString().PadLeft(2, '0')}"
                 : ano.HasValue && !mes.HasValue
-                    ? $"{ano}-"
+                    ? $"{ano}"
                     : !ano.HasValue && mes.HasValue
-                        ? $"-{mes.ToString().PadLeft(2, '0')}"
+                        ? $"{mes.ToString().PadLeft(2, '0')}"
                         : null;
 
             var retornos = _mysql.remessa
@@ -241,8 +241,8 @@ namespace AASPA.Domain.Service
         {
             RetornoFinanceiroDb retorno_financeiro = new RetornoFinanceiroDb();
             string content;
-            var repasse = file.FileName.Substring(14, 3);
-            var anomes = file.FileName.Substring(14, 6);
+            ///var repasse = file.FileName.Substring(17, 2);
+            var anomes = file.FileName.Substring(18, 6);
 
             if (file == null || file.Length == 0)
             {
@@ -284,7 +284,7 @@ namespace AASPA.Domain.Service
                             {
                                 if (int.Parse(line.Substring(0, 1)) == 0)
                                 {
-                                    if (line.Substring(1, 10).Trim() != "AASPA")
+                                    if (line.Substring(16, 10).Trim() != "AASPA")
                                     {
                                         throw new Exception("Arquivo não pertence a AASPA");
                                     }
@@ -305,18 +305,24 @@ namespace AASPA.Domain.Service
                                 else if (int.Parse(line.Substring(0, 1)) == 1)
                                 {
                                     DateTime date;
-
-                                    RetornoRegistroFinanceiroDb registro_Financeiro;
-                                    registro_Financeiro = new RetornoRegistroFinanceiroDb()
+                                    var nb = int.Parse(line.Substring(1, 10));
+                                    var cd = int.Parse(line.Substring(11, 6));
+                                    var ep = int.Parse(line.Substring(17, 2));
+                                    var uf = line.Substring(19, 2);
+                                    var dc = decimal.Parse(line.Substring(21, 5));
+                                    var rId = retorno_financeiro.retorno_financeiro_id;
+                                    
+                                    var registro_Financeiro = new RegistroRetornoFinanceiroDb()
                                     {                                     
-                                        NumeroBeneficio = int.Parse(line.Substring(1, 10)),
-                                        CompetenciaDesconto = int.Parse(line.Substring(11, 6)),
-                                        Especie = int.Parse(line.Substring(17, 2)),
-                                        UF = int.Parse(line.Substring(19, 2)),
-                                        Desconto = int.Parse(line.Substring(21, 5)),
-                                        RetornoFinanceiroId = retorno_financeiro.retorno_financeiro_id,                                
-                                    };                                   
-                                    _mysql.retorno_registro_financeiro.Add(registro_Financeiro);
+                                        numero_beneficio = nb,
+                                        competencia_desconto = cd,
+                                        especie = ep,
+                                        uf = uf,
+                                        desconto = dc,
+                                        retorno_financeiro_id = rId,                                
+                                    };                        
+                                    
+                                    _mysql.registro_retorno_financeiro.Add(registro_Financeiro);
                                     _mysql.SaveChanges();
                                 }
                             }
@@ -502,6 +508,49 @@ namespace AASPA.Domain.Service
                 .Where(x => x.cliente_dataCadastro >= dateInit && x.cliente_dataCadastro < dateEnd.AddDays(1)).ToList();
 
             return result;
+        }
+
+        public object GetBuscarRepasse(int? mes, int? ano)
+        {
+            var listaTodasRemessas = new List<BuscarTodasRemessas>();
+
+            var filtro = ano.HasValue && mes.HasValue
+                ? $"{ano}{mes.ToString().PadLeft(2, '0')}"
+                : ano.HasValue && !mes.HasValue
+                    ? $"{ano}"
+                    : !ano.HasValue && mes.HasValue
+                        ? $"{mes.ToString().PadLeft(2, '0')}"
+                        : null;
+
+            var remessa = _mysql.remessa
+                .Where(
+                    x => x.remessa_id > 0 &&
+                    (string.IsNullOrEmpty(filtro) || x.remessa_ano_mes.Contains(filtro))
+                ).FirstOrDefault();
+
+            var retorno = _mysql.retornos_remessa
+                .Where(
+                    x => x.Retorno_Id > 0 &&
+                    (string.IsNullOrEmpty(filtro) || x.Remessa_Id == remessa.remessa_id)
+                ).FirstOrDefault();
+
+            var repasses = _mysql.retorno_financeiro
+                .Where(
+                    x => x.remessa_id > 0 &&
+                    (string.IsNullOrEmpty(filtro) || x.retorno_id == retorno.Retorno_Id)
+                ).FirstOrDefault();
+
+            var dadosRepasse = _mysql.registro_retorno_financeiro
+                .Where(x => x.retorno_financeiro_id == repasses.retorno_financeiro_id)
+                .ToList();
+
+            return new
+            {
+                remessa,
+                retorno,
+                repasses,
+                dadosRepasse
+            };
         }
     }
 }

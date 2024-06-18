@@ -67,6 +67,22 @@ namespace AASPA.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpGet]
+        [Route("/BuscarRepasse")]
+        public ActionResult GetBuscarRepasse([FromQuery] int? mes,int? ano)
+        {
+            try
+            {
+                var repasses = _remessa.GetBuscarRepasse(mes,ano);
+                return Ok(repasses);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPost]
         [Route("LerRetornoRemessa")]
         public async Task<ActionResult> LerRetornoRemessa(IFormFile file)
@@ -74,7 +90,7 @@ namespace AASPA.Controllers
             try
             {
                 var retorno = "";
-                if (file.FileName.Substring(14,3) == "REP")
+                if (file.FileName.Contains("REP"))
                 {
                      retorno = await _remessa.LerRetornoRepasse(file);
                 }
