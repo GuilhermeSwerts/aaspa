@@ -442,7 +442,7 @@ namespace AASPA.Domain.Service
                 status_id_novo = (int)EStatus.Inativo
             };
 
-            _status.AlterarStatusCliente(novostatus);
+            _statusService.AlterarStatusCliente(novostatus);
         }
 
         public BuscarRetornoResponse BuscarRetorno(int mes, int ano)
