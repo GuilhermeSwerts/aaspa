@@ -1,4 +1,6 @@
 ﻿using AASPA.Domain.Interface;
+using AASPA.Models.Enum;
+using AASPA.Models.Requests;
 using AASPA.Models.Response;
 using AASPA.Repository;
 using AASPA.Repository.Maps;
@@ -21,11 +23,13 @@ namespace AASPA.Domain.Service
     {
         private readonly MysqlContexto _mysql;
         private readonly IHostEnvironment _env;
+        private readonly IStatus _status;
 
-        public RemessaService(MysqlContexto mysql, IHostEnvironment env)
+        public RemessaService(MysqlContexto mysql, IHostEnvironment env, IStatus status)
         {
             _mysql = mysql;
             _env = env;
+            _status = status;
         }
 
         public RetornoRemessaResponse GerarRemessa(int mes, int ano)
@@ -185,6 +189,103 @@ namespace AASPA.Domain.Service
                 Base64 = path
             };
         }
+        public async Task<string> LerRetornoRepasse(IFormFile file)
+        {
+            RetornoFinanceiroDb retorno_financeiro = new RetornoFinanceiroDb();
+            string content;
+            var repasse = file.FileName.Substring(14, 3);
+            var anomes = file.FileName.Substring(14, 6);
+
+            if (file == null || file.Length == 0)
+            {
+                throw new Exception("Nenhum arquivo foi enviado.");
+            }
+            else if (!file.FileName.Contains($"D.SUB.GER.177."))
+            {
+                throw new Exception("Arquivo com nome fora do formato!");
+            }
+            try
+            {
+
+                var remessa = _mysql.remessa.FirstOrDefault(x => x.remessa_ano_mes == anomes);
+                var retorno = _mysql.retornos_remessa.FirstOrDefault(x => x.AnoMes == anomes);
+                if (remessa == null)
+                {
+                    throw new Exception("Não existe nenhuma remessa para o retorno financeiro importado!");
+                }
+                else if (retorno == null)
+                {
+                    throw new Exception("Não existe nenhum retorno para o retorno financeiro importado!");
+                }
+
+                using var tran = _mysql.Database.BeginTransaction();
+                using (var memoryStream = new MemoryStream())
+                {
+                    await file.CopyToAsync(memoryStream);
+                    memoryStream.Position = 0;
+
+                    using (var reader = new StreamReader(memoryStream, Encoding.UTF8))
+                    {
+                        content = await reader.ReadToEndAsync();
+
+                        var linhas = content.Split('\n');
+
+                        foreach (var line in linhas)
+                        {
+                            if (!string.IsNullOrWhiteSpace(line))
+                            {
+                                if (int.Parse(line.Substring(0, 1)) == 0)
+                                {
+                                    if (line.Substring(1, 10).Trim() != "AASPA")
+                                    {
+                                        throw new Exception("Arquivo não pertence a AASPA");
+                                    }
+                                    
+                                    retorno_financeiro = new RetornoFinanceiroDb()
+                                    {
+                                        repasse = line.Substring(1,7),
+                                        competencia_Repasse = int.Parse(line.Substring(9,6)),
+                                        ano_mes = anomes,
+                                        data_importacao = DateTime.Now,
+                                        nome_arquivo = file.FileName,
+                                        remessa_id = remessa.remessa_id,
+                                        retorno_id = retorno.Retorno_Id,
+                                    };
+                                    _mysql.retorno_financeiro.Add(retorno_financeiro);
+                                    _mysql.SaveChanges();
+                                }
+                                else if (int.Parse(line.Substring(0, 1)) == 1)
+                                {
+                                    DateTime date;
+
+                                    RetornoRegistroFinanceiroDb registro_Financeiro;
+                                    registro_Financeiro = new RetornoRegistroFinanceiroDb()
+                                    {                                     
+                                        NumeroBeneficio = int.Parse(line.Substring(1, 10)),
+                                        CompetenciaDesconto = int.Parse(line.Substring(11, 6)),
+                                        Especie = int.Parse(line.Substring(17, 2)),
+                                        UF = int.Parse(line.Substring(19, 2)),
+                                        Desconto = int.Parse(line.Substring(21, 5)),
+                                        RetornoFinanceiroId = retorno_financeiro.retorno_financeiro_id,                                
+                                    };                                   
+                                    _mysql.retorno_registro_financeiro.Add(registro_Financeiro);
+                                    _mysql.SaveChanges();
+                                }
+                            }
+                        }
+                        tran.Commit();
+                        return anomes;
+                    }
+                }                
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+
+            return "";
+        }
         public async Task<string> LerRetorno(IFormFile file)
         {
             string content;
@@ -247,6 +348,10 @@ namespace AASPA.Domain.Service
                                 }
                                 else if (int.Parse(line.Substring(0, 1)) == 1)
                                 {
+                                    if (int.Parse(line.Substring(12, 1)) == 2)
+                                    {
+                                        InativarClienteRejeitado(line);
+                                    }
                                     DateTime date;
                                     var registroretorno = new RegistroRetornoRemessaDb()
                                     {
@@ -274,6 +379,24 @@ namespace AASPA.Domain.Service
                 throw new Exception(ex.Message);
             }
         }
+
+        private void InativarClienteRejeitado(string line)
+        {
+            var query = (from c in _mysql.clientes
+                        join l in _mysql.log_status on c.cliente_id equals l.log_status_cliente_id
+                        where c.cliente_matriculaBeneficio == line.Substring(1, 10)
+                         select l).FirstOrDefault();
+
+            AlterarStatusClienteRequest novostatus = new AlterarStatusClienteRequest()
+            {
+                cliente_id = query.log_status_cliente_id,
+                status_id_antigo = query.log_status_novo_id,
+                status_id_novo = (int)EStatus.Inativo
+            };
+
+            _status.AlterarStatusCliente(novostatus);
+        }
+
         public BuscarRetornoResponse BuscarRetorno(int mes, int ano)
         {
             try

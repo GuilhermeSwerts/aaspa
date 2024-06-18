@@ -71,7 +71,15 @@ namespace AASPA.Controllers
         {
             try
             {
-                var retorno = await _remessa.LerRetorno(file);
+                var retorno = "";
+                if (file.FileName.Substring(14,3) == "REP")
+                {
+                     retorno = await _remessa.LerRetornoRepasse(file);
+                }
+                else
+                {
+                    retorno = await _remessa.LerRetorno(file);
+                }
                 return Ok(retorno);
             }
             catch (Exception ex)
