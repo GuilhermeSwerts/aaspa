@@ -36,6 +36,6 @@ namespace AASPA.Repository.Maps
         public bool cliente_situacao { get; set; }
         public int? cliente_sexo { get; set; }
         public int cliente_estado_civil { get; set; }
-        public int cliente_remessa_id { get; set; }
+        public int? cliente_remessa_id { get; set; }
     }
 }
