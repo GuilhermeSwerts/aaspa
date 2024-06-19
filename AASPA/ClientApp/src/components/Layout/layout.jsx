@@ -14,6 +14,8 @@ function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
     const toggleDropdown = () => setDropdownOpen((prevState) => !prevState);
     const [dropdownOpenTools, setDropdownOpenTools] = useState(false);
     const toggleDropdownTools = () => setDropdownOpenTools((prevState) => !prevState);
+    const [dropdownOpenRelatorio, setDropdownOpenRelatorio] = useState(false);
+    const toggleDropdownRelatorio = () => setDropdownOpenRelatorio((prevState) => !prevState);
 
     const [showMenu, setShowMenu] = useState(true);
     const { handdleLogout } = useContext(AuthContext);
@@ -72,12 +74,28 @@ function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
                             color: '#fff',
                             justifyContent: 'space-between',
                             alignItems: 'center',
+                        }}>ARQUIVOS</DropdownToggle>
+                        <DropdownMenu>
+                            <DropdownItem header>Arquivos</DropdownItem>
+                            <DropdownItem onClick={() => IrPara("rremessa")}>REMESSA</DropdownItem>
+                            <DropdownItem onClick={() => IrPara("rretorno")}>RETORNO</DropdownItem>
+                            <DropdownItem onClick={() => IrPara("rrepassefinanceiro")}>REPASSE | FINANCEIRO</DropdownItem>
+                        </DropdownMenu>
+                    </Dropdown>}
+                    {usuario_tipo === 1 && <Dropdown style={{ background: 'none', border: 'none' }} isOpen={dropdownOpenRelatorio} toggle={toggleDropdownRelatorio} direction={'right'}>
+                        <DropdownToggle caret color='' style={{
+                            padding: '15px 20px',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            display: 'flex',
+                            width: '100%',
+                            color: '#fff',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
                         }}>RELATÓRIOS</DropdownToggle>
                         <DropdownMenu>
                             <DropdownItem header>Relatórios</DropdownItem>
-                            <DropdownItem onClick={() => IrPara("rremessa")}>REMESSA</DropdownItem>
-                            <DropdownItem onClick={() => IrPara("rretorno")}>RETORNO</DropdownItem>
-                            <DropdownItem onClick={()=> IrPara("rrepassefinanceiro")}>REPASSE | FINANCEIRO</DropdownItem>
+                            <DropdownItem onClick={() => IrPara("rrelatorio")}>AVERBAÇÃO</DropdownItem>
                         </DropdownMenu>
                     </Dropdown>}
                 </div>
