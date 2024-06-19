@@ -1,4 +1,5 @@
 ﻿using AASPA.Controllers;
+using AASPA.Models.Model.RelatorioAverbacao;
 using AASPA.Models.Response;
 using AASPA.Repository;
 using AASPA.Repository.Maps;
@@ -25,10 +26,11 @@ namespace AASPA.Domain.Service
                 var corporelatorio = (from c in _mysql.clientes
                                       join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
                                       join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
-                                      join cr in _mysql.codigo_retorno on r.Motivo_Rejeicao equals int.Parse(cr.CodigoErro)
+                                      join cr in _mysql.codigo_retorno on r.Motivo_Rejeicao.ToString().PadLeft(3, '0') equals cr.CodigoErro
                                       where rr.AnoMes == anomes
                                       select new RelatorioAverbacaoResponse
                                       {
+                                          CodExterno = c.cliente_matriculaBeneficio,
                                           ClienteCpf = c.cliente_cpf,
                                           ClienteNome = c.cliente_nome,
                                           DataInicioDesconto = r.Data_Inicio_Desconto,
@@ -45,23 +47,49 @@ namespace AASPA.Domain.Service
                 var totalNaoAverbada = (from c in _mysql.clientes
                                         join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
                                         join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
-                                        join cr in _mysql.codigo_retorno on r.Motivo_Rejeicao equals int.Parse(cr.CodigoErro)
+                                        join cr in _mysql.codigo_retorno on r.Motivo_Rejeicao.ToString().PadLeft(3, '0') equals cr.CodigoErro
                                         where rr.AnoMes == anomes && r.Codigo_Resultado == 2
                                         select r).Count();
 
-                var motivoNaoAverbadaQuery = from c in _mysql.clientes
-                                             join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
-                                             join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
-                                             join cr in _mysql.codigo_retorno on r.Motivo_Rejeicao equals int.Parse(cr.CodigoErro)
-                                             where rr.AnoMes == anomes
-                                             group cr by new { cr.CodigoErro, cr.DescricaoErro } into g
-                                             select new MotivoNaoAverbacaoResponse
-                                             {
-                                                 TotalPorCodigoErro = g.Count(),
-                                                 DescricaoErro = g.Key.DescricaoErro
-                                             };
+                var totalAverbada = (from c in _mysql.clientes
+                                     join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
+                                     join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
+                                     join cr in _mysql.codigo_retorno on r.Motivo_Rejeicao.ToString().PadLeft(3, '0') equals cr.CodigoErro
+                                     where rr.AnoMes == anomes && r.Codigo_Resultado == 1
+                                     select r).Count();
 
-                var motivoNaoAverbada = motivoNaoAverbadaQuery.ToList();
+                var motivoNaoAverbada = (from c in _mysql.clientes
+                                         join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
+                                         join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
+                                         join cr in _mysql.codigo_retorno on r.Motivo_Rejeicao.ToString().PadLeft(3, '0') equals cr.CodigoErro
+                                         where rr.AnoMes == anomes && r.Codigo_Resultado == 2
+                                         group cr by new { cr.CodigoErro, cr.DescricaoErro } into g
+                                         select new MotivoNaoAverbacaoResponse
+                                         {
+                                             TotalPorCodigoErro = g.Count(),
+                                             DescricaoErro = g.Key.DescricaoErro
+                                         }).ToList();
+
+                var numeroRemessa = (from c in _mysql.clientes
+                                     join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
+                                     join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
+                                     join cr in _mysql.codigo_retorno on r.Motivo_Rejeicao.ToString().PadLeft(3, '0') equals cr.CodigoErro
+                                     where rr.AnoMes == anomes
+                                     select r.Retorno_Remessa_Id).FirstOrDefault();
+
+                var detalhes = new Detalhes
+                {
+                    Competencia = $"{anomes.Substring(0, 4)}{anomes.Substring(4, 2)}",
+                    Averbados = totalAverbada,
+                    Corretora = "Confia",
+                    Remessa = numeroRemessa,
+                    TaxaAverbacao = (totalAverbada * 100) / (totalNaoAverbada + totalAverbada)
+                };
+
+                foreach (var item in motivoNaoAverbada)
+                {
+                    item.TotalPorcentagem = (item.TotalPorCodigoErro * 100) / (totalNaoAverbada + totalAverbada);
+                }
 
                 var resumoAverbacao = new ResumoAverbacaoResponse
                 {
@@ -71,6 +99,8 @@ namespace AASPA.Domain.Service
 
                 var resultado = new GerarRelatorioAverbacaoResponse
                 {
+                    Detalhes = detalhes,
+                    TaxaNaoAverbado = (resumoAverbacao.TotalNaoAverbada * 100) / (totalNaoAverbada + totalAverbada),
                     Relatorio = corporelatorio,
                     Resumo = resumoAverbacao,
                     MotivosNaoAverbada = motivoNaoAverbada
@@ -78,12 +108,10 @@ namespace AASPA.Domain.Service
 
                 return resultado;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                throw;
             }
-            return null;
         }
-
     }
 }

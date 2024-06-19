@@ -5,7 +5,8 @@ import { AuthContext } from '../../../context/AuthContext';
 import { ButtonTooltip } from '../../../components/Inputs/ButtonTooltip'
 import { FaDownload } from 'react-icons/fa';
 import { api } from '../../../api/api';
-import moment from 'moment'; 
+import moment from 'moment';
+import { Mascara } from '../../../util/mascara';
 
 function Relatorio() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -28,6 +29,21 @@ function Relatorio() {
     const anoAtual = new Date().getFullYear();
     const anos = Array.from({ length: 25 }, (_, i) => anoAtual - i);
 
+    const [detalheProducao, setDetalheProducao] = useState([]);
+    const [detalhes, setDetalhes] = useState({
+        competencia: "",
+        corretora: "",
+        remessa: "",
+        averbados: "",
+        taxaAverbacao: ""
+    });
+    const [motivosNaoAverbada, setMotivosNaoAverbada] = useState([]);
+    const [resumo, SetResumo] = useState({
+        "totalRemessa": 3,
+        "totalNaoAverbada": 0
+    })
+    const [taxaNaoAverbado, setTaxaNaoAverbado] = useState(0);
+
     const BuscarRelatorio = () => {
         const mesCorrente = moment().format('MM');
         const anoCorrente = moment().format('YYYY');
@@ -35,9 +51,13 @@ function Relatorio() {
         let mes = mesSelecionado ? mesSelecionado : mesCorrente;
         setMesSelecionado(parseInt(mes));
         setAnoSelecionado(ano);
-        api.get(`RelatorioAverbacao?mes=${mes}&ano=${ano}`,response=> {
-            debugger
-        },erro=> {
+        api.get(`RelatorioAverbacao?mes=${mes}&ano=${ano}`, response => {
+            SetResumo(response.data.resumo);
+            setTaxaNaoAverbado(response.data.taxaNaoAverbado);
+            setMotivosNaoAverbada(response.data.motivosNaoAverbada)
+            setDetalhes(response.data.detalhes);
+            setDetalheProducao(response.data.relatorio);
+        }, erro => {
             alert('Houve um erro ao buscar o relatório.')
         })
     }
@@ -46,29 +66,6 @@ function Relatorio() {
         handdleUsuarioLogado();
         BuscarRelatorio();
     }, []);
-
-
-    const resumoProducao = {
-        competencia: 'mar/24',
-        corretora: 'Confia',
-        remessa: 2209,
-        averbados: 1715,
-        taxaAverbacao: '78%',
-        motivosNaoAverbados: [
-            { motivo: '002 - Espécie incompatível', total: 0, porcentagem: '0%' },
-            { motivo: '004 - NB inexistente no cadastro', total: 0, porcentagem: '0%' },
-            { motivo: '005 - Benefício não ativo', total: 31, porcentagem: '1%' },
-            { motivo: '008 - MR ultrapassada MR do titular', total: 2, porcentagem: '0%' },
-            { motivo: '008 - Já existe desc. p/ outra entidade', total: 371, porcentagem: '17%' },
-            { motivo: '012 - Benefício bloqueado para desconto', total: 90, porcentagem: '4%' },
-        ],
-        totalNaoAverbado: { total: 494, porcentagem: '22%' },
-    };
-
-    const detalheProducao = [
-        { codExterno: '6244450691', cpf: '348.301.558-25', nome: 'JOSEFINA PINHEIRO', dataAdesao: '03/04/2024', taxaAssociativa: 'R$ 45,00', status: 'Não Averbado', motivo: '008 - Já existe desc. p/ outra entidade' },
-        { codExterno: '1562713490', cpf: '142.894.186-00', nome: 'WANDERSON LUIZ DA COSTA GENOVEZ', dataAdesao: '01/03/2024', taxaAssociativa: 'R$ 45,00', status: 'Averbado', motivo: '' },
-    ];
 
     return (
         <NavBar usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
@@ -95,13 +92,19 @@ function Relatorio() {
                     </select>
                 </div>
                 <div className="col-md-4" style={{ marginTop: '2rem', display: 'flex', gap: 10, justifyContent: 'space-between' }}>
-                    <button className='btn btn-primary' onClick={() => { }}>Buscar</button>
+                    <button className='btn btn-primary' onClick={BuscarRelatorio}>Buscar</button>
                 </div>
             </div>
             <hr />
             <div className="container-relatorio">
                 <h1 style={{ textAlign: 'center' }}>EXTRATO DE RETORNO DATA PREV</h1>
-                <ResumoProducao resumo={resumoProducao} />
+                <ResumoProducao
+                    motivosNaoAverbada={motivosNaoAverbada}
+                    resumoTotal={resumo}
+                    taxaNaoAverbado={taxaNaoAverbado}
+                    resumo={detalhes}
+                    mesSelecionado={mesSelecionado}
+                    anoSelecionado={anoSelecionado} />
                 <br />
                 <DetalheProducao detalhes={detalheProducao} />
             </div>
@@ -109,7 +112,8 @@ function Relatorio() {
     );
 }
 
-function ResumoProducao({ resumo }) {
+function ResumoProducao({ motivosNaoAverbada,
+    taxaNaoAverbado, resumoTotal, resumo, mesSelecionado, anoSelecionado }) {
     return (
         <div className="container-main-resumo">
             <div className="resuto-title">
@@ -120,21 +124,21 @@ function ResumoProducao({ resumo }) {
                 <div className="col-md-5 container-relatorio-center">
                     <h4>Detalhes</h4>
                     <ul className='container-motivo-nao-verbados'>
-                        <li>COMPETENCIA: {resumo.competencia}</li>
+                        <li>COMPETENCIA: {mesSelecionado}/{anoSelecionado}</li>
                         <li>CORRETORA: {resumo.corretora}</li>
                         <li>Remessa: {resumo.remessa}</li>
                         <li>Averbados: {resumo.averbados}</li>
                     </ul>
-                    <p>Taxa de Averbacao: {resumo.taxaAverbacao}</p>
+                    <p>Taxa de Averbacao: {resumo.taxaAverbacao}%</p>
                 </div>
                 <div className="col-md-5 container-relatorio-center">
                     <h4>Motivos não averbados</h4>
                     <ul className='container-motivo-nao-verbados'>
-                        {resumo.motivosNaoAverbados.map((item, index) => (
-                            <li key={index}>{item.motivo}: {item.total} ({item.porcentagem})</li>
+                        {motivosNaoAverbada.map((item, index) => (
+                            <li key={index}>{item.descricaoErro}: {item.totalPorCodigoErro} ({item.totalPorcentagem}%)</li>
                         ))}
                     </ul>
-                    <p>Total Não averbado: {resumo.totalNaoAverbado.total} ({resumo.totalNaoAverbado.porcentagem})</p>
+                    <p>Total Não averbado: {resumoTotal.totalNaoAverbada} ({taxaNaoAverbado}%)</p>
                 </div>
             </div>
         </div>
@@ -170,15 +174,15 @@ function DetalheProducao({ detalhes }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {detalhes.map((detalhe, index) => (
+                        {detalhes && detalhes.map((detalhe, index) => (
                             <tr key={index}>
                                 <td>{detalhe.codExterno}</td>
-                                <td>{detalhe.cpf}</td>
-                                <td>{detalhe.nome}</td>
-                                <td>{detalhe.dataAdesao}</td>
-                                <td>{detalhe.taxaAssociativa}</td>
-                                <td>{detalhe.status}</td>
-                                <td>{detalhe.motivo}</td>
+                                <td>{Mascara.cpf(detalhe.clienteCpf)}</td>
+                                <td>{detalhe.clienteNome}</td>
+                                <td>{(Mascara.data(detalhe.dataInicioDesconto)).split(' ')[0]}</td>
+                                <td>R$ {detalhe.valorDesconto.toFixed(2)}</td>
+                                <td>{detalhe.codigoResultado === 1 ? 'AVERBADO' : detalhe.codigoResultado === 2 ? 'NÃO AVERBADO' : 'ERRO'}</td>
+                                <td>{detalhe.descricaoErro}</td>
                             </tr>
                         ))}
                     </tbody>

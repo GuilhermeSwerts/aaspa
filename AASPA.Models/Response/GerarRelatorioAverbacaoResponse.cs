@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AASPA.Models.Model.RelatorioAverbacao;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,5 +13,7 @@ namespace AASPA.Models.Response
         public ResumoAverbacaoResponse Resumo { get; set; }
         public List<MotivoNaoAverbacaoResponse> MotivosNaoAverbada { get; set; }
         public string Base64 { get; set; }
+        public Detalhes Detalhes { get; set; }
+        public int TaxaNaoAverbado { get; set; }
     }
 }

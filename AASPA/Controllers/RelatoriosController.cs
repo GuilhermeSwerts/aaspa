@@ -25,8 +25,8 @@ namespace AASPA.Controllers
             try
             {
                 var response = _relatorios.GerarRelatorioAverbacao($"{ano}{mes.ToString().PadLeft(2,'0')}");
-                byte[] conteudoBytes = System.IO.File.ReadAllBytes(response.Base64);
-                response.Base64 = Convert.ToBase64String(conteudoBytes);
+                //byte[] conteudoBytes = System.IO.File.ReadAllBytes(response.Base64);
+                //response.Base64 = Convert.ToBase64String(conteudoBytes);
                 return Ok(response);
             }
             catch (Exception ex)
