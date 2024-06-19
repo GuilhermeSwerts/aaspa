@@ -77,19 +77,25 @@ namespace AASPA.Domain.Service
                                      where rr.AnoMes == anomes
                                      select r.Retorno_Remessa_Id).FirstOrDefault();
 
+                var taxaaverbacao = 0;
+                if (totalAverbada != 0 && totalNaoAverbada != 0)
+                {
+                    taxaaverbacao = (totalAverbada * 100) / (totalNaoAverbada + totalAverbada);
+                    foreach (var item in motivoNaoAverbada)
+                    {
+                        item.TotalPorcentagem = (item.TotalPorCodigoErro * 100) / (totalNaoAverbada + totalAverbada);
+                    }
+                }
+
                 var detalhes = new Detalhes
                 {
                     Competencia = $"{anomes.Substring(0, 4)}{anomes.Substring(4, 2)}",
                     Averbados = totalAverbada,
                     Corretora = "Confia",
                     Remessa = numeroRemessa,
-                    TaxaAverbacao = (totalAverbada * 100) / (totalNaoAverbada + totalAverbada)
+                    TaxaAverbacao = taxaaverbacao,
                 };
-
-                foreach (var item in motivoNaoAverbada)
-                {
-                    item.TotalPorcentagem = (item.TotalPorCodigoErro * 100) / (totalNaoAverbada + totalAverbada);
-                }
+                
 
                 var resumoAverbacao = new ResumoAverbacaoResponse
                 {
@@ -97,10 +103,16 @@ namespace AASPA.Domain.Service
                     TotalNaoAverbada = totalNaoAverbada
                 };
 
+                var taxanaoaverbacao = 0;
+                if (totalAverbada != 0 && totalNaoAverbada != 0)
+                {
+                    taxanaoaverbacao = (resumoAverbacao.TotalNaoAverbada * 100) / (totalNaoAverbada + totalAverbada);
+                }
+
                 var resultado = new GerarRelatorioAverbacaoResponse
                 {
                     Detalhes = detalhes,
-                    TaxaNaoAverbado = (resumoAverbacao.TotalNaoAverbada * 100) / (totalNaoAverbada + totalAverbada),
+                    TaxaNaoAverbado = taxanaoaverbacao,
                     Relatorio = corporelatorio,
                     Resumo = resumoAverbacao,
                     MotivosNaoAverbada = motivoNaoAverbada
