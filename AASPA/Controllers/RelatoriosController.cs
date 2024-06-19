@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace AASPA.Controllers
 {
-    public class RelatoriosController
+    public class RelatoriosController : Controller
     {
         private readonly IRelatorios _relatorios;
 
@@ -20,18 +20,18 @@ namespace AASPA.Controllers
 
         [HttpGet]
         [Route("/RelatorioAverbacao")]
-        public ActionResult RelatorioAvebacao(DateTime inicio, DateTime fim)
+        public ActionResult RelatorioAvebacao([FromQuery]int mes, int ano)
         {
             try
             {
-                var response = _relatorios.GerarRelatorioAverbacao(inicio,fim);
-                byte[] conteudoBytes = File.ReadAllBytes(response.Base64);
+                var response = _relatorios.GerarRelatorioAverbacao($"{ano}{mes.ToString().PadLeft(2,'0')}");
+                byte[] conteudoBytes = System.IO.File.ReadAllBytes(response.Base64);
                 response.Base64 = Convert.ToBase64String(conteudoBytes);
                 return Ok(response);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw new Exception();
+                return BadRequest(ex.Message);
             }
         }
     }

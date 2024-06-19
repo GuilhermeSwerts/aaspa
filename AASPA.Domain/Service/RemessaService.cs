@@ -409,7 +409,7 @@ namespace AASPA.Domain.Service
                                     DateTime date;
                                     var registroretorno = new RegistroRetornoRemessaDb()
                                     {
-                                        Numero_Beneficio = double.Parse(line.Substring(1, 10)),
+                                        Numero_Beneficio = line.Substring(1, 10),
                                         Codigo_Operacao = int.Parse(line.Substring(11, 1)),
                                         Codigo_Resultado = int.Parse(line.Substring(12, 1)),
                                         Motivo_Rejeicao = int.Parse(line.Substring(13, 3)),

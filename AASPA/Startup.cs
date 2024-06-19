@@ -14,6 +14,7 @@ using System;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using AASPA.App.Middleware;
+using AASPA.Controllers;
 
 namespace AASPA
 {
@@ -67,6 +68,7 @@ namespace AASPA
             services.AddScoped<IHistoricoContatoOcorrencia, HistoricoContatoOcorrenciaService>();
             services.AddScoped<IUsuario, UsuarioService>();
             services.AddScoped<IRemessa, RemessaService>();
+            services.AddScoped<IRelatorios, RelatorioService>();
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>

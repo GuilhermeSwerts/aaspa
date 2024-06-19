@@ -11,7 +11,7 @@ namespace AASPA.Repository.Maps
     {
         [Key]
         public int Id { get; set; }
-        public double Numero_Beneficio { get; set; }
+        public string Numero_Beneficio { get; set; }
         public int Codigo_Operacao { get; set; }
         public int Codigo_Resultado { get; set; }
         public int Motivo_Rejeicao { get; set; }
