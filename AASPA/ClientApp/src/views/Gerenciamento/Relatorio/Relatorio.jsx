@@ -146,12 +146,59 @@ function ResumoProducao({ motivosNaoAverbada,
 }
 
 function DetalheProducao({ detalhes }) {
+
+    const [mesSelecionado, setMesSelecionado] = useState(null);
+    const [anoSelecionado, setAnoSelecionado] = useState(null);
+
+    const DownloadAverbacao = () => {
+        const mesCorrente = moment().format('MM');
+        const anoCorrente = moment().format('YYYY');
+        let ano = anoSelecionado ? anoSelecionado : anoCorrente;
+        let mes = mesSelecionado ? mesSelecionado : mesCorrente;
+        setMesSelecionado(parseInt(mes));
+        setAnoSelecionado(ano);
+        api.get(`DownloadAverbacao?mes=${mes}&ano=${ano}`, res => {
+            const { nomeArquivo, base64 } = res.data;
+
+            // Convert base64 to binary string
+            let binaryString = atob(base64);
+
+            // Create a buffer and view to store binary data
+            let buffer = new ArrayBuffer(binaryString.length);
+            let view = new Uint8Array(buffer);
+
+            // Copy binary data to view
+            for (let i = 0; i < binaryString.length; i++) {
+                view[i] = binaryString.charCodeAt(i);
+            }
+
+            // Create a Blob from the binary data
+            let blob = new Blob([view], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+
+            // Create an object URL for the Blob
+            let url = window.URL.createObjectURL(blob);
+
+            // Create a link element
+            let a = document.createElement("a");
+            a.href = url;
+            a.download = nomeArquivo.endsWith(".xlsx") ? nomeArquivo : `${nomeArquivo}.xlsx`;
+
+            // Trigger the download
+            a.click();
+
+            // Revoke the object URL
+            window.URL.revokeObjectURL(url);
+        }, err => {
+            alert(err.response.data);
+        });
+    }
+
     return (
         <div className="detalhe-producao">
             <div className="resuto-title">
                 <h3>Detalhe de Produção</h3>
                 <ButtonTooltip
-                    onClick={() => { }}
+                    onClick={_ => DownloadAverbacao()}
                     className='btn btn-primary'
                     text={'Extrair Para Excel(.csv)'}
                     top={false}
