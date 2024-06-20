@@ -195,19 +195,19 @@ namespace AASPA.Domain.Service
                 worksheet.Cell("D13").Value = "Total Não averbado";
 
                 worksheet.Cell("F7").Value = 0;
-                worksheet.Cell("G7").Value = "0%";
+                worksheet.Cell("G7").Value = $"{0}%";
                 worksheet.Cell("F8").Value = 0;
-                worksheet.Cell("G8").Value = "0%";
+                worksheet.Cell("G8").Value = $"{0}%";
                 worksheet.Cell("F9").Value = 0;
-                worksheet.Cell("G9").Value = "0%";
+                worksheet.Cell("G9").Value = $"{0}%";
                 worksheet.Cell("F10").Value = 0;
-                worksheet.Cell("G10").Value = "0%";
+                worksheet.Cell("G10").Value = $"{0}%";
                 worksheet.Cell("F11").Value = 0;
-                worksheet.Cell("G11").Value = "0%";
+                worksheet.Cell("G11").Value = $"{0}%";
                 worksheet.Cell("F12").Value = 0;
-                worksheet.Cell("G12").Value = "0%";
+                worksheet.Cell("G12").Value = $"{0}%";
                 worksheet.Cell("F13").Value = 0;
-                worksheet.Cell("G13").Value = "0%";
+                worksheet.Cell("G13").Value = $"{0}%";
 
                 if (dados.MotivosNaoAverbada != null && dados.MotivosNaoAverbada.Count > 0)
                 {
@@ -220,7 +220,7 @@ namespace AASPA.Domain.Service
                         worksheet.Cell("F8").Value = item.CodigoErro == "4".PadLeft(3, '0') ? item.TotalPorCodigoErro : 0; ;
                         worksheet.Cell("G8").Value = item.CodigoErro == "4".PadLeft(3, '0') ? $"{item.TotalPorcentagem}%" : $"{0}%";
                         worksheet.Cell("F9").Value = item.CodigoErro == "5".PadLeft(3, '0') ? item.TotalPorCodigoErro : 0;
-                        worksheet.Cell("G9").Value = item.CodigoErro == "5".PadLeft(3, '0') ? $"{item.CodigoErro}%" : $"{0}%";
+                        worksheet.Cell("G9").Value = item.CodigoErro == "5".PadLeft(3, '0') ? $"{item.TotalPorcentagem}%" : $"{0}%";
                         worksheet.Cell("F10").Value = item.CodigoErro == "6".PadLeft(3, '0') ? item.TotalPorCodigoErro : 0;
                         worksheet.Cell("G10").Value = item.CodigoErro == "6".PadLeft(3, '0') ? $"{item.TotalPorcentagem}%" : $"{0}%";
                         worksheet.Cell("F11").Value = item.CodigoErro == "8".PadLeft(3, '0') ? item.TotalPorCodigoErro : 0;
@@ -249,11 +249,11 @@ namespace AASPA.Domain.Service
                 int row = 16;
                 foreach (var item in dados.Relatorio)
                 {
-                    worksheet.Cell(row, 1).Value = item.CodExterno;
+                    worksheet.Cell(row, 1).Value = long.TryParse(item.CodExterno, out long codexterno)? codexterno : item.CodExterno;
                     worksheet.Cell(row, 2).Value = long.TryParse(item.ClienteCpf, out long cpfNumber)? cpfNumber : item.ClienteCpf;
                     worksheet.Cell(row, 3).Value = item.ClienteNome;
                     worksheet.Cell(row, 4).Value = item.DataInicioDesconto;
-                    worksheet.Cell(row, 5).Value = long.TryParse(item.ValorDesconto.ToString("C"), out long valordesconto)? valordesconto : item.ValorDesconto;
+                    worksheet.Cell(row, 5).Value = decimal.TryParse(item.ValorDesconto.ToString("C"), out decimal valordesconto)? valordesconto : item.ValorDesconto;
                     worksheet.Cell(row, 6).Value = item.CodigoResultado == 1 ? "Averbado" : "Não Averbado";
                     worksheet.Cell(row, 7).Value = item.DescricaoErro;
                     row++;
@@ -270,8 +270,8 @@ namespace AASPA.Domain.Service
                 worksheet.Column("A").Width = 18;
                 worksheet.Column("B").Width = 15;
                 worksheet.Column("C").Width = 40;
-                worksheet.Column("D").Width = 15;
-                worksheet.Column("E").Width = 15;
+                worksheet.Column("D").Width = 18;
+                worksheet.Column("E").Width = 18;
                 worksheet.Column("F").Width = 18;
                 worksheet.Column("G").Width = 38;
 
