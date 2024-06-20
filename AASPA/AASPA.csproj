@@ -25,6 +25,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="RelatorioAverbacao_202406.xlsx" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\AASPA.Domain\AASPA.Domain.csproj" />
     <ProjectReference Include="..\AASPA.Models\AASPA.Models.csproj" />
   </ItemGroup>
