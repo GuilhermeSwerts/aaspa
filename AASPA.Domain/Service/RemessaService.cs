@@ -495,14 +495,12 @@ namespace AASPA.Domain.Service
 
             try
             {
-                // Extrai a substring e converte para int, depois compara com cliente_matriculaBeneficio
                 string substring = line.Substring(1, 10);
                 int parsedValue = int.Parse(substring);
                 return clienteMatriculaBeneficio == parsedValue.ToString();
             }
             catch
             {
-                // Em caso de qualquer exceção, retorna falso
                 return false;
             }
         }
