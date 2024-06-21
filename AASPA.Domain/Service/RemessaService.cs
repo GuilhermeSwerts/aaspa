@@ -131,15 +131,12 @@ namespace AASPA.Domain.Service
 
             foreach (var clienteDb in clientes)
             {
-                var valorpagamento = _mysql.pagamentos.Where(x => x.pagamento_cliente_id == clienteDb.cliente_id).Select(p => p.pagamento_valor_pago).FirstOrDefault();
-                string valornovo = valorpagamento.ToString("0.00", CultureInfo.InvariantCulture); ;
-
                 _mysql.registro_remessa.Add(new RegistroRemessaDb
                 {
                     registro_numero_beneficio = clienteDb.cliente_matriculaBeneficio.Length > 10 ? clienteDb.cliente_matriculaBeneficio.Substring(0, 10) : clienteDb.cliente_matriculaBeneficio.PadLeft(10, '0'),
                     registro_codigo_operacao = clienteDb.cliente_situacao ? 1 : 5,
                     registro_decimo_terceiro = 0,
-                    registro_valor_percentual_desconto = decimal.Parse(valornovo),
+                    registro_valor_percentual_desconto = 500,
                     remessa_id = idRemessa
                 });
             }
@@ -445,17 +442,22 @@ namespace AASPA.Domain.Service
             {
                 var query = (from c in _mysql.clientes
                              join l in _mysql.log_status on c.cliente_id equals l.log_status_cliente_id
-                             where c.cliente_matriculaBeneficio == line.Substring(1, 10)
-                             select l).FirstOrDefault();
+                             select new { c, l }).AsEnumerable()
+                             .Where(ti => IsValidClienteMatricula(line, ti.c.cliente_matriculaBeneficio))
+                             .Select(ti => ti.l)
+                             .FirstOrDefault();
 
-                AlterarStatusClienteRequest novostatus = new AlterarStatusClienteRequest()
+                if (query != null)
                 {
-                    cliente_id = query.log_status_cliente_id,
-                    status_id_antigo = query.log_status_novo_id,
-                    status_id_novo = (int)EStatus.Ativo
-                };
+                    AlterarStatusClienteRequest novostatus = new AlterarStatusClienteRequest()
+                    {
+                        cliente_id = query.log_status_cliente_id,
+                        status_id_antigo = query.log_status_novo_id,
+                        status_id_novo = (int)EStatus.Ativo
+                    };
 
-                _statusService.AlterarStatusCliente(novostatus);
+                    _statusService.AlterarStatusCliente(novostatus);
+                }                
             }
         }
 
@@ -465,21 +467,43 @@ namespace AASPA.Domain.Service
             foreach (string line in lines)
             {
                 var query = (from c in _mysql.clientes
-                            join l in _mysql.log_status on c.cliente_id equals l.log_status_cliente_id
-                            where c.cliente_matriculaBeneficio == line.Substring(1, 10)
-                            select l).FirstOrDefault();
+                             join l in _mysql.log_status on c.cliente_id equals l.log_status_cliente_id
+                             select new { c, l }).AsEnumerable()
+                             .Where(ti => IsValidClienteMatricula(line, ti.c.cliente_matriculaBeneficio))
+                             .Select(ti => ti.l)
+                             .FirstOrDefault();
 
-                AlterarStatusClienteRequest novostatus = new AlterarStatusClienteRequest()
+                if (query != null)
                 {
-                    cliente_id = query.log_status_cliente_id,
-                    status_id_antigo = query.log_status_novo_id,
-                    status_id_novo = (int)EStatus.Inativo
-                };
+                    AlterarStatusClienteRequest novostatus = new AlterarStatusClienteRequest()
+                    {
+                        cliente_id = query.log_status_cliente_id,
+                        status_id_antigo = query.log_status_novo_id,
+                        status_id_novo = (int)EStatus.Inativo
+                    };
 
-                _statusService.AlterarStatusCliente(novostatus);
+                    _statusService.AlterarStatusCliente(novostatus);
+                }
             }           
         }
+        bool IsValidClienteMatricula(string line, string clienteMatriculaBeneficio)
+        {
+            if (string.IsNullOrEmpty(line) || line.Length < 11)
+            {
+                return false;
+            }
 
+            try
+            {
+                string substring = line.Substring(1, 10);
+                int parsedValue = int.Parse(substring);
+                return clienteMatriculaBeneficio == parsedValue.ToString();
+            }
+            catch
+            {
+                return false;
+            }
+        }
         public BuscarRetornoResponse BuscarRetorno(int mes, int ano)
         {
             try
