@@ -35,11 +35,11 @@ namespace AASPA.Host.Controllers
 
         [HttpGet]
         [Route("/BuscarTodosClientes")]
-        public ActionResult Get()
+        public ActionResult Get([FromQuery] int? statusCliente, int? statusRemessa)
         {
             try
             {
-                List<BuscarClienteByIdResponse> clientes = _service.BuscarTodosClientes();
+                List<BuscarClienteByIdResponse> clientes = _service.BuscarTodosClientes(statusCliente, statusRemessa);
                 return Ok(clientes);
             }
             catch (System.Exception ex)

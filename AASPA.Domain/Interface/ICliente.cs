@@ -13,6 +13,6 @@ namespace AASPA.Domain.Interface
         BuscarClienteByIdResponse BuscarClienteID(int clienteId);
         void AtualizaCliente(ClienteRequest novoCliente);
         void NovoCliente(ClienteRequest novoCliente);
-        List<BuscarClienteByIdResponse> BuscarTodosClientes();
+        List<BuscarClienteByIdResponse> BuscarTodosClientes(int? statusCliente, int? statusRemessa);
     }
 }

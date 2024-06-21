@@ -1,5 +1,6 @@
 ﻿using AASPA.Domain.CustonException;
 using AASPA.Domain.Interface;
+using AASPA.Models.Enum;
 using AASPA.Models.Requests;
 using AASPA.Models.Response;
 using AASPA.Repository;
@@ -212,17 +213,39 @@ namespace AASPA.Domain.Service
             }
         }
 
-        public List<BuscarClienteByIdResponse> BuscarTodosClientes()
+        public List<BuscarClienteByIdResponse> BuscarTodosClientes(int? statusCliente, int? statusRemessa)
         {
+            statusCliente = statusCliente ?? 0;
+            statusRemessa = statusRemessa ?? 0;
+
             var clientes = (from cli in _mysql.clientes
                             join vin in _mysql.vinculo_cliente_captador on cli.cliente_id equals vin.vinculo_cliente_id
                             join cpt in _mysql.captadores on vin.vinculo_captador_id equals cpt.captador_id
-                            where cli.cliente_situacao
                             select new BuscarClienteByIdResponse
                             {
                                 Captador = cpt,
                                 Cliente = cli,
                             }).ToList().Distinct().ToList();
+
+            if (statusCliente == 1)
+            {
+                clientes = clientes.Where(x => x.Cliente.cliente_situacao).ToList();
+            }
+
+            if (statusCliente == 3)
+            {
+                clientes = clientes.Where(x => !x.Cliente.cliente_situacao).ToList();
+            }
+
+            if(statusRemessa == 1)
+            {
+                clientes = clientes.Where(x => x.Cliente.cliente_remessa_id != null && x.Cliente.cliente_remessa_id > 0).ToList();
+            }
+
+            if (statusRemessa == 2)
+            {
+                clientes = clientes.Where(x => x.Cliente.cliente_remessa_id == null || x.Cliente.cliente_remessa_id == 0).ToList();
+            }
 
             foreach (var cliente in clientes)
             {
@@ -254,7 +277,12 @@ namespace AASPA.Domain.Service
                 }
             }
 
-            return clientes.ToList().Distinct().ToList();
+            if (statusCliente == 2)
+            {
+                clientes = clientes.Where(x => x.Cliente.cliente_situacao && x.StatusAtual != null && x.StatusAtual.status_id == (int)EStatus.Inativo).ToList();
+            }
+
+            return clientes.ToList().Distinct().ToList().OrderBy(x=> x.Cliente.cliente_dataCadastro).ToList();
         }
     }
 }
