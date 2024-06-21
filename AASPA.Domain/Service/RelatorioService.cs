@@ -124,6 +124,11 @@ namespace AASPA.Domain.Service
                     taxanaoaverbacao = (resumoAverbacao.TotalNaoAverbada * 100) / totalRemessa;
                 }
 
+                foreach (var item in motivoNaoAverbada)
+                {
+                    item.TotalPorcentagem = (item.TotalPorCodigoErro * 100) / resumoAverbacao.TotalNaoAverbada;
+                }
+
                 var resultado = new GerarRelatorioAverbacaoResponse
                 {
                     Detalhes = detalhes,
