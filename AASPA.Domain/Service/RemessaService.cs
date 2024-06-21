@@ -442,17 +442,22 @@ namespace AASPA.Domain.Service
             {
                 var query = (from c in _mysql.clientes
                              join l in _mysql.log_status on c.cliente_id equals l.log_status_cliente_id
-                             where c.cliente_matriculaBeneficio == line.Substring(1, 10)
-                             select l).FirstOrDefault();
+                             select new { c, l }).AsEnumerable()
+                             .Where(ti => IsValidClienteMatricula(line, ti.c.cliente_matriculaBeneficio))
+                             .Select(ti => ti.l)
+                             .FirstOrDefault();
 
-                AlterarStatusClienteRequest novostatus = new AlterarStatusClienteRequest()
+                if (query != null)
                 {
-                    cliente_id = query.log_status_cliente_id,
-                    status_id_antigo = query.log_status_novo_id,
-                    status_id_novo = (int)EStatus.Ativo
-                };
+                    AlterarStatusClienteRequest novostatus = new AlterarStatusClienteRequest()
+                    {
+                        cliente_id = query.log_status_cliente_id,
+                        status_id_antigo = query.log_status_novo_id,
+                        status_id_novo = (int)EStatus.Ativo
+                    };
 
-                _statusService.AlterarStatusCliente(novostatus);
+                    _statusService.AlterarStatusCliente(novostatus);
+                }                
             }
         }
 
@@ -462,21 +467,45 @@ namespace AASPA.Domain.Service
             foreach (string line in lines)
             {
                 var query = (from c in _mysql.clientes
-                            join l in _mysql.log_status on c.cliente_id equals l.log_status_cliente_id
-                            where c.cliente_matriculaBeneficio == line.Substring(1, 10)
-                            select l).FirstOrDefault();
+                             join l in _mysql.log_status on c.cliente_id equals l.log_status_cliente_id
+                             select new { c, l }).AsEnumerable()
+                             .Where(ti => IsValidClienteMatricula(line, ti.c.cliente_matriculaBeneficio))
+                             .Select(ti => ti.l)
+                             .FirstOrDefault();
 
-                AlterarStatusClienteRequest novostatus = new AlterarStatusClienteRequest()
+                if (query != null)
                 {
-                    cliente_id = query.log_status_cliente_id,
-                    status_id_antigo = query.log_status_novo_id,
-                    status_id_novo = (int)EStatus.Inativo
-                };
+                    AlterarStatusClienteRequest novostatus = new AlterarStatusClienteRequest()
+                    {
+                        cliente_id = query.log_status_cliente_id,
+                        status_id_antigo = query.log_status_novo_id,
+                        status_id_novo = (int)EStatus.Inativo
+                    };
 
-                _statusService.AlterarStatusCliente(novostatus);
+                    _statusService.AlterarStatusCliente(novostatus);
+                }
             }           
         }
+        bool IsValidClienteMatricula(string line, string clienteMatriculaBeneficio)
+        {
+            if (string.IsNullOrEmpty(line) || line.Length < 11)
+            {
+                return false;
+            }
 
+            try
+            {
+                // Extrai a substring e converte para int, depois compara com cliente_matriculaBeneficio
+                string substring = line.Substring(1, 10);
+                int parsedValue = int.Parse(substring);
+                return clienteMatriculaBeneficio == parsedValue.ToString();
+            }
+            catch
+            {
+                // Em caso de qualquer exceção, retorna falso
+                return false;
+            }
+        }
         public BuscarRetornoResponse BuscarRetorno(int mes, int ano)
         {
             try
