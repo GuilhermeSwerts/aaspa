@@ -343,6 +343,7 @@ namespace AASPA.Domain.Service
         public async Task<string> LerRetorno(IFormFile file)
         {
             string content;
+            List<string> clientesparainativar = new List<string>();
             var repasse = file.FileName.Substring(14, 3);
             var anomes = file.FileName.Substring(14, 6);
             if (file == null || file.Length == 0)
@@ -404,7 +405,7 @@ namespace AASPA.Domain.Service
                                 {
                                     if (int.Parse(line.Substring(12, 1)) == 2)
                                     {
-                                        InativarClienteRejeitado(line);
+                                        clientesparainativar.Add(line);
                                     }
                                     DateTime date;
                                     var registroretorno = new RegistroRetornoRemessaDb()
@@ -424,6 +425,7 @@ namespace AASPA.Domain.Service
                             }
                         }
                         tran.Commit();
+                        InativarClienteRejeitado(clientesparainativar);
                         return anomes;
                     }
                 }
@@ -434,21 +436,25 @@ namespace AASPA.Domain.Service
             }
         }
 
-        private void InativarClienteRejeitado(string line)
+        private void InativarClienteRejeitado(List<string> lines)
         {
-            var query = (from c in _mysql.clientes
-                        join l in _mysql.log_status on c.cliente_id equals l.log_status_cliente_id
-                        where c.cliente_matriculaBeneficio == line.Substring(1, 10)
-                         select l).FirstOrDefault();
 
-            AlterarStatusClienteRequest novostatus = new AlterarStatusClienteRequest()
+            foreach (string line in lines)
             {
-                cliente_id = query.log_status_cliente_id,
-                status_id_antigo = query.log_status_novo_id,
-                status_id_novo = (int)EStatus.Inativo
-            };
+                var query = (from c in _mysql.clientes
+                            join l in _mysql.log_status on c.cliente_id equals l.log_status_cliente_id
+                            where c.cliente_matriculaBeneficio == line.Substring(1, 10)
+                            select l).FirstOrDefault();
 
-            _statusService.AlterarStatusCliente(novostatus);
+                AlterarStatusClienteRequest novostatus = new AlterarStatusClienteRequest()
+                {
+                    cliente_id = query.log_status_cliente_id,
+                    status_id_antigo = query.log_status_novo_id,
+                    status_id_novo = (int)EStatus.Inativo
+                };
+
+                _statusService.AlterarStatusCliente(novostatus);
+            }           
         }
 
         public BuscarRetornoResponse BuscarRetorno(int mes, int ano)
