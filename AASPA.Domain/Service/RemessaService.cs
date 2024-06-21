@@ -4,6 +4,7 @@ using AASPA.Models.Requests;
 using AASPA.Models.Response;
 using AASPA.Repository;
 using AASPA.Repository.Maps;
+using DocumentFormat.OpenXml.ExtendedProperties;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 using System;
@@ -60,14 +61,7 @@ namespace AASPA.Domain.Service
                     var clienteData = _clienteService.BuscarClienteID(cliente.cliente_id);
 
                     var statusNovo = clienteData.StatusAtual.status_id == (int)EStatus.AtivoAguardandoAverbacao ?
-                        (int)EStatus.Ativo : (int)EStatus.Deletado;
-
-                    _statusService.AlterarStatusCliente(new AlterarStatusClienteRequest
-                    {
-                        cliente_id = cliente.cliente_id,
-                        status_id_antigo = clienteData.StatusAtual.status_id,
-                        status_id_novo = statusNovo,
-                    });
+                        (int)EStatus.Ativo : (int)EStatus.Deletado;                    
 
                     VincularRemessaCliente(cliente.cliente_id, idRegistro);
                 }
@@ -107,6 +101,7 @@ namespace AASPA.Domain.Service
 
             result = result
                 .Where(x => x.cliente_dataCadastro > dateEnd.AddDays(1)).ToList();
+            
 
             foreach (var item in result)
             {
@@ -136,12 +131,15 @@ namespace AASPA.Domain.Service
 
             foreach (var clienteDb in clientes)
             {
+                var valorpagamento = _mysql.pagamentos.Where(x => x.pagamento_cliente_id == clienteDb.cliente_id).Select(p => p.pagamento_valor_pago).FirstOrDefault();
+                string valornovo = valorpagamento.ToString("0.00", CultureInfo.InvariantCulture); ;
+
                 _mysql.registro_remessa.Add(new RegistroRemessaDb
                 {
                     registro_numero_beneficio = clienteDb.cliente_matriculaBeneficio.Length > 10 ? clienteDb.cliente_matriculaBeneficio.Substring(0, 10) : clienteDb.cliente_matriculaBeneficio.PadLeft(10, '0'),
                     registro_codigo_operacao = clienteDb.cliente_situacao ? 1 : 5,
                     registro_decimo_terceiro = 0,
-                    registro_valor_percentual_desconto = 0,
+                    registro_valor_percentual_desconto = decimal.Parse(valornovo),
                     remessa_id = idRemessa
                 });
             }
@@ -160,7 +158,7 @@ namespace AASPA.Domain.Service
             {
                 ValorLinha.Add("0AASPA            11                        ".PadRight(45));
 
-                var clientes = _mysql.registro_remessa.Where(x => x.remessa_id == idRegistro).ToList();
+                var clientes = _mysql.registro_remessa.Where(x => x.remessa_id == idRegistro).ToList();                
 
                 foreach (var cliente in clientes)
                 {
@@ -344,6 +342,7 @@ namespace AASPA.Domain.Service
         {
             string content;
             List<string> clientesparainativar = new List<string>();
+            List<string> ClienteparaAtivar = new List<string>();
             var repasse = file.FileName.Substring(14, 3);
             var anomes = file.FileName.Substring(14, 6);
             if (file == null || file.Length == 0)
@@ -406,6 +405,9 @@ namespace AASPA.Domain.Service
                                     if (int.Parse(line.Substring(12, 1)) == 2)
                                     {
                                         clientesparainativar.Add(line);
+                                    }else if (int.Parse(line.Substring(12, 1)) == 1)
+                                    {
+                                        ClienteparaAtivar.Add(line);
                                     }
                                     DateTime date;
                                     var registroretorno = new RegistroRetornoRemessaDb()
@@ -426,6 +428,7 @@ namespace AASPA.Domain.Service
                         }
                         tran.Commit();
                         InativarClienteRejeitado(clientesparainativar);
+                        AtivarClienteRemessaEnviada(ClienteparaAtivar);
                         return anomes;
                     }
                 }
@@ -433,6 +436,26 @@ namespace AASPA.Domain.Service
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
+            }
+        }
+
+        private void AtivarClienteRemessaEnviada(List<string> lines)
+        {
+            foreach (string line in lines)
+            {
+                var query = (from c in _mysql.clientes
+                             join l in _mysql.log_status on c.cliente_id equals l.log_status_cliente_id
+                             where c.cliente_matriculaBeneficio == line.Substring(1, 10)
+                             select l).FirstOrDefault();
+
+                AlterarStatusClienteRequest novostatus = new AlterarStatusClienteRequest()
+                {
+                    cliente_id = query.log_status_cliente_id,
+                    status_id_antigo = query.log_status_novo_id,
+                    status_id_novo = (int)EStatus.Ativo
+                };
+
+                _statusService.AlterarStatusCliente(novostatus);
             }
         }
 
@@ -507,7 +530,7 @@ namespace AASPA.Domain.Service
                                equals new { l2.log_status_cliente_id, log_status_dt_cadastro = l2.max_date }
                                select l1)
                           on c.cliente_id equals l.log_status_cliente_id
-                          where c.cliente_remessa_id == 0 && new List<int> { (int)EStatus.AtivoAguardandoAverbacao, (int)EStatus.ExcluidoAguardandoEnvio }.Contains(l.log_status_novo_id)
+                          where (c.cliente_remessa_id == 0 || c.cliente_remessa_id == null) && new List<int> { (int)EStatus.AtivoAguardandoAverbacao, (int)EStatus.ExcluidoAguardandoEnvio }.Contains(l.log_status_novo_id)
                           select c).ToList();
 
             result = result
