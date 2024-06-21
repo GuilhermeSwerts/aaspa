@@ -131,15 +131,12 @@ namespace AASPA.Domain.Service
 
             foreach (var clienteDb in clientes)
             {
-                var valorpagamento = _mysql.pagamentos.Where(x => x.pagamento_cliente_id == clienteDb.cliente_id).Select(p => p.pagamento_valor_pago).FirstOrDefault();
-                string valornovo = valorpagamento.ToString("0.00", CultureInfo.InvariantCulture); ;
-
                 _mysql.registro_remessa.Add(new RegistroRemessaDb
                 {
                     registro_numero_beneficio = clienteDb.cliente_matriculaBeneficio.Length > 10 ? clienteDb.cliente_matriculaBeneficio.Substring(0, 10) : clienteDb.cliente_matriculaBeneficio.PadLeft(10, '0'),
                     registro_codigo_operacao = clienteDb.cliente_situacao ? 1 : 5,
                     registro_decimo_terceiro = 0,
-                    registro_valor_percentual_desconto = decimal.Parse(valornovo),
+                    registro_valor_percentual_desconto = 500,
                     remessa_id = idRemessa
                 });
             }
