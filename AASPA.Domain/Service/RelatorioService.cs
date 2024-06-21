@@ -33,7 +33,7 @@ namespace AASPA.Domain.Service
                 var corporelatorio = (from c in _mysql.clientes
                                       join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
                                       join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
-                                      join cr in _mysql.codigo_retorno on r.Motivo_Rejeicao.ToString().PadLeft(3, '0') equals cr.CodigoErro
+                                      join cr in _mysql.codigo_retorno on new { Operacao = r.Codigo_Operacao, Resultado = r.Codigo_Resultado } equals new { Operacao = cr.CodigoOperacao, Resultado = cr.CodigoResultado }
                                       where rr.AnoMes == anomes
                                       select new RelatorioAverbacaoResponse
                                       {
@@ -81,7 +81,7 @@ namespace AASPA.Domain.Service
                 var numeroRemessa = (from c in _mysql.clientes
                                      join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
                                      join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
-                                     join cr in _mysql.codigo_retorno on r.Motivo_Rejeicao.ToString().PadLeft(3, '0') equals cr.CodigoErro
+                                     join cr in _mysql.codigo_retorno on new { Operacao = r.Codigo_Operacao, Resultado = r.Codigo_Resultado } equals new { Operacao = cr.CodigoOperacao, Resultado = cr.CodigoResultado }
                                      where rr.AnoMes == anomes
                                      select r.Retorno_Remessa_Id).FirstOrDefault();
 
