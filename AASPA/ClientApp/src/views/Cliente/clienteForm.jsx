@@ -62,7 +62,7 @@ function ClienteForm({
                 <Col md={3}>
                     <FormGroup>
                         <Label for="matriculaBeneficio">Matrícula/Benefício*</Label>
-                        <Input required type="text" name="matriculaBeneficio" id="matriculaBeneficio" value={cliente.matriculaBeneficio} onChange={handleChange} />
+                        <Input maxLength={10} required type="text" name="matriculaBeneficio" id="matriculaBeneficio" value={cliente.matriculaBeneficio} onChange={handleChange} />
                     </FormGroup>
                 </Col>
                 <Col md={2}>
