@@ -108,9 +108,9 @@ namespace AASPA.Domain.Service
                 };
 
                 var taxanaoaverbacao = 0;
-                if (totalAverbada != 0 && totalNaoAverbada != 0)
+                if (totalNaoAverbada != 0)
                 {
-                    taxanaoaverbacao = (resumoAverbacao.TotalNaoAverbada * 100) / (totalNaoAverbada + totalAverbada);
+                    taxanaoaverbacao = (resumoAverbacao.TotalNaoAverbada * 100) / totalRemessa;
                 }
 
                 var resultado = new GerarRelatorioAverbacaoResponse
