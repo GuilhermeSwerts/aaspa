@@ -114,6 +114,32 @@ function Relatorio() {
 
 function ResumoProducao({ motivosNaoAverbada,
     taxaNaoAverbado, resumoTotal, resumo, mesSelecionado, anoSelecionado }) {
+
+    const OrganizarNaoAverbados = (listaNaoAverbados) => {
+        const obj = {
+            "Espécie incompatível": { codErro: '002', descricaoErro: 'Espécie incompatível', totalPorCodigoErro: '0', totalPorcentagem: '0' },
+            "NB inexistente no cadastro": { codErro: '004', descricaoErro: 'NB inexistente no cadastro', totalPorCodigoErro: '0', totalPorcentagem: '0' },
+            "Benefício não ativo": { codErro: '005', descricaoErro: 'Benefício não ativo', totalPorCodigoErro: '0', totalPorcentagem: '0' },
+            "Já existe desc. p/ outra entidade": { codErro: '008', descricaoErro: 'Já existe desc. p/ outra entidade', totalPorCodigoErro: '0', totalPorcentagem: '0' },
+            "Benefício bloqueado para desconto": { codErro: '012', descricaoErro: 'Benefício bloqueado para desconto', totalPorCodigoErro: '0', totalPorcentagem: '0' },
+            "Valor ultrapassa MR do titular": { codErro: '006', descricaoErro: 'Valor ultrapassa MR do titular', totalPorCodigoErro: '0', totalPorcentagem: '0' }
+        }
+
+        listaNaoAverbados.forEach(item => {
+            //<li key={index}>{item.descricaoErro}: {item.totalPorCodigoErro} ({item.totalPorcentagem}%)</li>
+            const { descricaoErro, totalPorCodigoErro, totalPorcentagem } = item;
+            
+            if (obj[descricaoErro]) {
+                obj[descricaoErro].totalPorCodigoErro = totalPorCodigoErro;
+                obj[descricaoErro].totalPorcentagem = totalPorcentagem;
+            } else {
+                obj[descricaoErro] = { descricaoErro, totalPorCodigoErro, totalPorcentagem };
+            }
+        })
+
+        return Object.values(obj);
+    }
+
     return (
         <div className="container-main-resumo">
             <div className="resuto-title">
@@ -124,17 +150,18 @@ function ResumoProducao({ motivosNaoAverbada,
                 <div className="col-md-5 container-relatorio-center">
                     <h4>Detalhes</h4>
                     <ul className='container-motivo-nao-verbados'>
-                        <li>COMPETENCIA: {mesSelecionado}/{anoSelecionado}</li>
-                        <li>CORRETORA: {resumo.corretora}</li>
-                        <li>Remessa: {resumo.remessa}</li>
-                        <li>Averbados: {resumo.averbados}</li>
+                        <li>Competencia: {mesSelecionado}/{anoSelecionado}</li>
+                        <li>Corretora: {resumo.corretora}</li>
+                        <li>Id Da Remessa: {resumo.remessa}</li>
+                        <li>Total Remessa: {resumoTotal.totalRemessa}</li>
+                        <li>Total Averbados: {resumo.averbados}</li>
                     </ul>
                     <p>Taxa de Averbacao: {resumo.taxaAverbacao}%</p>
                 </div>
                 <div className="col-md-5 container-relatorio-center">
                     <h4>Motivos não averbados</h4>
                     <ul className='container-motivo-nao-verbados'>
-                        {motivosNaoAverbada.map((item, index) => (
+                        {OrganizarNaoAverbados(motivosNaoAverbada).map((item, index) => (
                             <li key={index}>{item.descricaoErro}: {item.totalPorCodigoErro} ({item.totalPorcentagem}%)</li>
                         ))}
                     </ul>
