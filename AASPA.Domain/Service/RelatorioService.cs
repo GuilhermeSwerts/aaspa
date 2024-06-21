@@ -228,10 +228,10 @@ namespace AASPA.Domain.Service
                         worksheet.Cell("G8").Value = item.CodigoErro == "4".PadLeft(3, '0') ? $"{item.TotalPorcentagem}%" : $"{0}%";
                         worksheet.Cell("F9").Value = item.CodigoErro == "5".PadLeft(3, '0') ? item.TotalPorCodigoErro : 0;
                         worksheet.Cell("G9").Value = item.CodigoErro == "5".PadLeft(3, '0') ? $"{item.TotalPorcentagem}%" : $"{0}%";
-                        worksheet.Cell("F10").Value = item.CodigoErro == "6".PadLeft(3, '0') ? item.TotalPorCodigoErro : 0;
                         worksheet.Cell("G10").Value = item.CodigoErro == "6".PadLeft(3, '0') ? $"{item.TotalPorcentagem}%" : $"{0}%";
+                        worksheet.Cell("F10").Value = item.CodigoErro == "6".PadLeft(3, '0') ? item.TotalPorCodigoErro : 0;
+                        worksheet.Cell("G11").Value = item.CodigoErro == "8".PadLeft(3, '0') ? $"{item.TotalPorcentagem}%" : $"{0}";
                         worksheet.Cell("F11").Value = item.CodigoErro == "8".PadLeft(3, '0') ? item.TotalPorCodigoErro : 0;
-                        worksheet.Cell("G11").Value = item.CodigoErro == "8".PadLeft(3, '0') ? $"{item.TotalPorcentagem}%" : $"";
                         worksheet.Cell("F12").Value = item.CodigoErro == "12".PadLeft(3, '0') ? $"{item.TotalPorCodigoErro}%" : $"{0}";
                         worksheet.Cell("G12").Value = item.CodigoErro == "12".PadLeft(3, '0') ? $"{item.TotalPorcentagem}%" : $"{0}%";
                     }
