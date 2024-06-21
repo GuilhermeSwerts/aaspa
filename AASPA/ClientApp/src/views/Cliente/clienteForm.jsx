@@ -49,7 +49,7 @@ function ClienteForm({
                             <option value="0">Selecione</option>
                             <option value="1">Masculino</option>
                             <option value="2">Feminino</option>
-                            <option value="3">Outros</option>
+                            <option value="3"> </option>
                         </select>
                     </FormGroup>
                 </Col>
@@ -65,12 +65,18 @@ function ClienteForm({
                         <Input required type="text" name="matriculaBeneficio" id="matriculaBeneficio" value={cliente.matriculaBeneficio} onChange={handleChange} />
                     </FormGroup>
                 </Col>
-                <Col md={3}>
+                <Col md={2}>
                     <FormGroup>
                         <Label for="nrDocumento">Nr. Documento (RG/CNH etc)*</Label>
                         <Input required type="text" maxLength={10} name="nrDocto" id="nrDocto" value={cliente.nrDocto} onChange={handleChange} />
                     </FormGroup>
                 </Col>
+                {isEdit && <Col md={2}>
+                    <FormGroup>
+                        <Label >Remessa ID*</Label>
+                        <Input disabled value={cliente.remessaId} />
+                    </FormGroup>
+                </Col>}
             </Row>
             <hr />
             <h4>Dados Gerais:</h4>
@@ -210,7 +216,7 @@ function ClienteForm({
             </Row>
             <hr />
             <Row style={{ display: 'flex', justifyContent: 'end', gap: 20, padding: 20 }}>
-                <button type="button" className='btn btn-danger' onClick={() => window.history.back()}>Voltar</button>
+                <button type="button" className='btn btn-danger' onClick={() => window.location.href = '/'}>Voltar</button>
                 <button type="submit" className='btn btn-success'>Salvar</button>
             </Row>
         </form>

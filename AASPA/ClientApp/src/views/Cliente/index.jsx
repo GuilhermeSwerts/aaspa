@@ -33,7 +33,8 @@ function Cliente() {
         email: '',
         sexo: 0,
         estadoCivil: 1,
-        dataCad:''
+        dataCad: '',
+        remessaId: ''
     };
     const initStateCaptador = {
         cpfOuCnpj: '',
@@ -49,7 +50,6 @@ function Cliente() {
             const cpt = res.data.captador;
 
             const dtNasc = clt.cliente_dataNasc.replace("T00:00:00", "");
-            debugger;
             setCliente({
                 cpf: clt.cliente_cpf,
                 nome: clt.cliente_nome,
@@ -73,7 +73,8 @@ function Cliente() {
                 email: clt.cliente_email,
                 estadoCivil: clt.cliente_estado_civil,
                 sexo: clt.cliente_sexo,
-                dataCad: clt.cliente_dataCadastro.split('T')[0]
+                dataCad: clt.cliente_dataCadastro.split('T')[0],
+                remessaId: clt.cliente_remessa_id && clt.cliente_remessa_id > 0 ? clt.cliente_remessa_id : ''
             })
             setCaptador({
                 cpfOuCnpj: cpt.captador_cpf_cnpj,
@@ -175,7 +176,7 @@ function Cliente() {
         formData.append('Cliente[EstadoCivil]', cliente.estadoCivil);
         formData.append('Cliente[Sexo]', cliente.sexo);
         formData.append('Cliente[DataCad]', cliente.dataCad);
-        
+
         // Captador
         formData.append('Captador[cpfOuCnpj]', captador.cpfOuCnpj);
         formData.append('Captador[nome]', captador.nome);

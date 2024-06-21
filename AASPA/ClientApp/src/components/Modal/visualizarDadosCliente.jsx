@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, ModalBody, ModalFooter, ModalHeader, Form, FormGroup, Label, Input, Button, Row, Col } from 'reactstrap';
+import { Modal, ModalBody, ModalFooter, ModalHeader, Row, Col } from 'reactstrap';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { FaEye } from 'react-icons/fa';
 
@@ -44,37 +44,141 @@ function ModalVisualizarCliente({ Cliente }) {
                 top={true}
                 textButton={<FaEye size={25} />}
             />
-            <Modal isOpen={show}>
+            <Modal isOpen={show} modalClassName='custom-modal'>
                 <ModalHeader>
                     Dados Do Cliente
                 </ModalHeader>
                 <ModalBody>
-                    <p><strong>ID:</strong> {cliente_id}</p>
-                    <p><strong>CPF:</strong> {cliente_cpf}</p>
-                    <p><strong>Nome:</strong> {cliente_nome}</p>
-                    <p><strong>CEP:</strong> {cliente_cep}</p>
-                    <p><strong>Logradouro:</strong> {cliente_logradouro}</p>
-                    <p><strong>Bairro:</strong> {cliente_bairro}</p>
-                    <p><strong>Localidade:</strong> {cliente_localidade}</p>
-                    <p><strong>UF:</strong> {cliente_uf}</p>
-                    <p><strong>Número:</strong> {cliente_numero}</p>
-                    <p><strong>Complemento:</strong> {cliente_complemento}</p>
-                    <p><strong>Data de Nascimento:</strong> {new Date(cliente_dataNasc).toLocaleDateString()}</p>
-                    <p><strong>Data de Cadastro:</strong> {new Date(cliente_dataCadastro).toLocaleDateString()}</p>
-                    <p><strong>Número do Documento:</strong> {cliente_nrDocto}</p>
-                    <p><strong>Empregador:</strong> {cliente_empregador}</p>
-                    <p><strong>Matrícula Benefício:</strong> {cliente_matriculaBeneficio}</p>
-                    <p><strong>Nome da Mãe:</strong> {cliente_nomeMae}</p>
-                    <p><strong>Nome do Pai:</strong> {cliente_nomePai}</p>
-                    <p><strong>Telefone Fixo:</strong> {cliente_telefoneFixo}</p>
-                    <p><strong>Telefone Celular:</strong> {cliente_telefoneCelular}</p>
-                    <p><strong>Possui WhatsApp:</strong> {cliente_possuiWhatsapp ? 'Sim' : 'Não'}</p>
-                    <p><strong>Função AASPA:</strong> {cliente_funcaoAASPA}</p>
-                    <p><strong>Email:</strong> {cliente_email}</p>
-                    <p><strong>Situação:</strong> {cliente_situacao ? 'Ativo' : 'Inativo'}</p>
-                    <p><strong>Sexo:</strong> {cliente_sexo === 0 ? 'Masculino' : 'Feminino'}</p>
-                    <p><strong>Estado Civil:</strong> {cliente_estado_civil}</p>
-                    <p><strong>Remessa ID:</strong> {cliente_remessa_id}</p>
+                    <h3>DADOS INFORMATIVOS:</h3>
+                    <Row>
+                        <Col md={2}>
+                            <label>ID:</label>
+                            <input className='form-control' type="text" disabled value={cliente_id} />
+                        </Col>
+                        <Col md={4}>
+                            <label>Data de Cadastro:</label>
+                            <input className='form-control' type="text" disabled value={new Date(cliente_dataCadastro).toLocaleDateString()} />
+                        </Col>
+                        <Col md={2}>
+                            <label>Remessa ID:</label>
+                            <input className='form-control' type="text" disabled value={cliente_remessa_id} />
+                        </Col>
+                    </Row>
+                    <hr />
+                    <h3>DADOS PESSOAIS:</h3>
+                    <Row>
+                        <Col md={2}>
+                            <label>CPF:</label>
+                            <input className='form-control' type="text" disabled value={cliente_cpf} />
+                        </Col>
+                        <Col md={4}>
+                            <label>Nome:</label>
+                            <input className='form-control' type="text" disabled value={cliente_nome} />
+                        </Col>
+                        <Col md={2}>
+                            <label>Data de Nascimento:</label>
+                            <input className='form-control' type="text" disabled value={new Date(cliente_dataNasc).toLocaleDateString()} />
+                        </Col>
+                        <Col md={2}>
+                            <label>Sexo:</label>
+                            <input className='form-control' type="text" disabled value={cliente_sexo === 1 ? 'Masculino' : cliente_sexo === 2 ? 'Feminino' : 'Outros'} />
+                        </Col>
+                        <Col md={2}>
+                            <label>Estado Civil:</label>
+                            <select disabled name="estadoCivil" value={cliente_estado_civil} className='form-control'>
+                                <option value="1">Solteiro</option>
+                                <option value="2">Casado</option>
+                                <option value="3">Viúvo</option>
+                                <option value="4">Separado judiscialmente</option>
+                                <option value="5">União estável</option>
+                                <option value="6">Outros</option>
+                            </select>
+                        </Col>
+                    </Row>
+                    <hr />
+                    <h3>DADOS ENDEREÇO:</h3>
+                    <Row>
+                        <Col md={2}>
+                            <label>CEP:</label>
+                            <input className='form-control' type="text" disabled value={cliente_cep} />
+                        </Col>
+                        <Col md={6}>
+                            <label>Logradouro:</label>
+                            <input className='form-control' type="text" disabled value={cliente_logradouro} />
+                        </Col>
+                        <Col md={4}>
+                            <label>Bairro:</label>
+                            <input className='form-control' type="text" disabled value={cliente_bairro} />
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col md={2}>
+                            <label>Número:</label>
+                            <input className='form-control' type="text" disabled value={cliente_numero} />
+                        </Col>
+                        <Col md={4}>
+                            <label>Localidade:</label>
+                            <input className='form-control' type="text" disabled value={cliente_localidade} />
+                        </Col>
+                        <Col md={2}>
+                            <label>UF:</label>
+                            <input className='form-control' type="text" disabled value={cliente_uf} />
+                        </Col>
+                        <Col md={4}>
+                            <label>Complemento:</label>
+                            <input className='form-control' type="text" disabled value={cliente_complemento} />
+                        </Col>
+                    </Row>
+                    <hr />
+                    <h3>DADOS GERAIS:</h3>
+                    <Row>
+                        <Col md={2}>
+                            <label>Número do Documento:</label>
+                            <input className='form-control' type="text" disabled value={cliente_nrDocto} />
+                        </Col>
+                        <Col md={2}>
+                            <label>Empregador:</label>
+                            <input className='form-control' type="text" disabled value={cliente_empregador} />
+                        </Col>
+                        <Col md={4}>
+                            <label>Matrícula Benefício:</label>
+                            <input className='form-control' type="text" disabled value={cliente_matriculaBeneficio} />
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col md={6}>
+                            <label>Nome da Mãe:</label>
+                            <input className='form-control' type="text" disabled value={cliente_nomeMae} />
+                        </Col>
+                        <Col md={6}>
+                            <label>Nome da Pai:</label>
+                            <input className='form-control' type="text" disabled value={cliente_nomePai} />
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col md={3}>
+                            <label>Telefone Fixo:</label>
+                            <input className='form-control' type="text" disabled value={cliente_telefoneFixo} />
+                        </Col>
+                        <Col md={3}>
+                            <label>Telefone Celular:</label>
+                            <input className='form-control' type="text" disabled value={cliente_telefoneCelular} />
+                        </Col>
+                        <Col md={2}>
+                            <label>Possui WhatsApp:</label>
+                            <input className='form-control' type="text" disabled value={cliente_possuiWhatsapp ? 'Sim' : 'Não'} />
+                        </Col>
+                        <Col md={4}>
+                            <label>Função AASPA:</label>
+                            <input className='form-control' type="text" disabled value={cliente_funcaoAASPA} />
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col md={4}>
+                            <label>Email:</label>
+                            <input className='form-control' type="text" disabled value={cliente_email} />
+                        </Col>
+                    </Row>
                 </ModalBody>
                 <ModalFooter>
                     <button type='button' onClick={() => { setShow(false) }} className='btn btn-danger'>Voltar</button>

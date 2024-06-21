@@ -87,7 +87,7 @@ export default () => {
                         <option value={0}>TODOS</option>
                         <option value={1}>ATIVOS</option>
                         <option value={2}>INATIVOS</option>
-                        <option value={3}>DELETADOS</option>
+                        <option value={3}>EXCLUIDOS</option>
                     </select>
                 </div>
                 <div className="col-md-2">

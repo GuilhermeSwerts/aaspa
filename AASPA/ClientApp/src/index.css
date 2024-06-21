@@ -4,10 +4,15 @@
     box-sizing: border-box;
 }
 
-body{
+body {
     overflow-x: hidden;
 }
 
 :root {
     --bgColor--: #5161CE;
+}
+
+.custom-modal .modal-dialog {
+    width: 80%;
+    max-width: 80%;
 }
