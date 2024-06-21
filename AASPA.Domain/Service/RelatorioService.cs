@@ -1,4 +1,5 @@
 ﻿using AASPA.Controllers;
+using AASPA.Domain.Interface;
 using AASPA.Models.Model.RelatorioAverbacao;
 using AASPA.Models.Response;
 using AASPA.Repository;
@@ -33,7 +34,9 @@ namespace AASPA.Domain.Service
                 var corporelatorio = (from c in _mysql.clientes
                                       join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
                                       join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
-                                      join cr in _mysql.codigo_retorno on new { Operacao = r.Codigo_Operacao, Resultado = r.Codigo_Resultado } equals new { Operacao = cr.CodigoOperacao, Resultado = cr.CodigoResultado }
+                                      join cr in _mysql.codigo_retorno
+                                          on new { CodigoErro = r.Motivo_Rejeicao.ToString().PadLeft(3, '0'), CodigoOperacao = r.Codigo_Operacao }
+                                          equals new { CodigoErro = cr.CodigoErro, CodigoOperacao = cr.CodigoOperacao }
                                       where rr.AnoMes == anomes
                                       select new RelatorioAverbacaoResponse
                                       {
@@ -54,21 +57,27 @@ namespace AASPA.Domain.Service
                 var totalNaoAverbada = (from c in _mysql.clientes
                                         join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
                                         join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
-                                        join cr in _mysql.codigo_retorno on new { Operacao = r.Codigo_Operacao, Resultado = r.Codigo_Resultado } equals new { Operacao = cr.CodigoOperacao, Resultado = cr.CodigoResultado }
+                                        join cr in _mysql.codigo_retorno
+                                          on new { CodigoErro = r.Motivo_Rejeicao.ToString().PadLeft(3, '0'), CodigoOperacao = r.Codigo_Operacao }
+                                          equals new { CodigoErro = cr.CodigoErro, CodigoOperacao = cr.CodigoOperacao }
                                         where rr.AnoMes == anomes && r.Codigo_Resultado == 2
                                         select r).Count();
 
                 var totalAverbada = (from c in _mysql.clientes
                                      join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
                                      join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
-                                     join cr in _mysql.codigo_retorno on new { Operacao = r.Codigo_Operacao, Resultado = r.Codigo_Resultado } equals new { Operacao = cr.CodigoOperacao, Resultado = cr.CodigoResultado }
+                                     join cr in _mysql.codigo_retorno
+                                          on new { CodigoErro = r.Motivo_Rejeicao.ToString().PadLeft(3, '0'), CodigoOperacao = r.Codigo_Operacao }
+                                          equals new { CodigoErro = cr.CodigoErro, CodigoOperacao = cr.CodigoOperacao }
                                      where rr.AnoMes == anomes && r.Codigo_Resultado == 1
                                      select r).Count();
 
                 var motivoNaoAverbada = (from c in _mysql.clientes
                                          join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
                                          join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
-                                         join cr in _mysql.codigo_retorno on new { Operacao = r.Codigo_Operacao, Resultado = r.Codigo_Resultado } equals new { Operacao = cr.CodigoOperacao, Resultado = cr.CodigoResultado }
+                                         join cr in _mysql.codigo_retorno
+                                          on new { CodigoErro = r.Motivo_Rejeicao.ToString().PadLeft(3, '0'), CodigoOperacao = r.Codigo_Operacao }
+                                          equals new { CodigoErro = cr.CodigoErro, CodigoOperacao = cr.CodigoOperacao }
                                          where rr.AnoMes == anomes && r.Codigo_Resultado == 2
                                          group cr by new { cr.CodigoErro, cr.DescricaoErro } into g
                                          select new MotivoNaoAverbacaoResponse
@@ -81,7 +90,9 @@ namespace AASPA.Domain.Service
                 var numeroRemessa = (from c in _mysql.clientes
                                      join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
                                      join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
-                                     join cr in _mysql.codigo_retorno on new { Operacao = r.Codigo_Operacao, Resultado = r.Codigo_Resultado } equals new { Operacao = cr.CodigoOperacao, Resultado = cr.CodigoResultado }
+                                     join cr in _mysql.codigo_retorno
+                                          on new { CodigoErro = r.Motivo_Rejeicao.ToString().PadLeft(3, '0'), CodigoOperacao = r.Codigo_Operacao }
+                                          equals new { CodigoErro = cr.CodigoErro, CodigoOperacao = cr.CodigoOperacao }
                                      where rr.AnoMes == anomes
                                      select r.Retorno_Remessa_Id).FirstOrDefault();
 
