@@ -86,13 +86,9 @@ namespace AASPA.Domain.Service
                                      select r.Retorno_Remessa_Id).FirstOrDefault();
 
                 var taxaaverbacao = 0;
-                if (totalAverbada != 0 && totalNaoAverbada != 0)
+                if (totalAverbada != 0)
                 {
-                    taxaaverbacao = (totalAverbada * 100) / (totalNaoAverbada + totalAverbada);
-                    foreach (var item in motivoNaoAverbada)
-                    {
-                        item.TotalPorcentagem = (item.TotalPorCodigoErro * 100) / (totalNaoAverbada + totalAverbada);
-                    }
+                    taxaaverbacao = (totalAverbada * 100) / totalRemessa;
                 }
 
                 var detalhes = new Detalhes
@@ -112,9 +108,9 @@ namespace AASPA.Domain.Service
                 };
 
                 var taxanaoaverbacao = 0;
-                if (totalAverbada != 0 && totalNaoAverbada != 0)
+                if (totalNaoAverbada != 0)
                 {
-                    taxanaoaverbacao = (resumoAverbacao.TotalNaoAverbada * 100) / (totalNaoAverbada + totalAverbada);
+                    taxanaoaverbacao = (resumoAverbacao.TotalNaoAverbada * 100) / totalRemessa;
                 }
 
                 var resultado = new GerarRelatorioAverbacaoResponse
