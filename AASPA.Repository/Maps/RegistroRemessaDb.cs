@@ -14,7 +14,7 @@ namespace AASPA.Repository.Maps
         public string registro_numero_beneficio { get; set; }
         public int registro_codigo_operacao { get; set; }
         public int registro_decimo_terceiro { get; set; } = 0;
-        public int registro_valor_percentual_desconto { get; set; } = 0;
+        public decimal registro_valor_percentual_desconto { get; set; } = 0;
         public int remessa_id { get; set; }
     }
 }
