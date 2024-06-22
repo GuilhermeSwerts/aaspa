@@ -49,7 +49,7 @@ function ClienteForm({
                             <option value="0">Selecione</option>
                             <option value="1">Masculino</option>
                             <option value="2">Feminino</option>
-                            <option value="3"> </option>
+                            <option value="3">Outros</option>
                         </select>
                     </FormGroup>
                 </Col>
