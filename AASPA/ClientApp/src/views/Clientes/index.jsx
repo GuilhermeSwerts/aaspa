@@ -130,7 +130,9 @@ export default () => {
                                     ))}
                                 </select></td>
                                 <td>{cliente.cliente.cliente_remessa_id > 0 ? cliente.cliente.cliente_remessa_id : '-'}</td>
-                                {cliente.statusAtual.status_id !== Enum.EStatus.Deletado && cliente.statusAtual.status_id !== Enum.EStatus.Inativo
+                                {cliente.statusAtual.status_id !== Enum.EStatus.Deletado 
+                                && cliente.statusAtual.status_id !== Enum.EStatus.ExcluidoAguardandoEnvio
+                                && cliente.statusAtual.status_id !== Enum.EStatus.Inativo
                                     && <td style={{ display: 'flex', gap: 5 }}>
                                         <ButtonTooltip
                                             backgroundColor={'#004d00'}

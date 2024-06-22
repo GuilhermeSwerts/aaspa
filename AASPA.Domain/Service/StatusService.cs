@@ -53,7 +53,7 @@ namespace AASPA.Domain.Service
             using var tran = _mysql.Database.BeginTransaction();
             try
             {
-                if(request.status_id_novo == (int)EStatus.Deletado)
+                if(request.status_id_novo == (int)EStatus.Deletado || request.status_id_novo == (int)EStatus.ExcluidoAguardandoEnvio)
                 {
                     var cliente = _mysql.clientes.FirstOrDefault(x=> x.cliente_id == request.cliente_id);
                     cliente.cliente_situacao = false;
