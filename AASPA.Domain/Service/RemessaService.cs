@@ -446,10 +446,13 @@ namespace AASPA.Domain.Service
         {
             foreach (string line in clienteparaExcluir)
             {
+
+                var matricula = line.Substring(1, 10);
+
                 var query = (from c in _mysql.clientes
                              join l in _mysql.log_status on c.cliente_id equals l.log_status_cliente_id
                              select new { c, l }).AsEnumerable()
-                             .Where(ti => IsValidClienteMatricula(line, ti.c.cliente_matriculaBeneficio))
+                             .Where(ti => ti.c.cliente_matriculaBeneficio == matricula)
                              .Select(ti => ti.l)
                              .FirstOrDefault();
 
@@ -471,10 +474,12 @@ namespace AASPA.Domain.Service
         {
             foreach (string line in lines)
             {
+                var matricula = line.Substring(1, 10);
+
                 var query = (from c in _mysql.clientes
                              join l in _mysql.log_status on c.cliente_id equals l.log_status_cliente_id
                              select new { c, l }).AsEnumerable()
-                             .Where(ti => IsValidClienteMatricula(line, ti.c.cliente_matriculaBeneficio))
+                             .Where(ti => ti.c.cliente_matriculaBeneficio == matricula)
                              .Select(ti => ti.l)
                              .FirstOrDefault();
 
@@ -497,10 +502,12 @@ namespace AASPA.Domain.Service
 
             foreach (string line in lines)
             {
+                var matricula = line.Substring(1, 10);
+
                 var query = (from c in _mysql.clientes
                              join l in _mysql.log_status on c.cliente_id equals l.log_status_cliente_id
                              select new { c, l }).AsEnumerable()
-                             .Where(ti => IsValidClienteMatricula(line, ti.c.cliente_matriculaBeneficio))
+                             .Where(ti => ti.c.cliente_matriculaBeneficio == matricula)
                              .Select(ti => ti.l)
                              .FirstOrDefault();
 
