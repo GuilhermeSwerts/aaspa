@@ -130,9 +130,9 @@ export default () => {
                                     ))}
                                 </select></td>
                                 <td>{cliente.cliente.cliente_remessa_id > 0 ? cliente.cliente.cliente_remessa_id : '-'}</td>
-                                {cliente.statusAtual.status_id !== Enum.EStatus.Deletado 
-                                && cliente.statusAtual.status_id !== Enum.EStatus.ExcluidoAguardandoEnvio
-                                && cliente.statusAtual.status_id !== Enum.EStatus.Inativo
+                                {cliente.statusAtual.status_id !== Enum.EStatus.Deletado
+                                    && cliente.statusAtual.status_id !== Enum.EStatus.ExcluidoAguardandoEnvio
+                                    && cliente.statusAtual.status_id !== Enum.EStatus.Inativo
                                     && <td style={{ display: 'flex', gap: 5 }}>
                                         <ButtonTooltip
                                             backgroundColor={'#004d00'}
@@ -164,10 +164,26 @@ export default () => {
                                         <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />
                                     </td>}
                                 {cliente.statusAtual.status_id == Enum.EStatus.Deletado && <td style={{ display: 'flex', gap: 5 }}>
+                                    <ButtonTooltip
+                                        backgroundColor={'#00b300'}
+                                        onClick={() => window.location.href = `/cliente?clienteId=${cliente.cliente.cliente_id}`}
+                                        className='btn btn-warning'
+                                        text={'Editar Dados'}
+                                        top={true}
+                                        textButton={<FaUserEdit color='#fff' size={25} />}
+                                    />
                                     <ModalVisualizarCliente Cliente={cliente.cliente} />
                                     <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />
                                 </td>}
                                 {cliente.statusAtual.status_id == Enum.EStatus.ExcluidoAguardandoEnvio && <td style={{ display: 'flex', gap: 5 }}>
+                                    <ButtonTooltip
+                                        backgroundColor={'#00b300'}
+                                        onClick={() => window.location.href = `/cliente?clienteId=${cliente.cliente.cliente_id}`}
+                                        className='btn btn-warning'
+                                        text={'Editar Dados'}
+                                        top={true}
+                                        textButton={<FaUserEdit color='#fff' size={25} />}
+                                    />
                                     <ModalVisualizarCliente Cliente={cliente.cliente} />
                                     <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />
                                 </td>}

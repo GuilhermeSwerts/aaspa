@@ -340,6 +340,7 @@ namespace AASPA.Domain.Service
             string content;
             List<string> clientesparainativar = new List<string>();
             List<string> ClienteparaAtivar = new List<string>();
+            List<string> ClienteparaExcluir = new List<string>();
             var repasse = file.FileName.Substring(14, 3);
             var anomes = file.FileName.Substring(14, 6);
             if (file == null || file.Length == 0)
@@ -402,9 +403,13 @@ namespace AASPA.Domain.Service
                                     if (int.Parse(line.Substring(12, 1)) == 2)
                                     {
                                         clientesparainativar.Add(line);
-                                    }else if (int.Parse(line.Substring(12, 1)) == 1)
+                                    }else if (int.Parse(line.Substring(11, 1)) != (int)EStatus.ExcluidoAguardandoEnvio && int.Parse(line.Substring(12, 1)) == 1)
                                     {
                                         ClienteparaAtivar.Add(line);
+                                    }
+                                    else if (int.Parse(line.Substring(11, 1)) == (int)EStatus.ExcluidoAguardandoEnvio && int.Parse(line.Substring(12, 1)) == 1)
+                                    {
+                                        ClienteparaExcluir.Add(line);
                                     }
                                     DateTime date;
                                     var registroretorno = new RegistroRetornoRemessaDb()
@@ -426,6 +431,7 @@ namespace AASPA.Domain.Service
                         tran.Commit();
                         InativarClienteRejeitado(clientesparainativar);
                         AtivarClienteRemessaEnviada(ClienteparaAtivar);
+                        ExcluirClientesRemessa(ClienteparaExcluir);
                         return anomes;
                     }
                 }
@@ -433,6 +439,31 @@ namespace AASPA.Domain.Service
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
+            }
+        }
+
+        private void ExcluirClientesRemessa(List<string> clienteparaExcluir)
+        {
+            foreach (string line in clienteparaExcluir)
+            {
+                var query = (from c in _mysql.clientes
+                             join l in _mysql.log_status on c.cliente_id equals l.log_status_cliente_id
+                             select new { c, l }).AsEnumerable()
+                             .Where(ti => IsValidClienteMatricula(line, ti.c.cliente_matriculaBeneficio))
+                             .Select(ti => ti.l)
+                             .FirstOrDefault();
+
+                if (query != null)
+                {
+                    AlterarStatusClienteRequest novostatus = new AlterarStatusClienteRequest()
+                    {
+                        cliente_id = query.log_status_cliente_id,
+                        status_id_antigo = query.log_status_novo_id,
+                        status_id_novo = (int)EStatus.Deletado
+                    };
+
+                    _statusService.AlterarStatusCliente(novostatus);
+                }
             }
         }
 

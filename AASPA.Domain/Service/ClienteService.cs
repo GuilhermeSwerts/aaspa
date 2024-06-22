@@ -277,6 +277,11 @@ namespace AASPA.Domain.Service
                 }
             }
 
+            if (statusCliente == 1)
+            {
+                clientes = clientes.Where(x => x.Cliente.cliente_situacao && x.StatusAtual != null && (x.StatusAtual.status_id == (int)EStatus.Ativo || x.StatusAtual.status_id == (int)EStatus.AtivoAguardandoAverbacao)).ToList();
+            }
+
             if (statusCliente == 2)
             {
                 clientes = clientes.Where(x => x.Cliente.cliente_situacao && x.StatusAtual != null && x.StatusAtual.status_id == (int)EStatus.Inativo).ToList();
