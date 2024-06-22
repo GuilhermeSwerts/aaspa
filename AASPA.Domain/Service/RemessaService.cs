@@ -100,7 +100,7 @@ namespace AASPA.Domain.Service
                           select c).ToList();
 
             result = result
-                .Where(x => x.cliente_dataCadastro > dateEnd.AddDays(1)).ToList();
+                .Where(x => x.cliente_dataCadastro < dateEnd.AddDays(1)).ToList();
             
 
             foreach (var item in result)
