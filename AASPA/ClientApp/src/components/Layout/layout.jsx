@@ -62,6 +62,7 @@ function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
                             <DropdownItem onClick={() => IrPara("gorigem")}>GERENCIAR ORIGEM</DropdownItem>
                             <DropdownItem onClick={() => IrPara("gstatus")}>GERENCIAR STATUS</DropdownItem>
                             <DropdownItem onClick={() => IrPara("gbeneficio")}>GERENCIAR BENEFICIOS</DropdownItem>
+                            <DropdownItem onClick={() => IrPara("gcaptador")}>GERENCIAR CAPTADOR</DropdownItem>
                         </DropdownMenu>
                     </Dropdown>}
                     {usuario_tipo === 1 && <Dropdown style={{ background: 'none', border: 'none' }} isOpen={dropdownOpenTools} toggle={toggleDropdownTools} direction={'right'}>

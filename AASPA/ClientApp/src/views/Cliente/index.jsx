@@ -44,6 +44,16 @@ function Cliente() {
     const [cliente, setCliente] = useState(initState);
     const [captador, setCaptador] = useState(initStateCaptador);
 
+    const [captadores, setCaptadores] = useState([]);
+    const [captadorSelecionado, setcaptadorSelecionado] = useState(0);
+    const BuscarTodosCaptadores = () => {
+        api.get("BuscarCaptadores", res => {
+            setCaptadores(res.data);
+        }, er => {
+            alert("Houve um erro ao buscar os captadores");
+        })
+    }
+
     const BuscarClienteId = (id) => {
         api.get(`BuscarClienteID/${id}`, res => {
             const clt = res.data.cliente;
@@ -88,6 +98,8 @@ function Cliente() {
 
     useEffect(() => {
         handdleUsuarioLogado();
+        BuscarTodosCaptadores();
+
         var id = GetParametro("clienteId");
         if (id) {
             setClienteId(id);
@@ -135,6 +147,11 @@ function Cliente() {
     }
 
     const handdleEnviarFormulario = () => {
+        if (captadorSelecionado == 0) {
+            alert("Selecione um captador");
+            return;
+        }
+
         var formData = new FormData();
         addCampos(formData);
         let edicao = clienteId && clienteId > 0;
@@ -183,6 +200,19 @@ function Cliente() {
         formData.append('Captador[descricao]', captador.descricao);
     }
 
+    const onChangeCaptador = (e) => {
+        const { value } = e.target;
+        let cSelecionado = captadores.filter(x => x.captador_id == value)[0];
+        if (cSelecionado) {
+            setCaptador({
+                cpfOuCnpj: cSelecionado.captador_cpf_cnpj,
+                nome: cSelecionado.captador_nome,
+                descricao: cSelecionado.captador_descricao
+            });
+            setcaptadorSelecionado(value);
+        }
+    }
+
     return (
         <NavBar usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
             <ClienteForm
@@ -194,6 +224,9 @@ function Cliente() {
                 handleChangeCaptador={handleChangeCaptador}
                 onSubmit={handdleEnviarFormulario}
                 isEdit={clienteId > 0}
+                captadores={captadores}
+                captadorSelecionado={captadorSelecionado}
+                setcaptadorSelecionado={onChangeCaptador}
             />
         </NavBar>
     );

@@ -42,6 +42,7 @@ namespace AASPA.Models.Requests
 
     public class NovoCaptador 
     {
+        public int? CaptadorId { get; set; }
         public string CpfOuCnpj { get; set; }
         public string Nome { get; set; }
         public string Descricao { get; set; } = string.Empty;

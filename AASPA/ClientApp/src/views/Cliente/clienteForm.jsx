@@ -9,7 +9,10 @@ function ClienteForm({
     cliente,
     Mascara,
     onSubmit,
-    isEdit = false }) {
+    isEdit = false,
+    captadores,
+    captadorSelecionado,
+    setcaptadorSelecionado }) {
     return (
         <form onSubmit={e => { e.preventDefault(); onSubmit() }}>
             <button type='button' className='btn btn-link' onClick={() => window.location.href = '/'}>Voltar</button>
@@ -195,14 +198,25 @@ function ClienteForm({
             <Row>
                 <Col md={4}>
                     <FormGroup>
+                        <Label for="captador">CAPTADOR*</Label>
+                        <select required value={captadorSelecionado} onChange={setcaptadorSelecionado} name="captador" id="captador" className='form-control'>
+                            <option value="0">SELECIONE</option>
+                            {captadores.map(captador => (
+                                <option value={captador.captador_id}>{captador.captador_nome}</option>
+                            ))}
+                        </select>
+                    </FormGroup>
+                </Col>
+                <Col md={4}>
+                    <FormGroup>
                         <Label for="CPF/CNPJ">CPF/CNPJ*</Label>
-                        <Input required maxLength={18} type="text" name='cpfOuCnpj' onChange={handleChangeCaptador} value={captador.cpfOuCnpj.length > 14 ? Mascara.cnpj(captador.cpfOuCnpj) : Mascara.cpf(captador.cpfOuCnpj)} />
+                        <Input required disabled maxLength={18} type="text" name='cpfOuCnpj' onChange={handleChangeCaptador} value={captador.cpfOuCnpj.length > 14 ? Mascara.cnpj(captador.cpfOuCnpj) : Mascara.cpf(captador.cpfOuCnpj)} />
                     </FormGroup>
                 </Col>
                 <Col md={4}>
                     <FormGroup>
                         <Label for="nome">Nome*</Label>
-                        <Input required maxLength={255} type="text" name="nome" id="nome" value={captador.nome} onChange={handleChangeCaptador} />
+                        <Input required disabled maxLength={255} type="text" name="nome" id="nome" value={captador.nome} onChange={handleChangeCaptador} />
                     </FormGroup>
                 </Col>
             </Row>
@@ -210,7 +224,7 @@ function ClienteForm({
                 <Col md={12}>
                     <FormGroup>
                         <Label for="cpf">Descrição</Label><br />
-                        <textarea maxLength={1000} name="descricao" id="descricao" className='form-control' onChange={handleChangeCaptador} value={captador.descricao}></textarea>
+                        <textarea disabled maxLength={1000} name="descricao" id="descricao" className='form-control' onChange={handleChangeCaptador} value={captador.descricao}></textarea>
                     </FormGroup>
                 </Col>
             </Row>
