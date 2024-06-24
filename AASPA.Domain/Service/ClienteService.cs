@@ -307,16 +307,18 @@ namespace AASPA.Domain.Service
 
         private (List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) CalcularPagina(List<BuscarClienteByIdResponse> todosClientes, int? paginaAtual, int totalClientes)
         {
-            int qtdPorPagina = 10;
+            int qtdPorPagina = 5;
             int pagina = paginaAtual ?? 1;
 
             int indiceInicial = (pagina - 1) * qtdPorPagina;
 
-            var qtdPaginas = todosClientes.Count() / qtdPorPagina;
+            var qtd = (todosClientes.Count + qtdPorPagina - 1) / qtdPorPagina; ;
+
+            var qtdPaginas = Math.Ceiling(Convert.ToDecimal(qtd));
 
             qtdPaginas = qtdPaginas > 0 ? qtdPaginas : 1;
 
-            return (todosClientes.Skip(indiceInicial).Take(qtdPorPagina).ToList(), qtdPaginas, totalClientes);
+            return (todosClientes.Skip(indiceInicial).Take(qtdPorPagina).ToList(), Convert.ToInt32(qtdPaginas), totalClientes);
         }
 
         public string DownloadFiltro((List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) clientesData)
