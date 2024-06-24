@@ -171,11 +171,13 @@ namespace AASPA.Domain.Service
                 title.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 title.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
 
-                //string caminhoImagem = Path.Combine(diretorioBase, "Imagens", "logo.png");
-
-                //var imagem = worksheet.AddPicture(caminhoImagem?? "")
-                //    .MoveTo(worksheet.Cell("G1"))
-                //    .WithSize((int)(6.16 * 28.3465), (int)(1.83 * 28.3465));
+                string caminhoImagem = Path.Combine(diretorioBase, "Imagens", "logo.png");
+                if (Directory.GetFiles(Path.Combine(_env.ContentRootPath, "Imagens")).Any(file => Path.GetFileName(file).Contains($"logo.png")))
+                {
+                    var imagem = worksheet.AddPicture(caminhoImagem ?? "")
+                                .MoveTo(worksheet.Cell("G1"))
+                                .WithSize((int)(8.16 * 28.3465), (int)(2.83 * 28.3465));
+                }
 
                 worksheet.Range("A5:G5").Merge();
                 worksheet.Cell("A5").Value = "Resumo de Produção";
