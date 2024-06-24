@@ -13,7 +13,7 @@ namespace AASPA.Repository.Maps
         [Key]
         public int id { get; set; }
         public int retorno_financeiro_id { get; set; }
-        public int? numero_beneficio { get; set; }
+        public string? numero_beneficio { get; set; }
         public int? competencia_desconto { get; set; }
         public int? especie { get; set; }
         public string uf { get; set; }

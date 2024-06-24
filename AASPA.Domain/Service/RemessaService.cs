@@ -300,7 +300,7 @@ namespace AASPA.Domain.Service
                                 else if (int.Parse(line.Substring(0, 1)) == 1)
                                 {
                                     DateTime date;
-                                    var nb = int.Parse(line.Substring(1, 10));
+                                    var nb = line.Substring(1, 10);
                                     var cd = int.Parse(line.Substring(11, 6));
                                     var ep = int.Parse(line.Substring(17, 2));
                                     var uf = line.Substring(19, 2);
