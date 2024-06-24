@@ -2,7 +2,9 @@
 using AASPA.Domain.Interface;
 using AASPA.Models.Requests;
 using AASPA.Models.Response;
+using DocumentFormat.OpenXml.Office2016.Excel;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 
 namespace AASPA.Host.Controllers
@@ -35,12 +37,17 @@ namespace AASPA.Host.Controllers
 
         [HttpGet]
         [Route("/BuscarTodosClientes")]
-        public ActionResult Get([FromQuery] int? statusCliente, int? statusRemessa)
+        public ActionResult Get([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual)
         {
             try
             {
-                List<BuscarClienteByIdResponse> clientes = _service.BuscarTodosClientes(statusCliente, statusRemessa);
-                return Ok(clientes);
+                var (Clientes, QtdPaginas, TotalClientes) = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd, paginaAtual);
+                return Ok(new
+                {
+                    Clientes,
+                    QtdPaginas,
+                    TotalClientes
+                });
             }
             catch (System.Exception ex)
             {
@@ -68,14 +75,28 @@ namespace AASPA.Host.Controllers
             }
         }
 
-
+        [HttpGet]
+        [Route("/DownloadClienteFiltro")]
+        public ActionResult DownloadFiltro([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd)
+        {
+            try
+            {
+                var clientes = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd,null);
+                string base64 = _service.DownloadFiltro(clientes);
+                return Ok(base64);
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
         [HttpPost("/EditarCliente")]
         public ActionResult EditarCliente([FromForm] ClienteRequest request)
         {
             try
             {
-               _service.AtualizaCliente(request);
+                _service.AtualizaCliente(request);
                 return Ok();
             }
             catch (System.Exception ex)

@@ -6,7 +6,7 @@ import { Mascara } from '../../util/mascara';
 import { ButtonTooltip } from '../../components/Inputs/ButtonTooltip';
 import * as Enum from '../../util/enum';
 import NovaContatoOcorrencia from '../../components/Modal/novaContatoOcorrencia';
-import { FaHistory } from 'react-icons/fa';
+import { FaHistory, FaSearch } from 'react-icons/fa';
 
 function HistoricoContatoOcorrencia() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext)
@@ -14,11 +14,31 @@ function HistoricoContatoOcorrencia() {
     const [clientesFiltro, setClientesFiltro] = useState([]);
     const [filtroNome, setFiltroNome] = useState(true);
 
+    function get1DiaDoMes() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0'); // Janeiro é 0!
+
+        return `${year}-${month}-01`;
+    }
+
+    function getDataDeHoje() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0'); // Janeiro é 0!
+        const day = String(today.getDate()).padStart(2, '0');
+
+        return `${year}-${month}-${day}`;
+    }
+
+    const [dateInit, setDateInit] = useState(get1DiaDoMes());
+    const [dateEnd, setDateEnd] = useState(getDataDeHoje());
+
     const BuscarTodosClientes = () => {
-        api.get("BuscarTodosClientes", res => {
+        api.get(`BuscarTodosClientes?dateInit=${dateInit}&dateEnd=${dateEnd}`, res => {
             setClientes([]);
-            setClientes(res.data);
-            setClientesFiltro(res.data);
+            setClientes(res.data.clientes);
+            setClientesFiltro(res.data.clientes);
         }, err => {
             alert("Houve um erro ao buscar clientes.")
         })
@@ -61,6 +81,19 @@ function HistoricoContatoOcorrencia() {
                     <button type='button' onClick={() => window.location.href = '/cliente'} className='btn btn-primary'>Novo Cliente</button>
                 </div>
             </div>
+            <div className="row">
+                <div className="col-md-2">
+                    <span>Data De Cadastro De:</span>
+                    <input type="date" value={dateInit} onChange={e => setDateInit(e.target.value)} name="dateInit" id="dateInit" className='form-control' />
+                </div>
+                <div className="col-md-2">
+                    <span>Até:</span>
+                    <input type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)} name="dateEnd" id="dateEnd" className='form-control' />
+                </div>
+                <div className="col-md-2" style={{ marginTop: '20px' }}>
+                    <button style={{ width: '100%' }} onClick={BuscarTodosClientes} className='btn btn-primary'>BUSCAR <FaSearch size={25} /></button>
+                </div>
+            </div>
             <br />
             <table className='table table-striped'>
                 <thead>
@@ -93,8 +126,8 @@ function HistoricoContatoOcorrencia() {
                                             top={true}
                                             textButton={<FaHistory size={25} />}
                                         />
-                                        {cliente.statusAtual.status_id !== Enum.EStatus.Deletado && cliente.statusAtual.status_id !== Enum.EStatus.Inativo 
-                                        && <NovaContatoOcorrencia cliente={cliente.cliente} />}
+                                        {cliente.statusAtual.status_id !== Enum.EStatus.Deletado && cliente.statusAtual.status_id !== Enum.EStatus.Inativo
+                                            && <NovaContatoOcorrencia cliente={cliente.cliente} />}
                                     </td>
                                 </tr>
                             )

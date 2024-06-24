@@ -5,8 +5,12 @@ using AASPA.Models.Requests;
 using AASPA.Models.Response;
 using AASPA.Repository;
 using AASPA.Repository.Maps;
+using ClosedXML.Excel;
+using DocumentFormat.OpenXml.ExtendedProperties;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,9 +20,12 @@ namespace AASPA.Domain.Service
     public class ClienteService : ICliente
     {
         private readonly MysqlContexto _mysql;
-        public ClienteService(MysqlContexto mysql)
+        private readonly IHostEnvironment _env;
+
+        public ClienteService(MysqlContexto mysql, IHostEnvironment env)
         {
             _mysql = mysql;
+            _env = env;
         }
 
         public BuscarClienteByIdResponse BuscarClienteID(int clienteId)
@@ -213,7 +220,7 @@ namespace AASPA.Domain.Service
             }
         }
 
-        public List<BuscarClienteByIdResponse> BuscarTodosClientes(int? statusCliente, int? statusRemessa)
+        public (List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) BuscarTodosClientes(int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual)
         {
             statusCliente = statusCliente ?? 0;
             statusRemessa = statusRemessa ?? 0;
@@ -221,6 +228,9 @@ namespace AASPA.Domain.Service
             var clientes = (from cli in _mysql.clientes
                             join vin in _mysql.vinculo_cliente_captador on cli.cliente_id equals vin.vinculo_cliente_id
                             join cpt in _mysql.captadores on vin.vinculo_captador_id equals cpt.captador_id
+                            where
+                                   (dateInit == null || cli.cliente_dataCadastro >= dateInit)
+                                && (dateEnd == null || cli.cliente_dataCadastro < dateEnd.Value.AddDays(1))
                             select new BuscarClienteByIdResponse
                             {
                                 Captador = cpt,
@@ -237,7 +247,7 @@ namespace AASPA.Domain.Service
                 clientes = clientes.Where(x => !x.Cliente.cliente_situacao).ToList();
             }
 
-            if(statusRemessa == 1)
+            if (statusRemessa == 1)
             {
                 clientes = clientes.Where(x => x.Cliente.cliente_remessa_id != null && x.Cliente.cliente_remessa_id > 0).ToList();
             }
@@ -287,7 +297,95 @@ namespace AASPA.Domain.Service
                 clientes = clientes.Where(x => x.Cliente.cliente_situacao && x.StatusAtual != null && x.StatusAtual.status_id == (int)EStatus.Inativo).ToList();
             }
 
-            return clientes.ToList().Distinct().ToList().OrderBy(x=> x.Cliente.cliente_dataCadastro).ToList();
+            var todosClientes = clientes.ToList().Distinct().ToList().OrderBy(x => x.Cliente.cliente_dataCadastro).ToList();
+            int totalClientes = todosClientes.Count();
+            if (paginaAtual == null)
+                return (todosClientes, 0, totalClientes);
+
+            return CalcularPagina(todosClientes, paginaAtual, totalClientes);
+        }
+
+        private (List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) CalcularPagina(List<BuscarClienteByIdResponse> todosClientes, int? paginaAtual, int totalClientes)
+        {
+            int qtdPorPagina = 10;
+            int pagina = paginaAtual ?? 1;
+
+            int indiceInicial = (pagina - 1) * qtdPorPagina;
+
+            var qtdPaginas = todosClientes.Count() / qtdPorPagina;
+
+            qtdPaginas = qtdPaginas > 0 ? qtdPaginas : 1;
+
+            return (todosClientes.Skip(indiceInicial).Take(qtdPorPagina).ToList(), qtdPaginas, totalClientes);
+        }
+
+        public string DownloadFiltro((List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) clientesData)
+        {
+            string diretorioBase = _env.ContentRootPath;
+            string caminhoPastaRelatorio = Path.Combine(diretorioBase, "Relatorio");
+            string caminhoArquivoSaida = Path.Combine(caminhoPastaRelatorio, "FiltroClientes.xlsx");
+
+            if (!Directory.Exists(caminhoPastaRelatorio))
+            {
+                Directory.CreateDirectory(caminhoPastaRelatorio);
+            }
+
+            if (File.Exists(caminhoArquivoSaida))
+            {
+                File.Delete(caminhoArquivoSaida);
+            }
+
+            var workbook = new XLWorkbook();
+
+            // Adiciona uma planilha ao workbook
+            var worksheet = workbook.Worksheets.Add("Clientes");
+
+            // Escreve o cabeçalho na primeira linha
+            string[] cabecalho = { "ID", "CPF", "NOME", "CEP", "LOGRADOURO", "BAIRRO", "LOCALIDADE", "UF", "NUMERO", "COMPLEMENTO", "DATANASC", "DATACADASTRO", "NRDOCTO", "EMPREGADOR", "MATRICULABENEFICIO", "NOMEMAE", "NOMEPAI", "TELEFONEFIXO", "TELEFONECELULAR", "POSSUIWHATSAPP", "FUNCAOAASPA", "EMAIL", "SITUACAO", "ESTADO_CIVIL", "SEXO", "REMESSA_ID" };
+            //worksheet.Cell(1, 1).Value = cabecalho;
+
+            for (int i = 0; i < cabecalho.Length; i++)
+            {
+                var c = cabecalho[i];
+                worksheet.Cell(i + 1, i+1).Value = c;
+            }
+
+            // Escreve os dados dos clientes nas linhas subsequentes
+            for (int i = 0; i < clientesData.Clientes.Count; i++)
+            {
+                var cliente = clientesData.Clientes[i];
+                worksheet.Cell(i + 2, 1).Value =  cliente.Cliente.cliente_id;
+                worksheet.Cell(i + 2, 2).Value =  cliente.Cliente.cliente_cpf;
+                worksheet.Cell(i + 2, 3).Value =  cliente.Cliente.cliente_nome;
+                worksheet.Cell(i + 2, 4).Value =  cliente.Cliente.cliente_cep;
+                worksheet.Cell(i + 2, 5).Value =  cliente.Cliente.cliente_logradouro;
+                worksheet.Cell(i + 2, 6).Value =  cliente.Cliente.cliente_bairro;
+                worksheet.Cell(i + 2, 7).Value =  cliente.Cliente.cliente_localidade;
+                worksheet.Cell(i + 2, 8).Value =  cliente.Cliente.cliente_uf;
+                worksheet.Cell(i + 2, 9).Value =  cliente.Cliente.cliente_numero;
+                worksheet.Cell(i + 2, 10).Value = cliente.Cliente.cliente_complemento;
+                worksheet.Cell(i + 2, 11).Value = cliente.Cliente.cliente_dataNasc;
+                worksheet.Cell(i + 2, 12).Value = cliente.Cliente.cliente_dataCadastro;
+                worksheet.Cell(i + 2, 13).Value = cliente.Cliente.cliente_nrDocto;
+                worksheet.Cell(i + 2, 14).Value = cliente.Cliente.cliente_empregador;
+                worksheet.Cell(i + 2, 15).Value = cliente.Cliente.cliente_matriculaBeneficio;
+                worksheet.Cell(i + 2, 16).Value = cliente.Cliente.cliente_nomeMae;
+                worksheet.Cell(i + 2, 17).Value = cliente.Cliente.cliente_nomePai;
+                worksheet.Cell(i + 2, 18).Value = cliente.Cliente.cliente_telefoneFixo;
+                worksheet.Cell(i + 2, 19).Value = cliente.Cliente.cliente_telefoneCelular;
+                worksheet.Cell(i + 2, 20).Value = cliente.Cliente.cliente_possuiWhatsapp;
+                worksheet.Cell(i + 2, 21).Value = cliente.Cliente.cliente_funcaoAASPA;
+                worksheet.Cell(i + 2, 22).Value = cliente.Cliente.cliente_email;
+                worksheet.Cell(i + 2, 23).Value = cliente.Cliente.cliente_situacao;
+                worksheet.Cell(i + 2, 24).Value = cliente.Cliente.cliente_estado_civil;
+                worksheet.Cell(i + 2, 25).Value = cliente.Cliente.cliente_sexo;
+                worksheet.Cell(i + 2, 26).Value = cliente.Cliente.cliente_remessa_id;
+            }
+
+            workbook.SaveAs(caminhoArquivoSaida);
+
+            byte[] fileBytes = File.ReadAllBytes(caminhoArquivoSaida);
+            return Convert.ToBase64String(fileBytes);
         }
     }
 }

@@ -4,7 +4,7 @@ import { NavBar } from '../../components/Layout/layout';
 import { ButtonTooltip } from '../../components/Inputs/ButtonTooltip';
 import IconHistoricoPagamento from '../../assets/paymenthistory.png';
 import { RiChatHistoryLine } from "react-icons/ri";
-import { FaUserEdit } from "react-icons/fa";
+import { FaDownload, FaSearch, FaUserEdit } from "react-icons/fa";
 import { Mascara } from '../../util/mascara';
 import { api } from '../../api/api';
 import ModalEditarStatusAtual from '../../components/Modal/editarStatusAtual';
@@ -20,23 +20,52 @@ export default () => {
     const [statusCliente, setStatusCliente] = useState(0);
     const [statusRemessa, setStatusRemessa] = useState(0);
 
+    function get1DiaDoMes() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0'); // Janeiro é 0!
+
+        return `${year}-${month}-01`;
+    }
+
+    function getDataDeHoje() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0'); // Janeiro é 0!
+        const day = String(today.getDate()).padStart(2, '0');
+
+        return `${year}-${month}-${day}`;
+    }
+
+    const [dateInit, setDateInit] = useState(get1DiaDoMes());
+    const [dateEnd, setDateEnd] = useState(getDataDeHoje());
+
     const [clientes, setClientes] = useState([]);
     const [clientesFiltro, setClientesFiltro] = useState([]);
     const [filtroNome, setFiltroNome] = useState(true);
 
-    const BuscarTodosClientes = (sCliente, sRemessa) => {
+    const [paginaAtual, setPaginaAtual] = useState(1);
+    const [qtdPaginas, setQtdPaginas] = useState(0);
+    const [totalClientes, setTotalClientes] = useState(0);
+
+    const BuscarTodosClientes = (sCliente, sRemessa, pPagina) => {
+        if (!pPagina) {
+            pPagina = paginaAtual;
+        }
         if (!sCliente) {
             sCliente = statusCliente;
         }
         if (!sRemessa) {
-            sRemessa = statusRemessa
+            sRemessa = statusRemessa;
         }
 
-        api.get(`BuscarTodosClientes?statusCliente=${sCliente}&statusRemessa=${sRemessa}`, res => {
+        api.get(`BuscarTodosClientes?statusCliente=${sCliente}&statusRemessa=${sRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${pPagina}`, res => {
             setClientes([]);
             setClientesFiltro([]);
-            setClientes(res.data);
-            setClientesFiltro(res.data);
+            setClientes(res.data.clientes);
+            setClientesFiltro(res.data.clientes);
+            setQtdPaginas(res.data.qtdPaginas);
+            setTotalClientes(res.data.totalClientes);
         }, err => {
             alert("Houve um erro ao buscar clientes.")
         })
@@ -55,6 +84,21 @@ export default () => {
             setClientesFiltro(clientes.filter(x => x.cliente.cliente_cpf.includes(value.replace('.', '').replace('.', '').replace('-', ''))));
         else
             setClientesFiltro(clientes);
+    }
+
+    const DownloadClienteFiltro = () => {
+        api.get(`DownloadClienteFiltro?statusCliente=${statusCliente}&statusRemessa=${statusRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}`, res => {
+            var base64 = res.data;
+            let csvContent = atob(base64);
+            var blob = new Blob([csvContent], { type: "data:application/octet-stream;base64" });
+            var url = window.URL.createObjectURL(blob);
+            var a = document.createElement("a");
+            a.href = url
+            a.download = "FiltroClientes.xlsx";
+            a.click();
+        }, err => {
+            alert("Houve um erro ao fazer o download.")
+        })
     }
 
     return (
@@ -77,7 +121,7 @@ export default () => {
                         placeholder={!filtroNome ? 'CPF do cliente' : 'Nome do cliente'} />
                 </div>}
                 <div style={{ marginTop: '22px' }} className="col-md-2">
-                    <button type='button' onClick={() => window.location.href = '/cliente'} className='btn btn-primary'>Novo Cliente</button>
+                    <button style={{width:'100%'}} type='button' onClick={() => window.location.href = '/cliente'} className='btn btn-primary'>Novo Cliente</button>
                 </div>
             </div>
             <div className="row">
@@ -90,6 +134,7 @@ export default () => {
                         <option value={3}>EXCLUIDOS</option>
                     </select>
                 </div>
+                <br />
                 <div className="col-md-2">
                     <span>FOI GERADO REMESSA:</span>
                     <select className='form-control' onChange={e => { setStatusRemessa(e.target.value); BuscarTodosClientes(statusCliente, e.target.value) }}>
@@ -98,7 +143,22 @@ export default () => {
                         <option value={2}>NÃO</option>
                     </select>
                 </div>
+                <div className="col-md-2">
+                    <span>Data De Cadastro De:</span>
+                    <input type="date" value={dateInit} onChange={e => setDateInit(e.target.value)} name="dateInit" id="dateInit" className='form-control' />
+                </div>
+                <div className="col-md-2">
+                    <span>Até:</span>
+                    <input type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)} name="dateEnd" id="dateEnd" className='form-control' />
+                </div>
+                <div className="col-md-2" style={{ marginTop: '20px' }}>
+                    <button style={{width:'100%'}} onClick={BuscarTodosClientes} className='btn btn-primary'>BUSCAR <FaSearch size={25} /></button>
+                </div>
+                <div className="col-md-2" style={{ marginTop: '20px' }}>
+                    <button style={{width:'100%'}} onClick={DownloadClienteFiltro} className='btn btn-primary'>Extrair Clientes<FaDownload size={25} /></button>
+                </div>
             </div>
+            <span>Total Clientes: {totalClientes}</span>
             <br />
             <table className='table table-striped'>
                 <thead>
@@ -197,6 +257,12 @@ export default () => {
                     {clientes.length == 0 && <span>Nenhum cliente foi encontrado...</span>}
                 </tbody>
             </table>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20 }}>
+                <button onClick={() => { setPaginaAtual(paginaAtual - 1); BuscarTodosClientes(statusCliente,statusRemessa,paginaAtual - 1) }} disabled={paginaAtual === 1} className='btn btn-primary'>Voltar</button>
+                <span>{paginaAtual} de {qtdPaginas}</span>
+                <button onClick={() => { setPaginaAtual(paginaAtual + 1); BuscarTodosClientes(statusCliente,statusRemessa,paginaAtual + 1) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>Proxima</button>
+            </div>
+
         </NavBar >
     );
 }

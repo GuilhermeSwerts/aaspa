@@ -6,6 +6,7 @@ import { Mascara } from '../../util/mascara';
 import ModalVincularBeneficios from '../../components/Modal/ModalVincularBeneficios';
 import ModalLogBeneficios from '../../components/Modal/ModalLogBeneficios';
 import * as Enum from '../../util/enum';
+import { FaSearch } from 'react-icons/fa';
 
 function Beneficios() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -13,12 +14,32 @@ function Beneficios() {
     const [clientesFiltro, setClientesFiltro] = useState([]);
     const [filtroNome, setFiltroNome] = useState(true);
 
+    function get1DiaDoMes() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0'); // Janeiro é 0!
+
+        return `${year}-${month}-01`;
+    }
+
+    function getDataDeHoje() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0'); // Janeiro é 0!
+        const day = String(today.getDate()).padStart(2, '0');
+
+        return `${year}-${month}-${day}`;
+    }
+
+    const [dateInit, setDateInit] = useState(get1DiaDoMes());
+    const [dateEnd, setDateEnd] = useState(getDataDeHoje());
+
     const BuscarTodosClientes = () => {
-        api.get("BuscarTodosClientes", res => {
+        api.get(`BuscarTodosClientes?dateInit=${dateInit}&dateEnd=${dateEnd}`, res => {
             setClientes([]);
             setClientesFiltro([]);
-            setClientes(res.data);
-            setClientesFiltro(res.data);
+            setClientes(res.data.clientes);
+            setClientesFiltro(res.data.clientes);
         }, err => {
             alert("Houve um erro ao buscar clientes.")
         })
@@ -59,6 +80,19 @@ function Beneficios() {
                 </div>}
                 <div style={{ marginTop: '22px' }} className="col-md-2">
                     <button type='button' onClick={() => window.location.href = '/cliente'} className='btn btn-primary'>Novo Cliente</button>
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-md-2">
+                    <span>Data De Cadastro De:</span>
+                    <input type="date" value={dateInit} onChange={e => setDateInit(e.target.value)} name="dateInit" id="dateInit" className='form-control' />
+                </div>
+                <div className="col-md-2">
+                    <span>Até:</span>
+                    <input type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)} name="dateEnd" id="dateEnd" className='form-control' />
+                </div>
+                <div className="col-md-2" style={{ marginTop: '20px' }}>
+                    <button style={{ width: '100%' }} onClick={BuscarTodosClientes} className='btn btn-primary'>BUSCAR <FaSearch size={25} /></button>
                 </div>
             </div>
             <br />
