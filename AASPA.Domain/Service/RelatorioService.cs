@@ -97,7 +97,7 @@ namespace AASPA.Domain.Service
                                      select r.Retorno_Remessa_Id).FirstOrDefault();
 
                 var taxaaverbacao = 0;
-                if (totalAverbada != 0)
+                if (totalAverbada != 0 && totalRemessa != 0)
                 {
                     taxaaverbacao = (totalAverbada * 100) / totalRemessa;
                 }
@@ -119,7 +119,7 @@ namespace AASPA.Domain.Service
                 };
 
                 var taxanaoaverbacao = 0;
-                if (totalNaoAverbada != 0)
+                if (totalNaoAverbada != 0 && totalRemessa != 0)
                 {
                     taxanaoaverbacao = (resumoAverbacao.TotalNaoAverbada * 100) / totalRemessa;
                 }
