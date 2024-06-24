@@ -7,6 +7,7 @@ using AASPA.Repository.Maps;
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.ExtendedProperties;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -126,7 +127,10 @@ namespace AASPA.Domain.Service
 
                 foreach (var item in motivoNaoAverbada)
                 {
-                    item.TotalPorcentagem = (item.TotalPorCodigoErro * 100) / resumoAverbacao.TotalNaoAverbada;
+                    if (resumoAverbacao.TotalNaoAverbada != 0)
+                    {
+                        item.TotalPorcentagem = (item.TotalPorCodigoErro * 100) / resumoAverbacao.TotalNaoAverbada;
+                    }                    
                 }
 
                 var resultado = new GerarRelatorioAverbacaoResponse
@@ -149,7 +153,8 @@ namespace AASPA.Domain.Service
         {
             string diretorioBase = _env.ContentRootPath;
             string caminhoArquivoSaida = Path.Combine(diretorioBase, "Relatorio", $"RelAverbacao.{anomes}.xlsx");
-            if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Remessa")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Remessa"))); }
+            if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Relatorio")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Relatorio"))); }
+            if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Imagens")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Imagens"))); }
             var dados = GerarRelatorioAverbacao(anomes);
 
             using (var workbook = new XLWorkbook())
@@ -165,6 +170,12 @@ namespace AASPA.Domain.Service
                 title.Style.Font.FontSize = 16;
                 title.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 title.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+
+                //string caminhoImagem = Path.Combine(diretorioBase, "Imagens", "logo.png");
+
+                //var imagem = worksheet.AddPicture(caminhoImagem?? "")
+                //    .MoveTo(worksheet.Cell("G1"))
+                //    .WithSize((int)(6.16 * 28.3465), (int)(1.83 * 28.3465));
 
                 worksheet.Range("A5:G5").Merge();
                 worksheet.Cell("A5").Value = "Resumo de Produção";
