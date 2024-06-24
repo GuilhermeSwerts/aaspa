@@ -156,7 +156,7 @@ function ResumoProducao({ motivosNaoAverbada,
                         <li>Total Remessa: {resumoTotal.totalRemessa}</li>
                         <li>Total Averbados: {resumo.averbados}</li>
                     </ul>
-                    <p>Taxa de Averbacao: {resumo.taxaAverbacao}%</p>
+                    <p>Taxa de Averbação: {resumo.taxaAverbacao}%</p>
                 </div>
                 <div className="col-md-5 container-relatorio-center">
                     <h4>Motivos não averbados</h4>
