@@ -170,7 +170,7 @@ function Retorno() {
                                 <th>Código Operação</th>
                                 <th>Código Resultado</th>
                                 <th>Motivo Rejeição</th>
-                                <th>Valor Desconto</th>
+                                <th>Perc. Desconto</th>
                                 <th>Data Início Desconto</th>
                                 <th>Código Espécie Benefício</th>
                             </tr>
@@ -183,7 +183,7 @@ function Retorno() {
                                     <td>{remessa.codigo_Operacao}</td>
                                     <td>{remessa.codigo_Resultado}</td>
                                     <td>{remessa.motivo_Rejeicao}</td>
-                                    <td>{remessa.valor_Desconto}</td>
+                                    <td>{(remessa.valor_Desconto / 100).toFixed(2)}</td>
                                     <td>{remessa.data_Inicio_Desconto ? format(new Date(remessa.data_Inicio_Desconto), "dd-MM-yyyy", { locale: ptBR }) : ''}</td>
                                     <td>{remessa.codigo_Especie_Beneficio}</td>
                                 </tr>

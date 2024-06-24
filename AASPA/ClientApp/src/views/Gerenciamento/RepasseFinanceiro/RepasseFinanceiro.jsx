@@ -185,7 +185,7 @@ function RepasseFinanceiro() {
                                 <th>Competencia Desconto</th>
                                 <th>Espécie</th>
                                 <th>Uf</th>
-                                <th>Desconto</th>
+                                <th>Desconto %</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -196,7 +196,7 @@ function RepasseFinanceiro() {
                                     <td>{data.competencia_desconto}</td>
                                     <td>{data.especie}</td>
                                     <td>{data.uf}</td>
-                                    <td>R$ {`${data.desconto.toFixed(2)}`}</td>
+                                    <td>{`${(data.desconto / 100).toFixed(2)}`}</td>
                                 </tr>
                             ))}
                         </tbody>
