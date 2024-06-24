@@ -196,7 +196,7 @@ function RepasseFinanceiro() {
                                     <td>{data.competencia_desconto}</td>
                                     <td>{data.especie}</td>
                                     <td>{data.uf}</td>
-                                    <td>{`${(data.desconto / 100).toFixed(2)}`}</td>
+                                    <td>{`${data.desconto && ((data.desconto / 100).toFixed(2))}`}</td>
                                 </tr>
                             ))}
                         </tbody>

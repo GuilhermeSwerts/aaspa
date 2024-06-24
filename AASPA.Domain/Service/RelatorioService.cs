@@ -198,7 +198,7 @@ namespace AASPA.Domain.Service
                 worksheet.Cell("A9").Value = "Averbados:";
                 worksheet.Cell("B9").Value = dados.Detalhes.Averbados;
                 worksheet.Cell("A10").Value = "Taxa de Averbação:";
-                worksheet.Cell("B10").Value = $"{(dados.Detalhes.Averbados * 100) / dados.Resumo.TotalRemessa}%"; 
+                worksheet.Cell("B10").Value = $"{dados.Detalhes.TaxaAverbacao}%"; 
 
                 var rangeD6G13 = worksheet.Range("D6:G13");
                 rangeD6G13.Style.Border.LeftBorder = XLBorderStyleValues.None;
@@ -253,7 +253,7 @@ namespace AASPA.Domain.Service
                     }
                 }
                 worksheet.Cell("F13").Value = dados.MotivosNaoAverbada.Count;
-                worksheet.Cell("G13").Value = $"{(dados.MotivosNaoAverbada.Count * 100) / dados.Resumo.TotalRemessa}%";
+                worksheet.Cell("G13").Value = $"{dados.TaxaNaoAverbado}%";
 
                 worksheet.Cell("A14").Value = "Detalhe de Produção";
                 worksheet.Range("A14:G14").Merge();
