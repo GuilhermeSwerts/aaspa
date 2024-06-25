@@ -15,5 +15,7 @@ namespace AASPA.Models.Response
         public decimal ValorDesconto { get; set; }
         public int CodigoResultado { get; set; }
         public string DescricaoErro { get; set; }
+        public int QuantidadeParcelas { get; set; }
+        public DateTime? DataPagamento { get; set; }
     }
 }

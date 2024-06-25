@@ -6,6 +6,7 @@ using AASPA.Repository;
 using AASPA.Repository.Maps;
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.ExtendedProperties;
+using DocumentFormat.OpenXml.Office.CustomUI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -35,19 +36,34 @@ namespace AASPA.Domain.Service
                 var corporelatorio = (from c in _mysql.clientes
                                       join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
                                       join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
-                                      join cr in _mysql.codigo_retorno
-                                          on new { CodigoErro = r.Motivo_Rejeicao.ToString().PadLeft(3, '0'), CodigoOperacao = r.Codigo_Operacao }
-                                          equals new { CodigoErro = cr.CodigoErro, CodigoOperacao = cr.CodigoOperacao }
+                                      join cr in _mysql.codigo_retorno on new { CodigoErro = r.Motivo_Rejeicao.ToString().PadLeft(3, '0'), CodigoOperacao = r.Codigo_Operacao } equals new { CodigoErro = cr.CodigoErro, CodigoOperacao = cr.CodigoOperacao }
+                                      join p in _mysql.pagamentos on c.cliente_id equals p.pagamento_cliente_id into pg
+                                      from p in pg.DefaultIfEmpty()
                                       where rr.AnoMes == anomes
+                                      group new { c, r, cr, p } by new
+                                      {
+                                          c.cliente_matriculaBeneficio,
+                                          c.cliente_cpf,
+                                          c.cliente_nome,
+                                          r.Data_Inicio_Desconto,
+                                          r.Valor_Desconto,
+                                          r.Codigo_Resultado,
+                                          cr.DescricaoErro,
+                                          p.pagamento_dt_pagamento
+                                      } into g
+                                      orderby g.Count(x => x.p != null) descending,
+                                              g.Key.pagamento_dt_pagamento
                                       select new RelatorioAverbacaoResponse
                                       {
-                                          CodExterno = c.cliente_matriculaBeneficio,
-                                          ClienteCpf = c.cliente_cpf,
-                                          ClienteNome = c.cliente_nome,
-                                          DataInicioDesconto = r.Data_Inicio_Desconto,
-                                          ValorDesconto = r.Valor_Desconto,
-                                          CodigoResultado = r.Codigo_Resultado,
-                                          DescricaoErro = cr.DescricaoErro
+                                          CodExterno = g.Key.cliente_matriculaBeneficio,
+                                          ClienteCpf = g.Key.cliente_cpf,
+                                          ClienteNome = g.Key.cliente_nome,
+                                          DataInicioDesconto = g.Key.Data_Inicio_Desconto,
+                                          ValorDesconto = g.Key.Valor_Desconto,
+                                          CodigoResultado = g.Key.Codigo_Resultado,
+                                          DescricaoErro = g.Key.DescricaoErro,
+                                          QuantidadeParcelas = g.Count(x => x.p != null),
+                                          DataPagamento = g.Key.pagamento_dt_pagamento
                                       }).ToList();
 
                 var totalRemessa = (from r in _mysql.retornos_remessa
@@ -325,6 +341,177 @@ namespace AASPA.Domain.Service
                 Base64 = path
             };
 
+        }
+        public void GerarArquivoRelatorioCarteiras(string anomes)
+        {
+            string diretorioBase = _env.ContentRootPath;
+            string caminhoArquivoSaida = Path.Combine(diretorioBase, "Relatorio", $"RelCarteira.{anomes}.xlsx");
+            if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Relatorio")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Relatorio"))); }
+            if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Imagens")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Imagens"))); }
+            var dados = GerarRelatorioAverbacao(anomes);
+
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("Relatório Averbacao");
+
+                int lastRow = 15 + dados.Relatorio.Count;
+
+                //DateTime data = DateTime.ParseExact(anomes, "yyyyMM", System.Globalization.CultureInfo.InvariantCulture);
+                //string dataFormatada = data.ToString("dd/MM/yyyy");
+
+                //foreach(var item in dados.Relatorio)
+                //{
+                //    var inadimplente = item.DataPagamento.Value.ToString() < dataFormatada;
+                //}
+
+                var title = worksheet.Range("A1:G4");
+                title.Merge();
+                title.Value = "EXTRATO DE RETORNO DATA PREV";
+                title.Style.Font.Bold = true;
+                title.Style.Font.FontSize = 16;
+                title.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                title.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+
+                string caminhoImagem = Path.Combine(diretorioBase, "Imagens", "logo.png");
+                if (Directory.GetFiles(Path.Combine(_env.ContentRootPath, "Imagens")).Any(file => Path.GetFileName(file).Contains($"logo.png")))
+                {
+                    var imagem = worksheet.AddPicture(caminhoImagem ?? "")
+                                .MoveTo(worksheet.Cell("G1"))
+                                .WithSize((int)(8.16 * 28.3465), (int)(2.83 * 28.3465));
+                }
+
+                worksheet.Range("A5:G5").Merge();
+                worksheet.Cell("A5").Value = "Resumo de Produção";
+                worksheet.Cell("A5").Style.Fill.BackgroundColor = XLColor.FromArgb(221, 235, 247);
+                worksheet.Cell("A5").Style.Font.Bold = true;
+                worksheet.Cell("A5").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                var rangeA6C13 = worksheet.Range("A6:C13");
+                rangeA6C13.Style.Border.LeftBorder = XLBorderStyleValues.None;
+                rangeA6C13.Style.Border.RightBorder = XLBorderStyleValues.None;
+                rangeA6C13.Style.Border.TopBorder = XLBorderStyleValues.None;
+                rangeA6C13.Style.Border.BottomBorder = XLBorderStyleValues.None;
+
+                worksheet.Cell("A6").Value = "COMPETENCIA:";
+                worksheet.Cell("B6").Value = long.TryParse(dados.Detalhes.Competencia, out var detalhes) ? detalhes : 0;
+                worksheet.Cell("A7").Value = "CORRETORA:";
+                worksheet.Cell("B7").Value = "Confia";
+                worksheet.Cell("A8").Value = "Carteira:";
+                worksheet.Cell("B8").Value = "Qtde total";
+                worksheet.Cell("C8").Value = dados.Relatorio.Count;
+                worksheet.Cell("B9").Value = "Cancelados";
+                worksheet.Cell("B10").Value = "Inadimplentes";
+                worksheet.Cell("C10").Value = "";
+                worksheet.Cell("B10").Value = "Em dia";
+
+                var rangeD6G13 = worksheet.Range("D6:G13");
+                rangeD6G13.Style.Border.LeftBorder = XLBorderStyleValues.None;
+                rangeD6G13.Style.Border.RightBorder = XLBorderStyleValues.None;
+                rangeD6G13.Style.Border.TopBorder = XLBorderStyleValues.None;
+                rangeD6G13.Style.Border.BottomBorder = XLBorderStyleValues.None;
+                var rangeF6G13 = worksheet.Range("F6:G13");
+                rangeF6G13.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                worksheet.Cell("D6").Value = "Motivos não averbados";
+                worksheet.Cell("D7").Value = "002 - Espécie incompatível";
+                worksheet.Cell("D8").Value = "004 - NB inexistente no cadastro";
+                worksheet.Cell("D9").Value = "005 - Benefício não ativo";
+                worksheet.Cell("D10").Value = "006 - Valor ultrapassa MR do titular";
+                worksheet.Cell("D11").Value = "008 - Já existe desc. p/ outra entidade";
+                worksheet.Cell("D12").Value = "012 - Benefício bloqueado para desconto";
+                worksheet.Cell("D13").Value = "Total Não averbado";
+
+                worksheet.Cell("F7").Value = 0;
+                worksheet.Cell("G7").Value = $"{0}%";
+                worksheet.Cell("F8").Value = 0;
+                worksheet.Cell("G8").Value = $"{0}%";
+                worksheet.Cell("F9").Value = 0;
+                worksheet.Cell("G9").Value = $"{0}%";
+                worksheet.Cell("F10").Value = 0;
+                worksheet.Cell("G10").Value = $"{0}%";
+                worksheet.Cell("F11").Value = 0;
+                worksheet.Cell("G11").Value = $"{0}%";
+                worksheet.Cell("F12").Value = 0;
+                worksheet.Cell("G12").Value = $"{0}%";
+                worksheet.Cell("F13").Value = 0;
+                worksheet.Cell("G13").Value = $"{0}%";
+
+                if (dados.MotivosNaoAverbada != null && dados.MotivosNaoAverbada.Count > 0)
+                {
+                    foreach (var item in dados.MotivosNaoAverbada)
+                    {
+                        worksheet.Cell("F6").Value = "Total não averbados";
+                        worksheet.Cell("G6").Value = "%";
+                        worksheet.Cell("F7").Value = item.CodigoErro == "2".PadLeft(3, '0') ? item.TotalPorCodigoErro : 0; ;
+                        worksheet.Cell("G7").Value = item.CodigoErro == "2".PadLeft(3, '0') ? $"{item.TotalPorcentagem}&" : $"{0}%";
+                        worksheet.Cell("F8").Value = item.CodigoErro == "4".PadLeft(3, '0') ? item.TotalPorCodigoErro : 0; ;
+                        worksheet.Cell("G8").Value = item.CodigoErro == "4".PadLeft(3, '0') ? $"{item.TotalPorcentagem}%" : $"{0}%";
+                        worksheet.Cell("F9").Value = item.CodigoErro == "5".PadLeft(3, '0') ? item.TotalPorCodigoErro : 0;
+                        worksheet.Cell("G9").Value = item.CodigoErro == "5".PadLeft(3, '0') ? $"{item.TotalPorcentagem}%" : $"{0}%";
+                        worksheet.Cell("G10").Value = item.CodigoErro == "6".PadLeft(3, '0') ? $"{item.TotalPorcentagem}%" : $"{0}%";
+                        worksheet.Cell("F10").Value = item.CodigoErro == "6".PadLeft(3, '0') ? item.TotalPorCodigoErro : 0;
+                        worksheet.Cell("G11").Value = item.CodigoErro == "8".PadLeft(3, '0') ? $"{item.TotalPorcentagem}%" : $"{0}";
+                        worksheet.Cell("F11").Value = item.CodigoErro == "8".PadLeft(3, '0') ? item.TotalPorCodigoErro : 0;
+                        worksheet.Cell("F12").Value = item.CodigoErro == "12".PadLeft(3, '0') ? $"{item.TotalPorCodigoErro}%" : $"{0}";
+                        worksheet.Cell("G12").Value = item.CodigoErro == "12".PadLeft(3, '0') ? $"{item.TotalPorcentagem}%" : $"{0}%";
+                    }
+                }
+                worksheet.Cell("F13").Value = dados.MotivosNaoAverbada.Count;
+                worksheet.Cell("G13").Value = $"{dados.TaxaNaoAverbado}%";
+
+                worksheet.Cell("A14").Value = "Detalhe de Produção";
+                worksheet.Range("A14:G14").Merge();
+                worksheet.Cell("A14").Style.Fill.BackgroundColor = XLColor.FromArgb(221, 235, 247);
+                worksheet.Cell("A14").Style.Font.Bold = true;
+                worksheet.Cell("A14").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                worksheet.Cell("A15").Value = "NB/Matrícula";
+                worksheet.Cell("B15").Value = "CPF";
+                worksheet.Cell("C15").Value = "Nome";
+                worksheet.Cell("D15").Value = "Data Adesão";
+                worksheet.Cell("E15").Value = "Taxa Associativa";
+                worksheet.Cell("F15").Value = "Parcela Atual";
+                worksheet.Cell("G15").Value = "Data Pagameto";
+                worksheet.Cell("H15").Value = "Status";
+                worksheet.Cell("I15").Value = "Motivo";
+
+                int row = 16;
+                foreach (var item in dados.Relatorio)
+                {
+                    worksheet.Cell(row, 1).Value = long.TryParse(item.CodExterno, out long codexterno) ? codexterno : item.CodExterno;
+                    worksheet.Cell(row, 2).Value = long.TryParse(item.ClienteCpf, out long cpfNumber) ? cpfNumber : item.ClienteCpf;
+                    worksheet.Cell(row, 3).Value = item.ClienteNome;
+                    worksheet.Cell(row, 4).Value = item.DataInicioDesconto;
+                    worksheet.Cell(row, 5).Value = decimal.TryParse(item.ValorDesconto.ToString("C"), out decimal valordesconto) ? valordesconto : item.ValorDesconto;
+                    worksheet.Cell(row, 6).Value = item.QuantidadeParcelas;
+                    worksheet.Cell(row, 7).Value = item.DataPagamento;
+                    worksheet.Cell(row, 8).Value = "";
+                    worksheet.Cell(row, 9).Value = item.DescricaoErro;
+                    row++;
+                }
+
+                var range = worksheet.Range("A15:G" + row);
+                range.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                var outlineRange = worksheet.Range("A1:G" + row);
+                outlineRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thick;
+                outlineRange.Style.Border.OutsideBorderColor = XLColor.Blue;
+
+                worksheet.Columns().AdjustToContents();
+                worksheet.Column("A").Width = 18;
+                worksheet.Column("B").Width = 15;
+                worksheet.Column("C").Width = 40;
+                worksheet.Column("D").Width = 18;
+                worksheet.Column("E").Width = 18;
+                worksheet.Column("F").Width = 18;
+                worksheet.Column("G").Width = 38;
+
+                worksheet.PageSetup.PageOrientation = XLPageOrientation.Landscape;
+                worksheet.PageSetup.PrintAreas.Add("A1:G" + row);
+                worksheet.PageSetup.SetRowsToRepeatAtTop(1, 4);
+
+                workbook.SaveAs(caminhoArquivoSaida);
+            }
         }
     }
 }

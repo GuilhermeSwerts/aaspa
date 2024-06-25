@@ -12,7 +12,7 @@ namespace AASPA.Repository.Maps
         [Key]
         public int pagamento_id { get; set; }
         public decimal pagamento_valor_pago { get; set; }
-        public DateTime pagamento_dt_pagamento { get; set; }
+        public DateTime? pagamento_dt_pagamento { get; set; }
         public DateTime pagamento_dt_cadastro { get; set; } = DateTime.Now;
         public int pagamento_cliente_id { get; set; }
 

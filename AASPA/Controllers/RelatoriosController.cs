@@ -30,12 +30,13 @@ namespace AASPA.Controllers
             string directoryPath = Path.Combine(_env.ContentRootPath, "Relatorio");
             try
             {
-                var response = _relatorios.GerarRelatorioAverbacao($"{ano}{mes.ToString().PadLeft(2,'0')}");
-                if (!Directory.GetFiles(directoryPath).Any(file => Path.GetFileName(file).Contains($"RelAverbacao.{$"{ano}{mes.ToString().PadLeft(2, '0')}"}.xlsx")))
-                {
-                    _relatorios.GerarArquivoRelatorioAverbacao($"{ano}{mes.ToString().PadLeft(2, '0')}");
-                }
-                return Ok(response);
+                _relatorios.GerarArquivoRelatorioCarteiras($"{ano}{mes.ToString().PadLeft(2, '0')}");
+                //var response = _relatorios.GerarRelatorioAverbacao($"{ano}{mes.ToString().PadLeft(2,'0')}");
+                //if (!Directory.GetFiles(directoryPath).Any(file => Path.GetFileName(file).Contains($"RelAverbacao.{$"{ano}{mes.ToString().PadLeft(2, '0')}"}.xlsx")))
+                //{
+                //    _relatorios.GerarArquivoRelatorioAverbacao($"{ano}{mes.ToString().PadLeft(2, '0')}");
+                //}
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -54,6 +55,21 @@ namespace AASPA.Controllers
                 return Ok(response);
             }
             catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpGet]
+        [Route("/RelatorioCarteiras")]
+        public ActionResult RelatorioCarteiras([FromQuery] int mes, int ano)
+        {
+            try
+            {
+                var response = _relatorios.GerarRelatorioAverbacao($"{ano}{mes.ToString().PadLeft(2, '0')}");
+
+                return Ok();
+            }
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
