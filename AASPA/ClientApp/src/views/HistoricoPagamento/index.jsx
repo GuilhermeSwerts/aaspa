@@ -9,6 +9,7 @@ import { FaPencil, FaTrash } from 'react-icons/fa6';
 import NovoPagamento from '../../components/Modal/NovoPagamento';
 import EditarPagamento from '../../components/Modal/editarPagamento';
 import * as Enum from '../../util/enum';
+import { Alert,Pergunta } from '../../util/alertas';
 
 function HistoricoPagamento() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -22,7 +23,7 @@ function HistoricoPagamento() {
         api.get(`BuscarHistoricoPagamento/${id}`, res => {
             setPagamentos(res.data);
         }, erro => {
-            alert('Houve um erro ao buscar o historico de pagamento.')
+            Alert('Houve um erro ao buscar o historico de pagamento.', false)
         })
     }
 
@@ -37,19 +38,19 @@ function HistoricoPagamento() {
             setClienteData(res.data);
             BuscarPagamentos(id);
         }, erro => {
-            alert('Houve um erro ao buscar o cliente.')
+            Alert('Houve um erro ao buscar o cliente.', false)
         })
 
     }, [])
 
     const ExcluirPagamento = async id => {
-        const res = await window.confirm("Deseja realmente excluir esse pagamento?");
+        const res = await Pergunta("Deseja realmente excluir esse pagamento?");
         if (res) {
             api.delete(`ExcluirPagamento/${id}`, res => {
                 BuscarPagamentos(clienteData.cliente.cliente_id);
-                alert('Pagamento excluido com sucesso!');
+                Alert('Pagamento excluido com sucesso!');
             }, err => {
-                alert('Houve um erro ao excluido o pagamento.')
+                Alert('Houve um erro ao excluido o pagamento.', false)
             })
         }
     }

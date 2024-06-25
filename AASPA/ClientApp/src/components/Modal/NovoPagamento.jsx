@@ -4,6 +4,7 @@ import { api } from '../../api/api';
 import { MdOutlineAttachMoney } from 'react-icons/md';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { Mascara } from '../../util/mascara';
+import { Alert } from '../../util/alertas';
 
 function ModalNovoPagamento({ ClienteId, ClienteNome, BuscarPagamentos = null }) {
     const [show, setShow] = useState(false);
@@ -36,10 +37,10 @@ function ModalNovoPagamento({ ClienteId, ClienteNome, BuscarPagamentos = null })
             if (BuscarPagamentos) {
                 BuscarPagamentos(ClienteId)
             }
-            alert('Pagamento salvo com sucesso!');
+            Alert('Pagamento salvo com sucesso!');
             setShow(false);
         }, err => {
-            alert(err.response.data)
+            Alert(err.response.data, false)
         })
     }
 

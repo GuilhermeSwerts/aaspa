@@ -3,6 +3,7 @@ import { Modal, ModalBody, ModalFooter, ModalHeader, Form, FormGroup, Label, Inp
 import { api } from '../../api/api';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { FaPencil, FaPlus } from 'react-icons/fa6';
+import { Alert } from '../../util/alertas';
 
 function ModalEditarMotivoDoContato({ BuscarMotivos, MotivoId }) {
     const [show, setShow] = useState(false);
@@ -23,9 +24,9 @@ function ModalEditarMotivoDoContato({ BuscarMotivos, MotivoId }) {
             BuscarMotivos();
             initState();
             setShow(false);
-            alert('Motivo Do Contato editado com sucesso!');
+            Alert('Motivo Do Contato editado com sucesso!', true);
         }, er => {
-            alert('Houve um erro ao editar o Motivo Do Contato!')
+            Alert('Houve um erro ao editar o Motivo Do Contato!', false)
         })
     }
 

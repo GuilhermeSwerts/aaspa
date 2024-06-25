@@ -7,6 +7,7 @@ import { ButtonTooltip } from '../../components/Inputs/ButtonTooltip';
 import * as Enum from '../../util/enum';
 import NovaContatoOcorrencia from '../../components/Modal/novaContatoOcorrencia';
 import { FaHistory, FaSearch } from 'react-icons/fa';
+import { Alert } from '../../util/alertas';
 
 function HistoricoContatoOcorrencia() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext)
@@ -40,7 +41,7 @@ function HistoricoContatoOcorrencia() {
             setClientes(res.data.clientes);
             setClientesFiltro(res.data.clientes);
         }, err => {
-            alert("Houve um erro ao buscar clientes.")
+            Alert("Houve um erro ao buscar clientes.", false)
         })
     }
 
@@ -60,7 +61,7 @@ function HistoricoContatoOcorrencia() {
     }
 
     return (
-        <NavBar pagina_atual='HISTORICO CONTATOS' usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome} >
+        <NavBar pagina_atual='CONTATOS/OCORRÊNCIA' usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome} >
             <div className='row'>
                 <div className="col-md-2">
                     <span>Tipo de Filtro</span>

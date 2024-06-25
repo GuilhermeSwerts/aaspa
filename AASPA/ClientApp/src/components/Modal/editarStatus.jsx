@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Modal, ModalBody, ModalFooter, ModalHeader, Form, FormGroup, Label, Input, Button } from 'reactstrap';
 import { api } from '../../api/api';
 import { FaEdit } from 'react-icons/fa';
+import { Alert } from '../../util/alertas';
 function ModalEditarStatus({ BuscarTodosStatus, StatusId }) {
 
     const [show, setShow] = useState(false);
@@ -13,13 +14,13 @@ function ModalEditarStatus({ BuscarTodosStatus, StatusId }) {
             setStatus(res.data.status_nome);
             setOldStatus(res.data.status_nome);
         }, err => {
-            alert("Houve um erro ao buscar status.")
+            Alert("Houve um erro ao buscar status.", false)
         })
     }, [])
 
     const handleSubmit = () => {
         if (status === '' && oldStatus === status) {
-            alert('Preencha o nome do status.')
+            Alert('Preencha o nome do status.', false)
             return;
         }
 
@@ -28,10 +29,10 @@ function ModalEditarStatus({ BuscarTodosStatus, StatusId }) {
         formData.append("status_nome", status);
         api.post("EditarStatus", formData, res => {
             BuscarTodosStatus();
-            alert("Status Editado com sucesso!")
+            Alert("Status Editado com sucesso!", true)
             setShow(false);
         }, err => {
-            alert("Houve um erro ao editar um status.")
+            Alert("Houve um erro ao editar um status.", false)
         })
     }
 

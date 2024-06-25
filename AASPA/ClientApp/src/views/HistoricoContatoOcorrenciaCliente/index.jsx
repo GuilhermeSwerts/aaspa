@@ -11,6 +11,7 @@ import { ButtonTooltip } from '../../components/Inputs/ButtonTooltip';
 import ModalEditarContatoOcorrencia from '../../components/Modal/editarContatoOcorrencia';
 import axios from 'axios';
 import * as Enum from '../../util/enum';
+import { Alert, Pergunta } from '../../util/alertas';
 
 function HistoricoOcorrenciaCliente(props) {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -22,7 +23,7 @@ function HistoricoOcorrenciaCliente(props) {
     const descRef = useRef();
 
     const ExcluirOcorrencia = async (id) => {
-        if (await window.confirm("Deseja realmente excluir essa ocorrência?")) {
+        if (await Pergunta("Deseja realmente excluir essa ocorrência?")) {
             try {
                 var res = await axios.delete(`${api.urlBase}/DeletarContatoOcorrencia/${id}`, {
                     headers: {
@@ -31,11 +32,11 @@ function HistoricoOcorrenciaCliente(props) {
                 })
                 if (res.status === 200) {
                     BuscarHistoricoOcorrenciaCliente(clientId);
-                    alert('Ocorrência excluída com sucesso!');
+                    Alert('Ocorrência excluída com sucesso!');
                 }
             } catch (error) {
 
-                alert('Houve um erro ao excluir a ocorrência.');
+                Alert('Houve um erro ao excluir a ocorrência.', false);
             }
         }
     };
@@ -48,7 +49,7 @@ function HistoricoOcorrenciaCliente(props) {
         } catch (error) {
             console.clear();
             console.log(error);
-            alert('Houve um erro ao buscar o Histórico!');
+            Alert('Houve um erro ao buscar o Histórico!', false);
         }
     };
 
@@ -65,7 +66,7 @@ function HistoricoOcorrenciaCliente(props) {
                     BuscarHistoricoOcorrenciaCliente(id);
                 },
                 (erro) => {
-                    alert('Houve um erro ao buscar o cliente.');
+                    Alert('Houve um erro ao buscar o cliente.', false);
                 }
             );
         }

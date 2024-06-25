@@ -2,22 +2,21 @@ import React, { useState, useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import './layout.css';
 import Logo from '../../assets/Logo.png';
-import { Dropdown, DropdownToggle, DropdownItem, DropdownMenu, } from 'reactstrap';
-import { FaRegArrowAltCircleLeft, FaRegArrowAltCircleRight } from "react-icons/fa";
+import { Dropdown, DropdownToggle, DropdownItem, DropdownMenu, Collapse } from 'reactstrap';
+import { FaChartPie, FaFileDownload, FaFileImport, FaRegArrowAltCircleLeft, FaRegArrowAltCircleRight } from "react-icons/fa";
 import { FaUsers } from "react-icons/fa";
 import { FaHandHoldingUsd } from "react-icons/fa";
 import { GiReceiveMoney } from "react-icons/gi";
 import { RiContactsBookUploadLine } from "react-icons/ri";
 
-function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
-    const [dropdownOpen, setDropdownOpen] = useState(false);
-    const toggleDropdown = () => setDropdownOpen((prevState) => !prevState);
-    const [dropdownOpenTools, setDropdownOpenTools] = useState(false);
-    const toggleDropdownTools = () => setDropdownOpenTools((prevState) => !prevState);
-    const [dropdownOpenRelatorio, setDropdownOpenRelatorio] = useState(false);
-    const toggleDropdownRelatorio = () => setDropdownOpenRelatorio((prevState) => !prevState);
+import { IoIosCloseCircle, IoMdMenu } from "react-icons/io";
+import { FaGear, FaGears, FaUsersGear } from "react-icons/fa6";
+import { FaUserGear } from "react-icons/fa6";
+import { FaFileInvoiceDollar } from "react-icons/fa";
+import { AiOutlineMenuFold, AiOutlineMenuUnfold } from 'react-icons/ai';
 
-    const [showMenu, setShowMenu] = useState(true);
+function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
+    const [showMenu, setShowMenu] = useState(false);
     const { handdleLogout } = useContext(AuthContext);
     const IrPara = (pargina) => window.location.href = `/${pargina}`;
     const toggleMenu = () => {
@@ -31,77 +30,39 @@ function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
 
     return (
         <section className='layout-container'>
-            <div className="btn-container-toggle-menu btn-toggle-menu-open">
-                <button onClick={toggleMenu} className={'btn-toggle-menu'}>{!showMenu ? <FaRegArrowAltCircleRight /> : <FaRegArrowAltCircleLeft />}</button>
-            </div>
-            <div className="sidebar open">
-                <div className="logo"><img width={100} src={Logo} alt="logo" /></div>
-                <DropdownItem header>Paginas</DropdownItem>
+            <div className="sidebar">
+                <div className="logo">
+                    <div className=""></div>
+                    <img width={100} src={Logo} alt="logo" />
+                    <button onClick={toggleMenu} className={'btn-toggle-menu btn-toggle-menu-open'}>{showMenu ? <AiOutlineMenuFold size={25} color='#fff' /> : <AiOutlineMenuUnfold size={25} color='#fff' />}</button>
+                </div>
+                <DropdownItem header>PAGINAS</DropdownItem>
                 <div className="menu">
-                    <div onClick={() => IrPara('')} className="menu-item">CLIENTES <FaUsers size={25} color='#fff' /></div>
-                    <div onClick={() => IrPara('hstcocontatoocorrencia')} className="menu-item">CONTATOS/OCORRÊNCIA <RiContactsBookUploadLine size={25} color='#fff' /></div>
-                    <div onClick={() => IrPara("beneficios")} className="menu-item">BENEFÍCIOS <FaHandHoldingUsd size={25} color='#fff' /></div>
-                    <div onClick={() => IrPara("pagamentos")} className="menu-item">PAGAMENTOS <GiReceiveMoney size={25} color='#fff' /></div>
+                    <div onClick={() => IrPara('')} className={pagina_atual === "CLIENTES" ? "menu-item menu-item-active" : "menu-item"}>CLIENTES <FaUsers size={25} color='#fff' /></div>
+                    <div onClick={() => IrPara('hstcocontatoocorrencia')} className={pagina_atual === "CONTATOS/OCORRÊNCIA" ? "menu-item menu-item-active" : "menu-item"}>CONTATOS/OCORRÊNCIA<RiContactsBookUploadLine size={25} color='#fff' /></div>
+                    <div onClick={() => IrPara("beneficios")} className={pagina_atual === "BENEFÍCIOS" ? "menu-item menu-item-active" : "menu-item"}>BENEFÍCIOS <FaHandHoldingUsd size={25} color='#fff' /></div>
+                    <div onClick={() => IrPara("pagamentos")} className={pagina_atual === "PAGAMENTOS" ? "menu-item menu-item-active" : "menu-item"}>PAGAMENTOS <GiReceiveMoney size={25} color='#fff' /></div>
                 </div>
-                <DropdownItem header>Tools</DropdownItem>
-                <div className="settings">
-                    {usuario_tipo === 1 && <Dropdown style={{ background: 'none', border: 'none' }} isOpen={dropdownOpen} toggle={toggleDropdown} direction={'right'}>
-                        <DropdownToggle caret color='' style={{
-                            padding: '15px 20px',
-                            cursor: 'pointer',
-                            textAlign: 'left',
-                            display: 'flex',
-                            width: '100%',
-                            color: '#fff',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                        }}>FERRAMENTAS</DropdownToggle>
-                        <DropdownMenu>
-                            <DropdownItem header>Ferramentas</DropdownItem>
-                            <DropdownItem onClick={() => IrPara("gmotivocontato")}>GERENCIAR MOTIVO CONTATO</DropdownItem>
-                            <DropdownItem onClick={() => IrPara("gorigem")}>GERENCIAR ORIGEM</DropdownItem>
-                            <DropdownItem onClick={() => IrPara("gstatus")}>GERENCIAR STATUS</DropdownItem>
-                            <DropdownItem onClick={() => IrPara("gbeneficio")}>GERENCIAR BENEFICIOS</DropdownItem>
-                            <DropdownItem onClick={() => IrPara("gcaptador")}>GERENCIAR CAPTADOR</DropdownItem>
-                        </DropdownMenu>
-                    </Dropdown>}
-                    {usuario_tipo === 1 && <Dropdown style={{ background: 'none', border: 'none' }} isOpen={dropdownOpenTools} toggle={toggleDropdownTools} direction={'right'}>
-                        <DropdownToggle caret color='' style={{
-                            padding: '15px 20px',
-                            cursor: 'pointer',
-                            textAlign: 'left',
-                            display: 'flex',
-                            width: '100%',
-                            color: '#fff',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                        }}>ARQUIVOS</DropdownToggle>
-                        <DropdownMenu>
-                            <DropdownItem header>Arquivos</DropdownItem>
-                            <DropdownItem onClick={() => IrPara("rremessa")}>REMESSA</DropdownItem>
-                            <DropdownItem onClick={() => IrPara("rretorno")}>RETORNO</DropdownItem>
-                            <DropdownItem onClick={() => IrPara("rrepassefinanceiro")}>REPASSE | FINANCEIRO</DropdownItem>
-                        </DropdownMenu>
-                    </Dropdown>}
-                    {usuario_tipo === 1 && <Dropdown style={{ background: 'none', border: 'none' }} isOpen={dropdownOpenRelatorio} toggle={toggleDropdownRelatorio} direction={'right'}>
-                        <DropdownToggle caret color='' style={{
-                            padding: '15px 20px',
-                            cursor: 'pointer',
-                            textAlign: 'left',
-                            display: 'flex',
-                            width: '100%',
-                            color: '#fff',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                        }}>RELATÓRIOS</DropdownToggle>
-                        <DropdownMenu>
-                            <DropdownItem header>Relatórios</DropdownItem>
-                            <DropdownItem onClick={() => IrPara("rrelatorio")}>AVERBAÇÃO</DropdownItem>
-                        </DropdownMenu>
-                    </Dropdown>}
+                <DropdownItem header>ADMINISTRAÇÃO</DropdownItem>
+                <div className="menu">
+                    <div className={pagina_atual === "GERENCIAR MOTIVO CONTATO" ? "menu-item menu-item-active" : "menu-item"} onClick={() => IrPara("gmotivocontato")}>GERENCIAR MOTIVO CONTATO <FaGears size={30} color='#fff' /></div>
+                    <div className={pagina_atual === "GERENCIAR ORIGEM" ? "menu-item menu-item-active" : "menu-item"} onClick={() => IrPara("gorigem")}>GERENCIAR ORIGEM <FaGear size={25} color='#fff' /></div>
+                    <div className={pagina_atual === "GERENCIAR STATUS" ? "menu-item menu-item-active" : "menu-item"} onClick={() => IrPara("gstatus")}>GERENCIAR STATUS <FaUserGear size={25} color='#fff' /></div>
+                    <div className={pagina_atual === "GERENCIAR BENEFICIOS" ? "menu-item menu-item-active" : "menu-item"} onClick={() => IrPara("gbeneficio")}>GERENCIAR BENEFICIOS <FaGear size={25} color='#fff' /></div>
+                    <div className={pagina_atual === "GERENCIAR CAPTADOR" ? "menu-item menu-item-active" : "menu-item"} onClick={() => IrPara("gcaptador")}>GERENCIAR CAPTADOR <FaUsersGear size={25} color='#fff' /></div>
+                </div>
+                <DropdownItem header>ARQUIVOS</DropdownItem>
+                <div className="menu">
+                    <div className={pagina_atual === "REMESSA" ? "menu-item menu-item-active" : "menu-item"} onClick={() => IrPara("rremessa")}>REMESSA <FaFileDownload size={25} color='#fff' /></div>
+                    <div className={pagina_atual === "RETORNO" ? "menu-item menu-item-active" : "menu-item"} onClick={() => IrPara("rretorno")}>RETORNO <FaFileImport size={25} color='#fff' /></div>
+                    <div className={pagina_atual === "REPASSE" ? "menu-item menu-item-active" : "menu-item"} onClick={() => IrPara("rrepassefinanceiro")}>REPASSE <FaFileInvoiceDollar size={25} color='#fff' /></div>
+                </div>
+                <DropdownItem header>RELATÓRIOS</DropdownItem>
+                <div className="menu">
+                    <div className={pagina_atual === "AVERBAÇÃO" ? "menu-item menu-item-active" : "menu-item"} onClick={() => IrPara("rrelatorio")}>AVERBAÇÃO <FaChartPie size={25} color='#fff' /></div>
                 </div>
             </div>
-            <div className="dashboard opening">
+            <div className="dashboard">
                 <div className="top-bar">
                     <div className="user-info">
                         <span className="hello">Bem-Vindo {usuario_nome}</span>
@@ -109,7 +70,9 @@ function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
                     <a className='btn-loggout' onClick={handdleLogout}>Sair</a>
                 </div>
                 <br />
-                {children}
+                <div className="dashboard-container">
+                    {children}
+                </div>
             </div>
         </section>
     );

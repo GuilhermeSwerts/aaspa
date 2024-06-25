@@ -4,6 +4,7 @@ import { api } from '../../api/api';
 import { Mascara } from '../../util/mascara';
 import { FaPlus } from 'react-icons/fa6';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
+import { Alert } from '../../util/alertas';
 
 function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = null }) {
     const [show, setShow] = useState(false);
@@ -38,7 +39,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
             setMotivos(res.data);
             setMotivo(res.data[0].motivo_contato_id);
         }, err => {
-            alert('Houve um erro ao buscar os motivos de contato')
+            Alert('Houve um erro ao buscar os motivos de contato', false)
         })
     }
 
@@ -47,7 +48,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
             setOrigens(res.data);
             setOrigem(res.data[0].origem_id);
         }, err => {
-            alert('Houve um erro ao buscar os motivos de contato')
+            Alert('Houve um erro ao buscar os motivos de contato', false)
         })
     }
 
@@ -72,10 +73,10 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
             if (BuscarHistoricoOcorrenciaCliente) {
                 BuscarHistoricoOcorrenciaCliente(cliente.cliente_id);
             }
-            alert('Contato/Ocorrência adicionado com sucesso!')
+            Alert('Contato/Ocorrência adicionado com sucesso!', true)
             setShow(false);
         }, err => {
-            alert(err.response.data)
+            Alert(err.response.data, false)
         })
     }
 

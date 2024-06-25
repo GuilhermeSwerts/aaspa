@@ -3,6 +3,7 @@ import { Modal, ModalFooter, ModalHeader, Form, FormGroup, Label, Input, Button,
 import { api } from '../../api/api';
 import { MdOutlineWorkHistory } from 'react-icons/md';
 import { ButtonTooltip } from '../../components/Inputs/ButtonTooltip';
+import { Alert } from '../../util/alertas';
 
 function ModalLogBeneficios({ ClienteId, ClienteNome }) {
     const [show, setShow] = useState(false);
@@ -24,7 +25,7 @@ function ModalLogBeneficios({ ClienteId, ClienteNome }) {
         api.get(`BuscarLogBeneficios/${ClienteId}?dtInicio=${filtroDe}&dtFim=${filtroPara}`, res => {
             setBeneficios(res.data);
         }, err => {
-            alert("Houve um erro ao buscar os status.")
+            Alert("Houve um erro ao buscar os status.", false)
         })
     }
 
@@ -37,7 +38,7 @@ function ModalLogBeneficios({ ClienteId, ClienteNome }) {
             <ButtonTooltip
                 backgroundColor={'#009900'}
                 onClick={() => setShow(true)}
-                className='btn btn-success'
+                className='btn btn-success button-container-item'
                 text={'Log Beneficio'}
                 top={true}
                 textButton={<MdOutlineWorkHistory size={25} />}

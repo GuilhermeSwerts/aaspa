@@ -4,6 +4,7 @@ import ModalEditarStatus from '../../../components/Modal/editarStatus';
 import { NavBar } from '../../../components/Layout/layout';
 import { AuthContext } from '../../../context/AuthContext';
 import ModalStatus from '../../../components/Modal/novoStatus';
+import { Alert } from '../../../util/alertas';
 
 function Status() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -14,7 +15,7 @@ function Status() {
             setStatus(res.data);
             setStatusFiltro(res.data);
         }, err => {
-            alert("Houve um erro ao buscar os status.")
+            Alert("Houve um erro ao buscar os status.", false)
         })
     }
 
@@ -33,7 +34,7 @@ function Status() {
     }
 
     return (
-        <NavBar usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
+        <NavBar pagina_atual={'GERENCIAR STATUS'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
             <div className='row'>
                 <div className="col-md-10">
                     <span>Pesquisar pelo nome do status</span>

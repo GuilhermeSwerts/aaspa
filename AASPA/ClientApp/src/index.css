@@ -16,3 +16,38 @@ body {
     width: 80%;
     max-width: 80%;
 }
+
+.button-container-grid {
+    display: inline-flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.button-container-item {
+    flex-grow: 1;
+    flex-basis: 50;
+}
+
+button {
+    opacity: 0.7 !important;
+}
+
+/* width */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #888;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}

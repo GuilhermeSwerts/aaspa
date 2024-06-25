@@ -3,6 +3,7 @@ import { Modal, ModalBody, ModalFooter, ModalHeader, Form, FormGroup, Label, Inp
 import { api } from '../../api/api';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { FaPlus } from 'react-icons/fa6';
+import { Alert,Pergunta } from '../../util/alertas';
 
 function ModalNovaRemessa({ BuscarRemessas, DownloadRemessa }) {
     const [show, setShow] = useState(false);
@@ -43,12 +44,12 @@ function ModalNovaRemessa({ BuscarRemessas, DownloadRemessa }) {
             initState();
             setShow(false);
             const id = res.data;
-            if (await window.confirm('Remessa Gerada Com sucesso!\nDeseja fazer o download do arquivo?')) {
+            if (await Pergunta('Remessa Gerada Com sucesso!\nDeseja fazer o download do arquivo?')) {
                 DownloadRemessa(id)
             }
             BuscarRemessas();
         }, err => {
-            alert(err.response.data)
+            Alert(err.response.data, false)
         })
     }
 

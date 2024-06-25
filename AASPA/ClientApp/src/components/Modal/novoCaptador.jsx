@@ -2,6 +2,7 @@ import React from 'react';
 import { Modal, ModalBody, ModalFooter, ModalHeader, Form, FormGroup, Label, Input, Button, Row, Col } from 'reactstrap';
 import { Mascara } from '../../util/mascara';
 import { api } from '../../api/api';
+import { Alert } from '../../util/alertas';
 
 class novoCaptador extends React.Component {
     constructor(props) {
@@ -46,11 +47,11 @@ class novoCaptador extends React.Component {
             data.append('descricao', this.state.captadorDescricao);
 
             api.post('NovoCaptador', data, res => {
-                alert(`"Captador cadastrado com sucesso!`);
+                Alert(`"Captador cadastrado com sucesso!`);
                 InitState();
                 BuscarTodosCaptadores();
             }, err => {
-                alert("Houve um erro ao cadastrar o captador");
+                Alert("Houve um erro ao cadastrar o captador", false);
             })
         }
 
@@ -63,11 +64,11 @@ class novoCaptador extends React.Component {
             data.append('descricao', this.state.captadorDescricao);
 
             api.post('EditarCaptador', data, res => {
-                alert(`"Captador editado com sucesso!`);
+                Alert(`Captador editado com sucesso!`);
                 InitState();
                 BuscarTodosCaptadores();
             }, err => {
-                alert("Houve um erro ao editar o captador");
+                Alert("Houve um erro ao editar o captador", false);
             })
         }
 

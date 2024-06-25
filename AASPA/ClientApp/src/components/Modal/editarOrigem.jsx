@@ -3,6 +3,7 @@ import { Modal, ModalBody, ModalFooter, ModalHeader, Form, FormGroup, Label, Inp
 import { api } from '../../api/api';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { FaPencil, FaPlus } from 'react-icons/fa6';
+import { Alert } from '../../util/alertas';
 
 function ModalEditarOrigem({ BuscarOrigem, OrigemId }) {
     const [show, setShow] = useState(false);
@@ -23,9 +24,9 @@ function ModalEditarOrigem({ BuscarOrigem, OrigemId }) {
             BuscarOrigem();
             initState();
             setShow(false);
-            alert('Origem editado com sucesso!');
+            Alert('Origem editado com sucesso!', true);
         }, er => {
-            alert('Houve um erro ao editar a Origem!')
+            Alert('Houve um erro ao editar a Origem!', false)
         })
     }
 

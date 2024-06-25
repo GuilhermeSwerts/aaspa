@@ -3,7 +3,7 @@ import { api } from '../../api/api';
 import { Row, Col, Modal, ModalBody, ModalFooter, ModalHeader, Form, FormGroup, Label, Input, Button, Container } from 'reactstrap';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { FaGear } from 'react-icons/fa6';
-
+import { Alert } from '../../util/alertas';
 
 function ModalVincularBeneficios({ BuscarTodosClientes, ClienteId }) {
     const [selectedBeneficio, setSelectedBeneficio] = useState([]);
@@ -28,7 +28,7 @@ function ModalVincularBeneficios({ BuscarTodosClientes, ClienteId }) {
             setBeneficios(res.data);
             BuscarDadosCliente();
         }, err => {
-            alert('Houve um erro ao buscar os beneficios')
+            Alert('Houve um erro ao buscar os beneficios', false)
         })
     }
 
@@ -38,7 +38,7 @@ function ModalVincularBeneficios({ BuscarTodosClientes, ClienteId }) {
             const beneficiosAtivos = res.data.beneficios.map(x => x.beneficio_id);
             setSelectedBeneficio(beneficiosAtivos);
         }, err => {
-            alert('Houve um erro ao buscar os dados do cliente')
+            Alert('Houve um erro ao buscar os dados do cliente', false)
         })
     }
 
@@ -54,10 +54,10 @@ function ModalVincularBeneficios({ BuscarTodosClientes, ClienteId }) {
         api.post(`VincularBeneficios/${ClienteId}`, formData, res => {
             BuscarTodosBeneficios();
             BuscarTodosClientes();
-            alert('Beneficios Atualizados com sucesso!');
+            Alert('Beneficios Atualizados com sucesso!', true);
             setShow(false);
         }, err => {
-            alert(err.response.data)
+            Alert(err.response.data, false)
         })
     }
 

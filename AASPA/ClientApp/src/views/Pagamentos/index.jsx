@@ -42,7 +42,7 @@ function Pagamentos() {
             setClientes(res.data.clientes);
             setClientesFiltro(res.data.clientes);
         }, err => {
-            alert("Houve um erro ao buscar clientes.")
+            Alert("Houve um erro ao buscar clientes.", false)
         })
     }
 

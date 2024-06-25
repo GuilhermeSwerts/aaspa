@@ -3,6 +3,7 @@ import { Modal, ModalBody, ModalFooter, ModalHeader, Form, FormGroup, Label, Inp
 import { api } from '../../api/api';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { FaPlus } from 'react-icons/fa6';
+import { Alert } from '../../util/alertas';
 
 function ModalNovaOrigem({ BuscarOrigem }) {
     const [show, setShow] = useState(false);
@@ -20,9 +21,9 @@ function ModalNovaOrigem({ BuscarOrigem }) {
             BuscarOrigem();
             initState();
             setShow(false);
-            alert('Origem salvo com sucesso!');
+            Alert('Origem salvo com sucesso!', true);
         }, err => {
-            alert(err.response.data)
+            Alert(err.response.data, false)
         })
     }
 

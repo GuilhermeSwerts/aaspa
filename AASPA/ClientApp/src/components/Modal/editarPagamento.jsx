@@ -4,6 +4,7 @@ import { api } from '../../api/api';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { Mascara } from '../../util/mascara';
 import { FaPencil } from 'react-icons/fa6';
+import { Alert } from '../../util/alertas';
 
 function ModalEditarPagamento({ ClienteId, ClienteNome, PagamentoId, BuscarPagamentos }) {
     const [show, setShow] = useState(false);
@@ -21,9 +22,9 @@ function ModalEditarPagamento({ ClienteId, ClienteNome, PagamentoId, BuscarPagam
         api.post("EditarPagamento", formData, res => {
             BuscarPagamentos(ClienteId)
             setShow(false);
-            alert('Pagamento editado com sucesso!');
+            Alert('Pagamento editado com sucesso!',true);
         }, er => {
-            alert('Houve um erro ao salvar um novo pagamento!')
+            Alert('Houve um erro ao salvar um novo pagamento!',false)
         })
     }
 
@@ -32,7 +33,7 @@ function ModalEditarPagamento({ ClienteId, ClienteNome, PagamentoId, BuscarPagam
             setDataPgto(res.data.dtPagamento);
             setValorPgto(Mascara.moeda(("" + res.data.valorPago).replace(".", ",")))
         }, err => {
-            alert('Houve um erro ao buscar dados do pagamento')
+            Alert('Houve um erro ao buscar dados do pagamento',false)
         })
     }
 

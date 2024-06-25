@@ -6,6 +6,7 @@ import ClienteForm from "./clienteForm";
 import { GetParametro } from '../../util/parametro';
 import { api } from '../../api/api';
 import axios from 'axios';
+import { Alert } from '../../util/alertas';
 
 function Cliente() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -50,7 +51,7 @@ function Cliente() {
         api.get("BuscarCaptadores", res => {
             setCaptadores(res.data);
         }, er => {
-            alert("Houve um erro ao buscar os captadores");
+            Alert("Houve um erro ao buscar os captadores", false);
         })
     }
 
@@ -92,7 +93,7 @@ function Cliente() {
                 descricao: cpt.captador_descricao
             })
         }, erro => {
-            alert('Houve um erro ao buscar o cliente.')
+            Alert('Houve um erro ao buscar o cliente.', false)
         })
     }
 
@@ -148,7 +149,7 @@ function Cliente() {
 
     const handdleEnviarFormulario = () => {
         if (captadorSelecionado == 0) {
-            alert("Selecione um captador");
+            Alert("Selecione um captador", false);
             return;
         }
 
@@ -156,14 +157,14 @@ function Cliente() {
         addCampos(formData);
         let edicao = clienteId && clienteId > 0;
         api.post(edicao ? "/EditarCliente" : "/NovoCliente", formData, res => {
-            alert(`Cliente ${edicao ? 'Editado' : 'Cadastrado'} Com Sucesso!`);
+            Alert(`Cliente ${edicao ? 'Editado' : 'Cadastrado'} Com Sucesso!`);
             setCliente(initState);
             setCaptador(initStateCaptador);
             if (edicao) {
                 BuscarClienteId(clienteId)
             }
         }, err => {
-            alert(err.response.data);
+            Alert(err.response.data, false);
         });
     }
 

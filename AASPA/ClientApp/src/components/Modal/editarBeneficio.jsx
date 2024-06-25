@@ -3,7 +3,7 @@ import { Row, Col, Modal, ModalBody, ModalFooter, ModalHeader, Form, FormGroup, 
 import { api } from '../../api/api';
 import { Mascara } from '../../util/mascara';
 import { FaPencil } from 'react-icons/fa6';
-
+import { Alert } from '../../util/alertas';
 
 function ModalEditarBeneficio({ BuscarTodosBeneficios, BeneficioId }) {
     const [show, setShow] = useState(false);
@@ -22,7 +22,7 @@ function ModalEditarBeneficio({ BuscarTodosBeneficios, BeneficioId }) {
             setDescricao_beneficios(res.data.beneficio_descricao_beneficios)
             setValor_a_pagar_ao_fornecedor(("" + res.data.beneficio_valor_a_pagar_ao_fornecedor).replace('.',','))
         }, err => {
-            alert("Houve um erro ao buscar o beneficio id " + BeneficioId)
+            Alert("Houve um erro ao buscar o beneficio id " + BeneficioId,false)
         })
     }
 
@@ -42,10 +42,10 @@ function ModalEditarBeneficio({ BuscarTodosBeneficios, BeneficioId }) {
 
         api.post("EditarBeneficio", formData, res => {
             BuscarTodosBeneficios();
-            alert("Beneficio editado com sucesso!")
+            Alert("Beneficio editado com sucesso!",true)
             setShow(false);
         }, err => {
-            alert("Houve um erro ao editar um beneficio.")
+            Alert("Houve um erro ao editar um beneficio.",false)
         })
     }
 

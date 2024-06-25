@@ -8,6 +8,7 @@ import moment from 'moment';
 import axios from 'axios';
 import { format } from 'date-fns';
 import { ptBR, tr } from 'date-fns/locale';
+import { Alert } from '../../../util/alertas';
 
 function RepasseFinanceiro() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -58,7 +59,7 @@ function RepasseFinanceiro() {
             EnviarRetorno(file);
             setImportar(false);
         } else {
-            alert('Por favor, selecione um arquivo antes de enviar.');
+            Alert('Por favor, selecione um arquivo antes de enviar.', false);
         }
     };
 
@@ -74,10 +75,10 @@ function RepasseFinanceiro() {
         const formData = new FormData();
         formData.append('file', file);
         api.post("LerRetornoRemessa", formData, res => {
-            alert("Arquivo do importado com sucesso!");
+            Alert("Arquivo do importado com sucesso!");
             BuscarRetorno();
         }, err => {
-            alert(err.response.data)
+            Alert(err.response.data, false)
         });
     };
 
@@ -99,7 +100,7 @@ function RepasseFinanceiro() {
             setDadosRepasse(response.data.dadosRepasse);
         }, error => {
             console.error('Erro ao buscar retorno:', error); // Log de erro no console para debug
-            alert('Erro ao buscar retorno: ' + error.response.data);
+            Alert('Erro ao buscar retorno: ' + error.response.data, false);
         })
     };
 
@@ -110,7 +111,7 @@ function RepasseFinanceiro() {
     }, []);
 
     return (
-        <NavBar usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
+        <NavBar pagina_atual={'REPASSE'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
             <Row>
                 <Col md="6">
                     <BuscarPorMesAno

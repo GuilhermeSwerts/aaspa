@@ -7,6 +7,7 @@ import { FaDownload } from 'react-icons/fa';
 import { api } from '../../../api/api';
 import moment from 'moment';
 import { Mascara } from '../../../util/mascara';
+import { Alert } from '../../../util/alertas';
 
 function Relatorio() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -58,7 +59,7 @@ function Relatorio() {
             setDetalhes(response.data.detalhes);
             setDetalheProducao(response.data.relatorio);
         }, erro => {
-            alert('Houve um erro ao buscar o relatório.')
+            Alert('Houve um erro ao buscar o relatório.', false)
         })
     }
 
@@ -68,7 +69,7 @@ function Relatorio() {
     }, []);
 
     return (
-        <NavBar usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
+        <NavBar pagina_atual={'AVERBAÇÃO'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
             <small>FILTRO:</small>
             <div className='row'>
                 <div className="col-md-4">
@@ -128,7 +129,7 @@ function ResumoProducao({ motivosNaoAverbada,
         listaNaoAverbados.forEach(item => {
             //<li key={index}>{item.descricaoErro}: {item.totalPorCodigoErro} ({item.totalPorcentagem}%)</li>
             const { descricaoErro, totalPorCodigoErro, totalPorcentagem } = item;
-            
+
             if (obj[descricaoErro]) {
                 obj[descricaoErro].totalPorCodigoErro = totalPorCodigoErro;
                 obj[descricaoErro].totalPorcentagem = totalPorcentagem;
@@ -216,7 +217,7 @@ function DetalheProducao({ detalhes }) {
             // Revoke the object URL
             window.URL.revokeObjectURL(url);
         }, err => {
-            alert(err.response.data);
+            Alert(err.response.data, false);
         });
     }
 

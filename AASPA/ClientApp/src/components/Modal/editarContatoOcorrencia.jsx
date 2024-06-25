@@ -4,6 +4,7 @@ import { api } from '../../api/api';
 import { Mascara } from '../../util/mascara';
 import { FaPencil } from 'react-icons/fa6';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
+import { Alert } from '../../util/alertas';
 
 function ModalEditarContatoOcorrencia({ ContatoOcorrenciaId, ClienteId, BuscarHistoricoOcorrenciaCliente }) {
     const [show, setShow] = useState(false);
@@ -25,7 +26,7 @@ function ModalEditarContatoOcorrencia({ ContatoOcorrenciaId, ClienteId, BuscarHi
             setMotivo(res.data.historico_contatos_ocorrencia_motivo_contato_id);
             setOrigem(res.data.historico_contatos_ocorrencia_origem_id);
         }, err => {
-            alert('houve um erro ao buscar o Contato/Ocorrencia do id:' + ContatoOcorrenciaId)
+            Alert('houve um erro ao buscar o Contato/Ocorrencia do id:' + ContatoOcorrenciaId,false)
         })
     }
 
@@ -34,7 +35,7 @@ function ModalEditarContatoOcorrencia({ ContatoOcorrenciaId, ClienteId, BuscarHi
             setMotivos(res.data);
             setMotivo(res.data[0].motivo_contato_id);
         }, err => {
-            alert('Houve um erro ao buscar os motivos de contato')
+            Alert('Houve um erro ao buscar os motivos de contato',false)
         })
     }
 
@@ -43,7 +44,7 @@ function ModalEditarContatoOcorrencia({ ContatoOcorrenciaId, ClienteId, BuscarHi
             setOrigens(res.data);
             setOrigem(res.data[0].origem_id);
         }, err => {
-            alert('Houve um erro ao buscar os motivos de contato')
+            Alert('Houve um erro ao buscar os motivos de contato',false)
         })
     }
 
@@ -65,10 +66,10 @@ function ModalEditarContatoOcorrencia({ ContatoOcorrenciaId, ClienteId, BuscarHi
 
         api.post("EditarContatoOcorrencia", formData, res => {
             BuscarHistoricoOcorrenciaCliente(ClienteId);
-            alert('Contato/Ocorrência editada com sucesso!')
+            Alert('Contato/Ocorrência editada com sucesso!',true)
             setShow(false);
         }, err => {
-            alert('Houve um erro ao editar Contato/Ocorrência')
+            Alert('Houve um erro ao editar Contato/Ocorrência',false)
         })
     }
 

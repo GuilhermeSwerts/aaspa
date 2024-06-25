@@ -5,6 +5,7 @@ import { FaDownload, FaPlus } from 'react-icons/fa6';
 import { Col, Row } from 'reactstrap';
 import BuscarPorMesAno from './BuscarPorMesAno';
 import { api } from '../../../api/api';
+import { Alert } from '../../../util/alertas';
 
 function Remessa() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext)
@@ -15,7 +16,7 @@ function Remessa() {
         api.get(`BuscarRemessas?mes=${mesSelecionado}&ano=${anoSelecionado}`, res => {
             setRemessas(res.data);
         }, err => {
-            alert(err.response.data)
+            Alert(err.response.data, false)
         })
     }
 
@@ -35,12 +36,12 @@ function Remessa() {
             a.download = nomeArquivo;
             a.click();
         }, err => {
-            alert(err.response.data)
+            Alert(err.response.data, false)
         })
     }
 
     return (
-        <NavBar usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
+        <NavBar pagina_atual={'REMESSA'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
             <small>Filtro:</small>
             <BuscarPorMesAno
                 mesSelecionado={mesSelecionado}

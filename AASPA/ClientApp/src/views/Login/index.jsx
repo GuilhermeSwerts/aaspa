@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import './login.css'
 import Logo from '../../assets/Logo.png'
 import { api } from '../../api/api';
+import { Alert } from '../../util/alertas';
 
 export default () => {
     const [usuario, setUsuario] = useState('');
     const [senha, setDenha] = useState('');
+    const [showSenha, setShowSenha] = useState(false);
 
     const handdleLogin = (event) => {
         event.preventDefault();
@@ -17,26 +19,23 @@ export default () => {
 
             window.location.href = '/';
         }, erro => {
-            alert(erro.response.data)
+            Alert(erro.response.data, false)
         })
     }
 
     return (
-        <form onSubmit={handdleLogin} className='container-login'>
-            <div class="login-container">
-                <div class="logo-container">
-                    <img src={Logo} width={150} alt="Logo" class="logo" />
+        <div class="login-card">
+            <img src={Logo} width={60} alt="Logo" class="logo" />
+            <h3>Insira suas credenciais</h3>
+            <form class="login-form" onSubmit={handdleLogin}>
+                <input required type="text" placeholder="Usuário" value={usuario} onChange={e => setUsuario(e.target.value.toUpperCase())} />
+                <input required type={showSenha ? "text" : "password"} placeholder="Senha" value={senha} onChange={e => setDenha(e.target.value)} />
+                <div style={{ display: 'flex', justifyContent: 'start', alignItems: 'center', gap: 10 }}>
+                    <input value={showSenha} onChange={e => setShowSenha(!showSenha)} type='checkbox' />
+                    <span style={{ color: '#fff' }} for="password">Visualizar Senha</span>
                 </div>
-                <div class="form-group">
-                    <label for="username">Usuário</label>
-                    <input value={usuario} onChange={e => setUsuario(e.target.value.toUpperCase())} type="text" placeholder='OPERADOR.NOME' id="username" name="username" required />
-                </div>
-                <div class="form-group">
-                    <label for="password">Senha</label>
-                    <input value={senha} onChange={e => setDenha(e.target.value)} type="password" id="password" placeholder='********' name="password" required />
-                </div>
-                <button type="submit" class="login-button">Entrar</button>
-            </div>
-        </form >
+                <button type="submit">ENTRAR</button>
+            </form>
+        </div>
     );
 }

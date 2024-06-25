@@ -4,6 +4,7 @@ import { AuthContext } from '../../../context/AuthContext';
 import { api } from '../../../api/api';
 import ModalNovaOrigem from '../../../components/Modal/novaOrigem';
 import ModalEditarOrigem from '../../../components/Modal/editarOrigem';
+import { Alert } from '../../../util/alertas';
 // import ModalNovoMotivoDoContato from '../../../components/Modal/novoOrigem';
 // import ModalEditarMotivoDoContato from '../../../components/Modal/editarOrigem';
 
@@ -17,7 +18,7 @@ function Origem() {
             setOrigem(res.data);
             setOrigemFiltro(res.data);
         }, err => {
-            alert('Houve um erro ao buscar os motivos de contato')
+            Alert('Houve um erro ao buscar os motivos de contato', false)
         })
     }
 
@@ -31,11 +32,11 @@ function Origem() {
         if (value && value != "")
             setOrigemFiltro(origem.filter(x => x.origem_nome.toUpperCase().includes(value.toUpperCase())));
         else
-        setOrigemFiltro(origem);
+            setOrigemFiltro(origem);
     }
 
     return (
-        <NavBar usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
+        <NavBar pagina_atual={'GERENCIAR ORIGEM'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
             <div className='row'>
                 <div className="col-md-10">
                     <span>Pesquisar pelo Nome Da Origem</span>

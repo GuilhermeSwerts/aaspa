@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, ModalBody, ModalFooter, ModalHeader, Form, FormGroup, Label, Input, Button } from 'reactstrap';
 import { api } from '../../api/api';
+import { Alert } from '../../util/alertas';
 function ModalStatus({ BuscarTodosStatus }) {
 
     const [show, setShow] = useState(false);
@@ -8,7 +9,7 @@ function ModalStatus({ BuscarTodosStatus }) {
 
     const handleSubmit = () => {
         if (status === '') {
-            alert('Preencha o nome do status.')
+            Alert('Preencha o nome do status.', false)
             return;
         }
 
@@ -17,10 +18,10 @@ function ModalStatus({ BuscarTodosStatus }) {
         api.post("InserirStatus", formData, res => {
             setStatus('');
             BuscarTodosStatus();
-            alert("Status adicionado com sucesso!")
+            Alert("Status adicionado com sucesso!")
             setShow(false);
         }, err => {
-            alert(err.response.data)
+            Alert(err.response.data, false)
         })
     }
 

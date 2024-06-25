@@ -4,6 +4,7 @@ import { api } from '../../api/api';
 import { FaEdit } from 'react-icons/fa';
 import { MdOutlineHistoryToggleOff } from 'react-icons/md';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
+import { Alert } from '../../util/alertas';
 function ModalLogStatus({ ClienteId, ClienteNome }) {
 
     const [show, setShow] = useState(false);
@@ -25,7 +26,7 @@ function ModalLogStatus({ ClienteId, ClienteNome }) {
         api.get(`BuscarLogStatusClienteId/${ClienteId}?dtInicio=${filtroDe}&dtFim=${filtroPara}`, res => {
             setStatus(res.data);
         }, err => {
-            alert("Houve um erro ao buscar os status.")
+            Alert("Houve um erro ao buscar os status.", false)
         })
     }
 
@@ -38,7 +39,7 @@ function ModalLogStatus({ ClienteId, ClienteNome }) {
             <ButtonTooltip
                 backgroundColor={'#008000'}
                 onClick={() => setShow(true)}
-                className='btn btn-success'
+                className='btn btn-success button-container-item'
                 text={'Log Status'}
                 top={true}
                 textButton={<MdOutlineHistoryToggleOff size={25} />}

@@ -7,6 +7,7 @@ import { Mascara } from '../../../util/mascara';
 import DescricaoModal from '../../../components/Modal/descricaoModal';
 import { FaEye } from 'react-icons/fa6';
 import ModalEditarBeneficio from '../../../components/Modal/editarBeneficio';
+import { Alert } from '../../../util/alertas';
 
 
 function GBeneficios() {
@@ -20,7 +21,7 @@ function GBeneficios() {
             setBeneficios(res.data);
             setBeneficiosFiltro(res.data);
         }, er => {
-            alert("Houve um erro ao buscar os beneficios");
+            Alert("Houve um erro ao buscar os beneficios", false);
         })
     }
 
@@ -42,7 +43,7 @@ function GBeneficios() {
     }
 
     return (
-        <NavBar usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
+        <NavBar pagina_atual={'GERENCIAR BENEFICIOS'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
             <DescricaoModal ref={modal} />
             <div className='row'>
                 <div className="col-md-10">

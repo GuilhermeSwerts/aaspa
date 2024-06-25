@@ -5,6 +5,7 @@ import { FaEdit } from 'react-icons/fa';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { FiMoreHorizontal } from 'react-icons/fi';
 import * as Enum from '../../util/enum';
+import { Alert, Pergunta } from '../../util/alertas';
 
 function ModalEditarStatusAtual({ BuscarTodosClientes, ClienteId, StatusId }) {
 
@@ -17,7 +18,7 @@ function ModalEditarStatusAtual({ BuscarTodosClientes, ClienteId, StatusId }) {
         api.get("TodosStatus", res => {
             setTodosStatus(res.data);
         }, err => {
-            alert("Houve um erro ao buscar os status.")
+            Alert("Houve um erro ao buscar os status.", false)
         })
     }
 
@@ -26,24 +27,25 @@ function ModalEditarStatusAtual({ BuscarTodosClientes, ClienteId, StatusId }) {
             setOldStatus(res.data.status_nome);
             BuscarTodosStatus();
         }, err => {
-            alert("Houve um erro ao buscar status.")
+            Alert("Houve um erro ao buscar status.", false)
         })
     }, [])
 
     const handleSubmit = async () => {
         if (novoStatus == StatusId) {
-            alert("Escolha um status diferente do atual.");
+            Alert("Escolha um status diferente do atual.", false);
             return;
         }
 
         if (novoStatus == Enum.EStatus.Inativo) {
-            if (!(await window.confirm("Deseja realmente inativar esse cliente?\nVocê não poderá realizar alterações até que seja reativado.\n Deseja continuar?"))) {
+
+            if (!(await Pergunta("Deseja realmente inativar esse cliente?\nVocê não poderá realizar alterações até que seja reativado.\n Deseja continuar?"))) {
                 return;
             }
         }
 
         if (novoStatus == Enum.EStatus.Deletado) {
-            if (!(await window.confirm("Deseja realmente deletar esse cliente?"))) {
+            if (!(await Pergunta("Deseja realmente deletar esse cliente?"))) {
                 return;
             }
         }
@@ -54,11 +56,11 @@ function ModalEditarStatusAtual({ BuscarTodosClientes, ClienteId, StatusId }) {
         formData.append("cliente_id", ClienteId);
 
         api.post("AlterarStatusCliente", formData, async res => {
-            alert("Status atualizado com sucesso!");
+            Alert("Status atualizado com sucesso!", true);
             BuscarTodosClientes();
             setShow(false);
         }, err => {
-            alert("Houve um erro ao editar um status.")
+            Alert("Houve um erro ao editar um status.", false)
         })
     }
 
@@ -67,7 +69,7 @@ function ModalEditarStatusAtual({ BuscarTodosClientes, ClienteId, StatusId }) {
             <ButtonTooltip
                 backgroundColor={'#00cc00'}
                 onClick={() => setShow(true)}
-                className='btn btn-danger'
+                className='btn btn-danger button-container-item'
                 text={'Editar Status'}
                 top={true}
                 textButton={<FiMoreHorizontal size={25} />}

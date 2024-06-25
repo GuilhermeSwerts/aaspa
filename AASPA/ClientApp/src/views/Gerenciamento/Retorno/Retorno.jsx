@@ -9,6 +9,7 @@ import axios from 'axios';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import ReactPaginate from 'react-paginate';
+import { Alert } from '../../../util/alertas';
 
 function Retorno() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -37,7 +38,7 @@ function Retorno() {
             EnviarRetorno(file);
             setImportar(false);
         } else {
-            alert('Por favor, selecione um arquivo antes de enviar.');
+            Alert('Por favor, selecione um arquivo antes de enviar.', false);
         }
     };
 
@@ -56,10 +57,10 @@ function Retorno() {
             const anoMes = String(res.data);
             let mes = getMonthName(parseInt(anoMes.slice(4, 6)));
             let ano = anoMes.slice(0, 4);
-            alert("Arquivo do mês " + mes + " de " + ano + " importado com sucesso!");
+            Alert("Arquivo do mês " + mes + " de " + ano + " importado com sucesso!");
             BuscarRetorno();
         }, err => {
-            alert(err.response.data)
+            Alert(err.response.data, false)
         });
     };
 
@@ -86,7 +87,7 @@ function Retorno() {
             })
             .catch(error => {
                 console.error('Erro ao buscar retorno:', error); // Log de erro no console para debug
-                alert('Erro ao buscar retorno: ' + error.response.data);
+                Alert('Erro ao buscar retorno: ' + error.response.data, false);
             });
     };
 
@@ -101,7 +102,7 @@ function Retorno() {
     const currentItems = retorno.retornos ? retorno.retornos.slice(offset, offset + itemsPerPage) : [];
 
     return (
-        <NavBar usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
+        <NavBar pagina_atual={'RETORNO'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
             <Row>
                 <Col md="6">
                     <BuscarPorMesAno
@@ -206,7 +207,7 @@ function Retorno() {
                         previousLinkClassName={'page-link'}
                         nextLinkClassName={'page-link'}
                         breakClassName={'page-item'}
-                        breakLinkClassName={'page-link'}                        
+                        breakLinkClassName={'page-link'}
                     />
                 </>
             )}

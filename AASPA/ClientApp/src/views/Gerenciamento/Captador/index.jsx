@@ -7,6 +7,7 @@ import DescricaoModal from '../../../components/Modal/descricaoModal';
 import { FaEye, FaPencil } from 'react-icons/fa6';
 import NovoCaptador from '../../../components/Modal/novoCaptador';
 import { FaPlus, FaTrash } from 'react-icons/fa';
+import { Alert, Pergunta } from '../../../util/alertas';
 
 function Captador() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -20,7 +21,7 @@ function Captador() {
             setCaptadores(res.data);
             setCaptadoresFiltro(res.data);
         }, er => {
-            alert("Houve um erro ao buscar os Captadores");
+            Alert("Houve um erro ao buscar os Captadores", false);
         })
     }
 
@@ -42,12 +43,12 @@ function Captador() {
     }
 
     const ExcluirCaptador = async (id) => {
-        if (await window.confirm("Deseja realmente excluir esse Captador?")) {
+        if (await Pergunta("Deseja realmente excluir esse Captador?")) {
             api.delete(`ExcluirCaptador/${id}`, res => {
                 BuscarTodosCaptadores();
-                alert(`"Captador do id: ${id}" excluido com sucesso!`);
+                Alert(`Captador do id: ${id}" excluido com sucesso!`);
             }, err => {
-                alert("Houve um erro ao excluir o captador do id: " + id);
+                Alert("Houve um erro ao excluir o captador do id: " + id, false);
             })
         }
     }
@@ -57,7 +58,7 @@ function Captador() {
     }
 
     return (
-        <NavBar usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
+        <NavBar pagina_atual={'GERENCIAR CAPTADOR'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
             <DescricaoModal ref={modal} />
             <NovoCaptador ref={captadorModal} BuscarTodosCaptadores={BuscarTodosCaptadores} />
             <div className='row'>

@@ -7,6 +7,7 @@ import ModalVincularBeneficios from '../../components/Modal/ModalVincularBenefic
 import ModalLogBeneficios from '../../components/Modal/ModalLogBeneficios';
 import * as Enum from '../../util/enum';
 import { FaSearch } from 'react-icons/fa';
+import { Alert } from '../../util/alertas';
 
 function Beneficios() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -41,7 +42,7 @@ function Beneficios() {
             setClientes(res.data.clientes);
             setClientesFiltro(res.data.clientes);
         }, err => {
-            alert("Houve um erro ao buscar clientes.")
+            Alert("Houve um erro ao buscar clientes.", false)
         })
     }
 
@@ -61,7 +62,7 @@ function Beneficios() {
     }
 
     return (
-        <NavBar pagina_atual='BENEFICIOS' usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome} >
+        <NavBar pagina_atual='BENEFÍCIOS' usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome} >
             <div className='row'>
                 <div className="col-md-2">
                     <span>Tipo de Filtro</span>

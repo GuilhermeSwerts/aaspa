@@ -3,6 +3,7 @@ import { Modal, ModalBody, ModalFooter, ModalHeader, Form, FormGroup, Label, Inp
 import { api } from '../../api/api';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { FaPlus } from 'react-icons/fa6';
+import { Alert } from '../../util/alertas';
 
 function ModalNovoMotivoDoContato({ BuscarMotivos }) {
     const [show, setShow] = useState(false);
@@ -20,9 +21,9 @@ function ModalNovoMotivoDoContato({ BuscarMotivos }) {
             BuscarMotivos();
             initState();
             setShow(false);
-            alert('Motivo Do Contato salvo com sucesso!');
+            Alert('Motivo Do Contato salvo com sucesso!');
         }, err => {
-            alert(err.response.data)
+            Alert(err.response.data, false)
         })
     }
 

@@ -39,7 +39,7 @@ function ModalVisualizarCliente({ Cliente }) {
         <>
             <ButtonTooltip
                 onClick={() => setShow(true)}
-                className='btn btn-success'
+                className='btn btn-success button-container-item'
                 text={'Visualizar Dados Cliente'}
                 top={true}
                 textButton={<FaEye size={25} />}

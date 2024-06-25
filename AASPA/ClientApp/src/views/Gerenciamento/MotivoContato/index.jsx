@@ -4,6 +4,7 @@ import { AuthContext } from '../../../context/AuthContext';
 import { api } from '../../../api/api';
 import ModalNovoMotivoDoContato from '../../../components/Modal/novoMotivoContato';
 import ModalEditarMotivoDoContato from '../../../components/Modal/editarMotivoContato';
+import { Alert } from '../../../util/alertas';
 
 function MotivoContato() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -15,7 +16,7 @@ function MotivoContato() {
             setMotivos(res.data);
             setMotivosFiltro(res.data);
         }, err => {
-            alert('Houve um erro ao buscar os motivos de contato')
+            Alert('Houve um erro ao buscar os motivos de contato', false)
         })
     }
     useEffect(() => {
@@ -32,7 +33,7 @@ function MotivoContato() {
     }
 
     return (
-        <NavBar usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
+        <NavBar pagina_atual={'GERENCIAR MOTIVO CONTATO'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
             <div className='row'>
                 <div className="col-md-10">
                     <span>Pesquisar pelo Nome Do Motivo Do Contato</span>

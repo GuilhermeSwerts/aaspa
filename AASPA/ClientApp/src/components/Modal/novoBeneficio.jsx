@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Row, Col, Modal, ModalBody, ModalFooter, ModalHeader, Form, FormGroup, Label, Input, Button } from 'reactstrap';
 import { api } from '../../api/api';
 import { Mascara } from '../../util/mascara';
+import { Alert } from '../../util/alertas';
 
 
 function ModalNovoBeneficio() {
@@ -28,10 +29,10 @@ function ModalNovoBeneficio() {
 
         api.post("NovoBeneficio", formData, res => {
             setInit();
-            alert("Beneficio adicionado com sucesso!")
+            Alert("Beneficio adicionado com sucesso!")
             setShow(false);
         }, err => {
-            alert(err.response.data)
+            Alert(err.response.data, false)
         })
     }
 
