@@ -8,6 +8,7 @@ import { TbZoomMoney } from "react-icons/tb";
 import NovoPagamento from '../../components/Modal/NovoPagamento';
 import * as Enum from '../../util/enum';
 import { FaSearch } from 'react-icons/fa';
+import { Alert } from '../../util/alertas';
 
 function Pagamentos() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext)
