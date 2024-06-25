@@ -5,15 +5,18 @@ using AASPA.Models.Requests;
 using AASPA.Models.Response;
 using AASPA.Repository;
 using AASPA.Repository.Maps;
-using ClosedXML.Excel;
-using DocumentFormat.OpenXml.ExtendedProperties;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using CsvHelper;
+using CsvHelper.Configuration;
+using System.IO;
+using System.Globalization;
 using System.Text;
-using System.Threading.Tasks;
+using DocumentFormat.OpenXml.Vml;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace AASPA.Domain.Service
 {
@@ -321,73 +324,18 @@ namespace AASPA.Domain.Service
             return (todosClientes.Skip(indiceInicial).Take(qtdPorPagina).ToList(), Convert.ToInt32(qtdPaginas), totalClientes);
         }
 
-        public string DownloadFiltro((List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) clientesData)
+        public byte[] DownloadFiltro((List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) clientesData)
         {
-            string diretorioBase = _env.ContentRootPath;
-            string caminhoPastaRelatorio = Path.Combine(diretorioBase, "Relatorio");
-            string caminhoArquivoSaida = Path.Combine(caminhoPastaRelatorio, "FiltroClientes.xlsx");
-
-            if (!Directory.Exists(caminhoPastaRelatorio))
-            {
-                Directory.CreateDirectory(caminhoPastaRelatorio);
-            }
-
-            if (File.Exists(caminhoArquivoSaida))
-            {
-                File.Delete(caminhoArquivoSaida);
-            }
-
-            var workbook = new XLWorkbook();
-
-            // Adiciona uma planilha ao workbook
-            var worksheet = workbook.Worksheets.Add("Clientes");
-
-            // Escreve o cabeçalho na primeira linha
-            string[] cabecalho = { "ID", "CPF", "NOME", "CEP", "LOGRADOURO", "BAIRRO", "LOCALIDADE", "UF", "NUMERO", "COMPLEMENTO", "DATANASC", "DATACADASTRO", "NRDOCTO", "EMPREGADOR", "MATRICULABENEFICIO", "NOMEMAE", "NOMEPAI", "TELEFONEFIXO", "TELEFONECELULAR", "POSSUIWHATSAPP", "FUNCAOAASPA", "EMAIL", "SITUACAO", "ESTADO_CIVIL", "SEXO", "REMESSA_ID" };
-            //worksheet.Cell(1, 1).Value = cabecalho;
-
-            for (int i = 0; i < cabecalho.Length; i++)
-            {
-                var c = cabecalho[i];
-                worksheet.Cell(i + 1, i+1).Value = c;
-            }
-
-            // Escreve os dados dos clientes nas linhas subsequentes
+            string texto = "#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID\n";
             for (int i = 0; i < clientesData.Clientes.Count; i++)
             {
                 var cliente = clientesData.Clientes[i];
-                worksheet.Cell(i + 2, 1).Value =  cliente.Cliente.cliente_id;
-                worksheet.Cell(i + 2, 2).Value =  cliente.Cliente.cliente_cpf;
-                worksheet.Cell(i + 2, 3).Value =  cliente.Cliente.cliente_nome;
-                worksheet.Cell(i + 2, 4).Value =  cliente.Cliente.cliente_cep;
-                worksheet.Cell(i + 2, 5).Value =  cliente.Cliente.cliente_logradouro;
-                worksheet.Cell(i + 2, 6).Value =  cliente.Cliente.cliente_bairro;
-                worksheet.Cell(i + 2, 7).Value =  cliente.Cliente.cliente_localidade;
-                worksheet.Cell(i + 2, 8).Value =  cliente.Cliente.cliente_uf;
-                worksheet.Cell(i + 2, 9).Value =  cliente.Cliente.cliente_numero;
-                worksheet.Cell(i + 2, 10).Value = cliente.Cliente.cliente_complemento;
-                worksheet.Cell(i + 2, 11).Value = cliente.Cliente.cliente_dataNasc;
-                worksheet.Cell(i + 2, 12).Value = cliente.Cliente.cliente_dataCadastro;
-                worksheet.Cell(i + 2, 13).Value = cliente.Cliente.cliente_nrDocto;
-                worksheet.Cell(i + 2, 14).Value = cliente.Cliente.cliente_empregador;
-                worksheet.Cell(i + 2, 15).Value = cliente.Cliente.cliente_matriculaBeneficio;
-                worksheet.Cell(i + 2, 16).Value = cliente.Cliente.cliente_nomeMae;
-                worksheet.Cell(i + 2, 17).Value = cliente.Cliente.cliente_nomePai;
-                worksheet.Cell(i + 2, 18).Value = cliente.Cliente.cliente_telefoneFixo;
-                worksheet.Cell(i + 2, 19).Value = cliente.Cliente.cliente_telefoneCelular;
-                worksheet.Cell(i + 2, 20).Value = cliente.Cliente.cliente_possuiWhatsapp;
-                worksheet.Cell(i + 2, 21).Value = cliente.Cliente.cliente_funcaoAASPA;
-                worksheet.Cell(i + 2, 22).Value = cliente.Cliente.cliente_email;
-                worksheet.Cell(i + 2, 23).Value = cliente.Cliente.cliente_situacao;
-                worksheet.Cell(i + 2, 24).Value = cliente.Cliente.cliente_estado_civil;
-                worksheet.Cell(i + 2, 25).Value = cliente.Cliente.cliente_sexo;
-                worksheet.Cell(i + 2, 26).Value = cliente.Cliente.cliente_remessa_id;
+                texto +=  $"{cliente.Cliente.cliente_id};{cliente.Cliente.cliente_cpf};{cliente.Cliente.cliente_nome};{cliente.Cliente.cliente_cep};{cliente.Cliente.cliente_logradouro};{cliente.Cliente.cliente_bairro};{cliente.Cliente.cliente_localidade};{cliente.Cliente.cliente_uf};{cliente.Cliente.cliente_numero};{cliente.Cliente.cliente_complemento};{cliente.Cliente.cliente_dataNasc};{cliente.Cliente.cliente_dataCadastro};{cliente.Cliente.cliente_nrDocto};{cliente.Cliente.cliente_empregador};{cliente.Cliente.cliente_matriculaBeneficio};{cliente.Cliente.cliente_nomeMae};{cliente.Cliente.cliente_nomePai};{cliente.Cliente.cliente_telefoneFixo};{cliente.Cliente.cliente_telefoneCelular};{cliente.Cliente.cliente_possuiWhatsapp};{cliente.Cliente.cliente_funcaoAASPA};{cliente.Cliente.cliente_email};{cliente.Cliente.cliente_situacao};{cliente.Cliente.cliente_estado_civil};{cliente.Cliente.cliente_sexo};{cliente.Cliente.cliente_remessa_id}";
+                texto += "\n";
             }
 
-            workbook.SaveAs(caminhoArquivoSaida);
-
-            byte[] fileBytes = File.ReadAllBytes(caminhoArquivoSaida);
-            return Convert.ToBase64String(fileBytes);
+            byte[] fileBytes = Encoding.Latin1.GetBytes(texto);
+            return fileBytes;
         }
     }
 }

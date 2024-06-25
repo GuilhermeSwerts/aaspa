@@ -88,18 +88,7 @@ export default () => {
     }
 
     const DownloadClienteFiltro = () => {
-        api.get(`DownloadClienteFiltro?statusCliente=${statusCliente}&statusRemessa=${statusRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}`, res => {
-            var base64 = res.data;
-            let csvContent = atob(base64);
-            var blob = new Blob([csvContent], { type: "data:application/octet-stream;base64" });
-            var url = window.URL.createObjectURL(blob);
-            var a = document.createElement("a");
-            a.href = url
-            a.download = "FiltroClientes.xlsx";
-            a.click();
-        }, err => {
-            Alert("Houve um erro ao fazer o download.", false)
-        })
+        window.open(api.urlBase + `/DownloadClienteFiltro?statusCliente=${statusCliente}&statusRemessa=${statusRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}`)
     }
 
     return (
@@ -153,7 +142,7 @@ export default () => {
                     <input type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)} name="dateEnd" id="dateEnd" className='form-control' />
                 </div>
                 <div className="col-md-1" style={{ marginTop: '20px' }}>
-                    <button style={{ width: '100%' }} onClick={BuscarTodosClientes} className='btn btn-primary'><FaSearch size={25} /></button>
+                    <button style={{ width: '100%' }} onClick={() => BuscarTodosClientes(statusCliente, statusRemessa, 1)} className='btn btn-primary'><FaSearch size={25} /></button>
                 </div>
                 <div className="col-md-2" style={{ marginTop: '20px' }}>
                     <button style={{ width: '100%' }} onClick={DownloadClienteFiltro} className='btn btn-primary'>Extrair Clientes<FaDownload size={25} /></button>
@@ -261,7 +250,7 @@ export default () => {
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, color: '#000' }}>
                 <button onClick={() => { setPaginaAtual(paginaAtual - 1); BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual - 1) }} disabled={paginaAtual === 1} className='btn btn-primary'>Voltar</button>
                 <span>{paginaAtual} de {qtdPaginas}</span>
-                <button onClick={() => { setPaginaAtual(paginaAtual + 1); BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual + 1) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>Proxima</button>
+                <button onClick={() => { setPaginaAtual(paginaAtual + 1); BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual + 1) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>Próxima</button>
             </div>
 
         </NavBar >

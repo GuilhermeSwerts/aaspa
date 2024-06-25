@@ -2,10 +2,9 @@
 using AASPA.Domain.Interface;
 using AASPA.Models.Requests;
 using AASPA.Models.Response;
-using DocumentFormat.OpenXml.Office2016.Excel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
 
 namespace AASPA.Host.Controllers
 {
@@ -75,15 +74,16 @@ namespace AASPA.Host.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet]
         [Route("/DownloadClienteFiltro")]
-        public ActionResult DownloadFiltro([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd)
+        public IActionResult DownloadFiltro([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd)
         {
             try
             {
                 var clientes = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd,null);
-                string base64 = _service.DownloadFiltro(clientes);
-                return Ok(base64);
+                byte[] base64 = _service.DownloadFiltro(clientes);
+                return File(base64, "application/csv;charset=utf-8", "FiltroClientes.csv");
             }
             catch (System.Exception ex)
             {
