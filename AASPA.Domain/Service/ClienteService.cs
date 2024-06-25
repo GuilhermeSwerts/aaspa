@@ -8,15 +8,8 @@ using AASPA.Repository.Maps;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using CsvHelper;
-using CsvHelper.Configuration;
-using System.IO;
-using System.Globalization;
 using System.Text;
-using DocumentFormat.OpenXml.Vml;
-using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace AASPA.Domain.Service
 {
