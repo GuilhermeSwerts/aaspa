@@ -25,16 +25,14 @@ namespace AASPA.Controllers
 
         [HttpGet]
         [Route("/RelatorioAverbacao")]
-        public ActionResult RelatorioAvebacao([FromQuery]int mes, int ano)
+        public ActionResult RelatorioAvebacao([FromQuery] int mes, int ano, int captadorId)
         {
-            string directoryPath = Path.Combine(_env.ContentRootPath, "Relatorio");
             try
             {
-                var response = _relatorios.GerarRelatorioAverbacao($"{ano}{mes.ToString().PadLeft(2, '0')}");
-                if (!Directory.GetFiles(directoryPath).Any(file => Path.GetFileName(file).Contains($"RelAverbacao.{$"{ano}{mes.ToString().PadLeft(2, '0')}"}.xlsx")))
-                {
-                    _relatorios.GerarArquivoRelatorioAverbacao($"{ano}{mes.ToString().PadLeft(2, '0')}");
-                }
+                var response = _relatorios.GerarRelatorioAverbacao($"{ano}{mes.ToString().PadLeft(2, '0')}", captadorId);
+
+                _relatorios.GerarArquivoRelatorioAverbacao($"{ano}{mes.ToString().PadLeft(2, '0')}", captadorId);
+
                 return Ok(response);
             }
             catch (Exception ex)
@@ -60,22 +58,18 @@ namespace AASPA.Controllers
         }
         [HttpGet]
         [Route("/RelatorioCarteiras")]
-        public ActionResult RelatorioCarteiras([FromQuery] int mes, int ano)
+        public ActionResult RelatorioCarteiras([FromQuery] int mes, int ano, int captadorId)
         {
-            string directoryPath = Path.Combine(_env.ContentRootPath, "Relatorio");
             try
             {
-                var response = _relatorios.GerarRelatorioAverbacao($"{ano}{mes.ToString().PadLeft(2, '0')}");
-                if (!Directory.GetFiles(directoryPath).Any(file => Path.GetFileName(file).Contains($"RelCarteiras.{$"{ano}{mes.ToString().PadLeft(2, '0')}"}.xlsx")))
-                {
-                    _relatorios.GerarArquivoRelatorioCarteiras($"{ano}{mes.ToString().PadLeft(2, '0')}");
-                }
+                var response = _relatorios.GerarRelatorioAverbacao($"{ano}{mes.ToString().PadLeft(2, '0')}", captadorId);
+                _relatorios.GerarArquivoRelatorioCarteiras($"{ano}{mes.ToString().PadLeft(2, '0')}", captadorId);
                 return Ok(response);
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
-        }        
+        }
     }
 }

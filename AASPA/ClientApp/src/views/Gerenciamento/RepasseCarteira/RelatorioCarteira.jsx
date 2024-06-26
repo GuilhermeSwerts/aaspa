@@ -9,8 +9,9 @@ import moment from 'moment';
 import { Mascara } from '../../../util/mascara';
 import { Alert } from '../../../util/alertas';
 
-function Relatorio() {
+function RelatorioCarteira() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
+
     const meses = [
         { valor: 1, nome: 'Janeiro' },
         { valor: 2, nome: 'Fevereiro' },
@@ -27,11 +28,10 @@ function Relatorio() {
     ];
     const [mesSelecionado, setMesSelecionado] = useState(null);
     const [anoSelecionado, setAnoSelecionado] = useState(null);
-    const [captadores, setCaptadores] = useState([]);
-    const [captadoreSelecionado, setCaptadoreSelecionado] = useState(0);
-
     const anoAtual = new Date().getFullYear();
     const anos = Array.from({ length: 25 }, (_, i) => anoAtual - i);
+    const [captadores, setCaptadores] = useState([]);
+    const [captadoreSelecionado, setCaptadoreSelecionado] = useState(0);
 
     const [detalheProducao, setDetalheProducao] = useState([]);
     const [detalhes, setDetalhes] = useState({
@@ -55,7 +55,7 @@ function Relatorio() {
             return
         }
 
-        api.get(`RelatorioAverbacao?mes=${mesSelecionado}&ano=${anoSelecionado}&captadorId=${captadoreSelecionado}`, response => {
+        api.get(`RelatorioCarteiras?mes=${mesSelecionado}&ano=${anoSelecionado}&captadorId=${captadoreSelecionado}`, response => {
             SetResumo(response.data.resumo);
             setTaxaNaoAverbado(response.data.taxaNaoAverbado);
             setMotivosNaoAverbada(response.data.motivosNaoAverbada)
@@ -74,8 +74,9 @@ function Relatorio() {
         })
     }
 
+
     const DownloadAverbacao = () => {
-        api.get(`DownloadRelatorio?mes=${mesSelecionado}&ano=${anoSelecionado}&tiporel=1`, res => {
+        api.get(`DownloadRelatorio?mes=${mesSelecionado}&ano=${anoSelecionado}&tiporel=2`, res => {
             const { nomeArquivo, base64 } = res.data;
 
             // Convert base64 to binary string
@@ -99,7 +100,7 @@ function Relatorio() {
             // Create a link element
             let a = document.createElement("a");
             a.href = url;
-            a.download = nomeArquivo.endsWith(".xlsx") ? nomeArquivo : `${nomeArquivo}.xlsx`;
+            a.download = nomeArquivo.endsWith(".xlsx") ? nomeArquivo : `RelatorioCarteiras.xlsx`;
 
             // Trigger the download
             a.click();
@@ -121,6 +122,7 @@ function Relatorio() {
         setMesSelecionado(parseInt(mes));
         setAnoSelecionado(ano);
     }, []);
+
 
     return (
         <NavBar pagina_atual={'AVERBAÇÃO'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
@@ -170,7 +172,9 @@ function Relatorio() {
                     taxaNaoAverbado={taxaNaoAverbado}
                     resumo={detalhes}
                     mesSelecionado={mesSelecionado}
-                    anoSelecionado={anoSelecionado} />
+                    anoSelecionado={anoSelecionado}
+                    detalhes={detalheProducao}
+                />
                 <br />
                 <DetalheProducao detalhes={detalheProducao} DownloadAverbacao={DownloadAverbacao} />
             </div>}
@@ -179,7 +183,7 @@ function Relatorio() {
 }
 
 function ResumoProducao({ motivosNaoAverbada,
-    taxaNaoAverbado, resumoTotal, resumo, mesSelecionado, anoSelecionado }) {
+    taxaNaoAverbado, resumoTotal, resumo, mesSelecionado, anoSelecionado, detalhes }) {
 
     const OrganizarNaoAverbados = (listaNaoAverbados) => {
         const obj = {
@@ -205,7 +209,7 @@ function ResumoProducao({ motivosNaoAverbada,
 
         return Object.values(obj);
     }
-
+    debugger;
     return (
         <div className="container-main-resumo">
             <div className="resuto-title">
@@ -218,9 +222,13 @@ function ResumoProducao({ motivosNaoAverbada,
                     <ul className='container-motivo-nao-verbados'>
                         <li>Competencia: {mesSelecionado}/{anoSelecionado}</li>
                         <li>Corretora: {resumo.corretora}</li>
-                        <li>Id Da Remessa: {resumo.remessa}</li>
-                        <li>Total Remessa: {resumoTotal.totalRemessa}</li>
-                        <li>Total Averbados: {resumo.averbados}</li>
+                    </ul>
+                    <h4>CARTEIRA</h4>
+                    <ul>
+                        <li>Qtde total: {detalhes ? detalhes.length : 0}</li>
+                        <li>cancelados: 0</li>
+                        <li>Inadimplentes: 0</li>
+                        <li>Em dia: 0</li>
                     </ul>
                     <p>Taxa de Averbação: {resumo.taxaAverbacao}%</p>
                 </div>
@@ -239,7 +247,6 @@ function ResumoProducao({ motivosNaoAverbada,
 }
 
 function DetalheProducao({ detalhes, DownloadAverbacao }) {
-
 
     return (
         <div className="detalhe-producao">
@@ -264,8 +271,9 @@ function DetalheProducao({ detalhes, DownloadAverbacao }) {
                             <th>Nome</th>
                             <th>Data Adesão</th>
                             <th>Taxa Associativa</th>
+                            <th>Parcela Atual</th>
+                            <th>Data Pagamento</th>
                             <th>Status</th>
-                            <th>Motivo</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -276,8 +284,9 @@ function DetalheProducao({ detalhes, DownloadAverbacao }) {
                                 <td>{detalhe.clienteNome}</td>
                                 <td>{(Mascara.data(detalhe.dataInicioDesconto)).split(' ')[0]}</td>
                                 <td>R$ {detalhe.valorDesconto.toFixed(2)}</td>
-                                <td>{detalhe.codigoResultado === 1 ? 'AVERBADO' : detalhe.codigoResultado === 2 ? 'NÃO AVERBADO' : 'ERRO'}</td>
-                                <td>{detalhe.descricaoErro}</td>
+                                <td>{detalhe.quantidadeParcelas}</td>
+                                <td>{(Mascara.data(detalhe.dataPagamento)).split(' ')[0]}</td>
+                                <td>-</td>
                             </tr>
                         ))}
                     </tbody>
@@ -287,4 +296,4 @@ function DetalheProducao({ detalhes, DownloadAverbacao }) {
     );
 }
 
-export default Relatorio;
+export default RelatorioCarteira;

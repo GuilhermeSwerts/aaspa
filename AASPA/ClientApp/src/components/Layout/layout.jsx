@@ -3,7 +3,7 @@ import { AuthContext } from '../../context/AuthContext';
 import './layout.css';
 import Logo from '../../assets/Logo.png';
 import { Dropdown, DropdownToggle, DropdownItem, DropdownMenu, Collapse } from 'reactstrap';
-import { FaChartPie, FaFileDownload, FaFileImport, FaRegArrowAltCircleLeft, FaRegArrowAltCircleRight } from "react-icons/fa";
+import { FaChartArea, FaChartPie, FaFileDownload, FaFileImport, FaRegArrowAltCircleLeft, FaRegArrowAltCircleRight } from "react-icons/fa";
 import { FaUsers } from "react-icons/fa";
 import { FaHandHoldingUsd } from "react-icons/fa";
 import { GiReceiveMoney } from "react-icons/gi";
@@ -60,6 +60,7 @@ function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
                 <DropdownItem header>RELATÓRIOS</DropdownItem>
                 <div className="menu">
                     <div className={pagina_atual === "AVERBAÇÃO" ? "menu-item menu-item-active" : "menu-item"} onClick={() => IrPara("rrelatorio")}>AVERBAÇÃO <FaChartPie size={25} color='#fff' /></div>
+                    <div className={pagina_atual === "CARTEIRA" ? "menu-item menu-item-active" : "menu-item"} onClick={() => IrPara("relatoriocarteira")}>CARTEIRA <FaChartArea size={25} color='#fff' /></div>
                 </div>
             </div>
             <div className="dashboard">

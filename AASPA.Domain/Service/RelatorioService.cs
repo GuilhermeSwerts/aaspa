@@ -29,17 +29,20 @@ namespace AASPA.Domain.Service
             _mysql = mysql;
             _env = env;
         }
-        public GerarRelatorioAverbacaoResponse GerarRelatorioAverbacao(string anomes)
+        public GerarRelatorioAverbacaoResponse GerarRelatorioAverbacao(string anomes, int captadorId)
         {
             try
             {
+                var captador = _mysql.captadores.First(x => x.captador_id == captadorId);
+
                 var corporelatorio = (from c in _mysql.clientes
+                                      join vin in _mysql.vinculo_cliente_captador on c.cliente_id equals vin.vinculo_cliente_id
                                       join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
                                       join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
                                       join cr in _mysql.codigo_retorno on new { CodigoErro = r.Motivo_Rejeicao.ToString().PadLeft(3, '0'), CodigoOperacao = r.Codigo_Operacao } equals new { CodigoErro = cr.CodigoErro, CodigoOperacao = cr.CodigoOperacao }
                                       join p in _mysql.pagamentos on c.cliente_id equals p.pagamento_cliente_id into pg
                                       from p in pg.DefaultIfEmpty()
-                                      where rr.AnoMes == anomes
+                                      where rr.AnoMes == anomes && vin.vinculo_captador_id == captadorId
                                       group new { c, r, cr, p } by new
                                       {
                                           c.cliente_matriculaBeneficio,
@@ -67,35 +70,45 @@ namespace AASPA.Domain.Service
                                       }).ToList();
 
                 var totalRemessa = (from r in _mysql.retornos_remessa
-                                    join rr in _mysql.registros_retorno_remessa on r.Retorno_Id equals rr.Retorno_Remessa_Id
-                                    where r.AnoMes == anomes
-                                    select r).Count();
+                                     join rr in _mysql.registros_retorno_remessa on r.Retorno_Id equals rr.Retorno_Remessa_Id
+                                     join cli in _mysql.clientes on r.Remessa_Id equals cli.cliente_remessa_id
+                                     join vin in _mysql.vinculo_cliente_captador on cli.cliente_id equals vin.vinculo_cliente_id
+                                     where r.AnoMes == anomes && vin.vinculo_captador_id == captadorId
+                                     group r by cli.cliente_id into g
+                                     select new
+                                     {
+                                         ClienteId = g.Key,
+                                         Count = g.Count()
+                                     }).Count();
 
                 var totalNaoAverbada = (from c in _mysql.clientes
                                         join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
                                         join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
+                                        join vin in _mysql.vinculo_cliente_captador on c.cliente_id equals vin.vinculo_cliente_id
                                         join cr in _mysql.codigo_retorno
                                           on new { CodigoErro = r.Motivo_Rejeicao.ToString().PadLeft(3, '0'), CodigoOperacao = r.Codigo_Operacao }
                                           equals new { CodigoErro = cr.CodigoErro, CodigoOperacao = cr.CodigoOperacao }
-                                        where rr.AnoMes == anomes && r.Codigo_Resultado == 2
+                                        where rr.AnoMes == anomes && r.Codigo_Resultado == 2 && vin.vinculo_captador_id == captadorId
                                         select r).Count();
 
                 var totalAverbada = (from c in _mysql.clientes
                                      join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
                                      join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
+                                     join vin in _mysql.vinculo_cliente_captador on c.cliente_id equals vin.vinculo_cliente_id
                                      join cr in _mysql.codigo_retorno
                                           on new { CodigoErro = r.Motivo_Rejeicao.ToString().PadLeft(3, '0'), CodigoOperacao = r.Codigo_Operacao }
                                           equals new { CodigoErro = cr.CodigoErro, CodigoOperacao = cr.CodigoOperacao }
-                                     where rr.AnoMes == anomes && r.Codigo_Resultado == 1
+                                     where rr.AnoMes == anomes && r.Codigo_Resultado == 1 && vin.vinculo_captador_id == captadorId
                                      select r).Count();
 
                 var motivoNaoAverbada = (from c in _mysql.clientes
                                          join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
                                          join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
+                                         join vin in _mysql.vinculo_cliente_captador on c.cliente_id equals vin.vinculo_cliente_id
                                          join cr in _mysql.codigo_retorno
                                           on new { CodigoErro = r.Motivo_Rejeicao.ToString().PadLeft(3, '0'), CodigoOperacao = r.Codigo_Operacao }
                                           equals new { CodigoErro = cr.CodigoErro, CodigoOperacao = cr.CodigoOperacao }
-                                         where rr.AnoMes == anomes && r.Codigo_Resultado == 2
+                                         where rr.AnoMes == anomes && r.Codigo_Resultado == 2 && vin.vinculo_captador_id == captadorId
                                          group cr by new { cr.CodigoErro, cr.DescricaoErro } into g
                                          select new MotivoNaoAverbacaoResponse
                                          {
@@ -107,10 +120,11 @@ namespace AASPA.Domain.Service
                 var numeroRemessa = (from c in _mysql.clientes
                                      join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
                                      join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
+                                     join vin in _mysql.vinculo_cliente_captador on c.cliente_id equals vin.vinculo_cliente_id
                                      join cr in _mysql.codigo_retorno
                                           on new { CodigoErro = r.Motivo_Rejeicao.ToString().PadLeft(3, '0'), CodigoOperacao = r.Codigo_Operacao }
                                           equals new { CodigoErro = cr.CodigoErro, CodigoOperacao = cr.CodigoOperacao }
-                                     where rr.AnoMes == anomes
+                                     where rr.AnoMes == anomes && vin.vinculo_captador_id == captadorId
                                      select r.Retorno_Remessa_Id).FirstOrDefault();
 
                 var taxaaverbacao = 0;
@@ -123,7 +137,7 @@ namespace AASPA.Domain.Service
                 {
                     Competencia = $"{anomes.Substring(0, 4)}{anomes.Substring(4, 2)}",
                     Averbados = totalAverbada,
-                    Corretora = "Confia",
+                    Corretora = captador.captador_nome,
                     Remessa = numeroRemessa,
                     TaxaAverbacao = taxaaverbacao,
                 };
@@ -165,13 +179,18 @@ namespace AASPA.Domain.Service
                 throw;
             }
         }
-        public void GerarArquivoRelatorioAverbacao(string anomes)
+        public void GerarArquivoRelatorioAverbacao(string anomes, int captadorId)
         {
+            var captador = _mysql.captadores.First(x => x.captador_id == captadorId);
+
             string diretorioBase = _env.ContentRootPath;
             string caminhoArquivoSaida = Path.Combine(diretorioBase, "Relatorio", $"RelAverbacao.{anomes}.xlsx");
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Relatorio")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Relatorio"))); }
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Imagens")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Imagens"))); }
-            var dados = GerarRelatorioAverbacao(anomes);
+            var dados = GerarRelatorioAverbacao(anomes, captadorId);
+
+            if (File.Exists(caminhoArquivoSaida))
+                File.Delete(caminhoArquivoSaida);
 
             using (var workbook = new XLWorkbook())
             {
@@ -210,7 +229,7 @@ namespace AASPA.Domain.Service
                 worksheet.Cell("A6").Value = "COMPETENCIA:";
                 worksheet.Cell("B6").Value = long.TryParse(dados.Detalhes.Competencia, out var detalhes)? detalhes : 0;
                 worksheet.Cell("A7").Value = "CORRETORA:";
-                worksheet.Cell("B7").Value = "Confia";
+                worksheet.Cell("B7").Value = captador.captador_nome;
                 worksheet.Cell("A8").Value = "Remessa:";
                 worksheet.Cell("B8").Value = dados.Resumo.TotalRemessa;
                 worksheet.Cell("A9").Value = "Averbados:";
@@ -348,13 +367,18 @@ namespace AASPA.Domain.Service
             };
 
         }
-        public void GerarArquivoRelatorioCarteiras(string anomes)
+        public void GerarArquivoRelatorioCarteiras(string anomes,int captadorId)
         {
+            var captador = _mysql.captadores.First(x => x.captador_id == captadorId);
+
             string diretorioBase = _env.ContentRootPath;
             string caminhoArquivoSaida = Path.Combine(diretorioBase, "Relatorio", $"RelCarteira.{anomes}.xlsx");
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Relatorio")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Relatorio"))); }
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Imagens")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Imagens"))); }
-            var dados = GerarRelatorioAverbacao(anomes);
+            var dados = GerarRelatorioAverbacao(anomes, captadorId);
+
+            if (File.Exists(caminhoArquivoSaida))
+                File.Delete(caminhoArquivoSaida);
 
             using (var workbook = new XLWorkbook())
             {
@@ -401,7 +425,7 @@ namespace AASPA.Domain.Service
                 worksheet.Cell("A6").Value = "COMPETENCIA:";
                 worksheet.Cell("B6").Value = long.TryParse(dados.Detalhes.Competencia, out var detalhes) ? detalhes : 0;
                 worksheet.Cell("A7").Value = "CORRETORA:";
-                worksheet.Cell("B7").Value = "Confia";
+                worksheet.Cell("B7").Value = captador.captador_nome;
                 worksheet.Cell("A8").Value = "Carteira:";
                 worksheet.Cell("B8").Value = "Qtde total";
                 worksheet.Cell("C8").Value = dados.Relatorio.Count;
