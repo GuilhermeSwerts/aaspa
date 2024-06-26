@@ -7,6 +7,7 @@ namespace AASPA.Controllers
     {
         GerarRelatorioAverbacaoResponse GerarRelatorioAverbacao(string anomes);
         void GerarArquivoRelatorioAverbacao(string anomes);
-        BuscarArquivoResponse BuscarArquivoAverbacao(string anomes);
+        BuscarArquivoResponse BuscarArquivoRelatorio(string anomes, int tiporel);
+        void GerarArquivoRelatorioCarteiras(string anomes);
     }
 }

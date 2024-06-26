@@ -25,7 +25,7 @@ namespace AASPA.Domain.Service
                 .Where(x => x.pagamento_cliente_id == clienteId)
                 .Select(x => new HistoricoPagamentoResponse
                 {
-                    DtPagamento = x.pagamento_dt_pagamento.ToString("dd/MM/yyyy"),
+                    DtPagamento = x.pagamento_dt_pagamento.HasValue ? x.pagamento_dt_pagamento.Value.ToString("dd/MM/yyyy") : null,
                     Dt_Cadastro = x.pagamento_dt_cadastro.ToString("dd/MM/yyyy HH:mm:ss"),
                     PagamentoId = x.pagamento_id,
                     ValorPago = x.pagamento_valor_pago
@@ -38,7 +38,7 @@ namespace AASPA.Domain.Service
                 ?? throw new Exception("Pagamento não encontrado.");
             return new HistoricoPagamentoResponse
             {
-                DtPagamento = pagamento.pagamento_dt_pagamento.ToString("yyyy-MM-dd"),
+                DtPagamento = pagamento.pagamento_dt_pagamento.HasValue ? pagamento.pagamento_dt_pagamento.Value.ToString("dd/MM/yyyy") : null,
                 PagamentoId = pagamento.pagamento_id,
                 ValorPago = pagamento.pagamento_valor_pago
             };
