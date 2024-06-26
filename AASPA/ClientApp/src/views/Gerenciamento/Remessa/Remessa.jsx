@@ -61,6 +61,7 @@ function Remessa() {
                         <th>Ano</th>
                         <th>Período</th>
                         <th>Data Criação</th>
+                        <th>Status</th>
                         <th>Download</th>
                     </tr>
                 </thead>
@@ -71,6 +72,7 @@ function Remessa() {
                         <td>{remessa.ano}</td>
                         <td>{remessa.periodo}</td>
                         <td>{remessa.dataCriacao}</td>
+                        <td>{remessa.remessa_status === true? "Ativo" : "Inativo"}</td>
                         <td><button onClick={_ => DownloadRemessa(remessa.remessaId)} className='btn btn-info'><FaDownload size={20} color='#fff' /></button></td>
                     </tr>))}
                 </tbody>

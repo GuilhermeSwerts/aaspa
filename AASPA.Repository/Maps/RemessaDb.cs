@@ -16,5 +16,6 @@ namespace AASPA.Repository.Maps
         public DateTime remessa_data_criacao { get; set; }
         public DateTime remessa_periodo_de { get; set; }
         public DateTime remessa_periodo_ate { get; set; }
+        public bool remessa_status { get; set; }
     }
 }
