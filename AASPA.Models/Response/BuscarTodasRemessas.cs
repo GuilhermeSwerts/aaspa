@@ -13,5 +13,6 @@ namespace AASPA.Models.Response
         public int Ano { get; set; }
         public string DataCriacao { get; set; }
         public string Periodo { get; set; }
+        public bool remessa_status { get; set; }
     }
 }

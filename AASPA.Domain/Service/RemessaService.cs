@@ -116,13 +116,24 @@ namespace AASPA.Domain.Service
 
         public int SalvarDadosRemessa(List<ClienteDb> clientes, int mes, int ano, string nomeArquivo, DateTime dateInit, DateTime dateEnd)
         {
+            var RemessaDeletar = RemessaExiste(mes, ano);
+            var RetornoVinculado = VerificarRetornoVinculadoRemessa(RemessaDeletar.remessa_id);
+            if (RetornoVinculado != null)
+            {
+                throw new Exception("Remessa já vinculada a um retorno! Não será possível gerar outra remessa.");
+            }
+            if (RemessaDeletar != null)
+            {
+                InativarRemessa(RemessaDeletar);
+            }
             var remessa = new RemessaDb
             {
                 remessa_ano_mes = $"{ano}{mes.ToString().PadLeft(2, '0')}",
                 remessa_data_criacao = DateTime.Now,
                 nome_arquivo_remessa = nomeArquivo,
                 remessa_periodo_de = dateInit,
-                remessa_periodo_ate = dateEnd
+                remessa_periodo_ate = dateEnd,
+                remessa_status = true
             };
 
             _mysql.remessa.Add(remessa);
@@ -145,6 +156,21 @@ namespace AASPA.Domain.Service
 
             return idRemessa;
         }
+
+        private object VerificarRetornoVinculadoRemessa(int remessa_id)
+        {
+            return _mysql.retornos_remessa.FirstOrDefault(x => x.Remessa_Id == remessa_id);
+        }
+
+        private void InativarRemessa(RemessaDb remessa)
+        {
+            var atualizarremessa = _mysql.remessa.FirstOrDefault(x => x.remessa_id == remessa.remessa_id);
+            atualizarremessa.remessa_status = false;
+           _mysql.remessa.Update(atualizarremessa);
+           _mysql.SaveChanges();
+
+        }
+
         public string GerarArquivoRemessa(int idRegistro, int mes, int ano, string nomeArquivo)
         {
             string diretorioBase = _env.ContentRootPath;
@@ -170,9 +196,10 @@ namespace AASPA.Domain.Service
             }
             return caminhoArquivoSaida;
         }
-        public bool RemessaExiste(int mes, int ano)
+        public RemessaDb RemessaExiste(int mes, int ano)
         {
-            return _mysql.remessa.Any(x => x.remessa_ano_mes == $"{ano}{mes.ToString().PadLeft(2, '0')}");
+            RemessaDb remessa =  _mysql.remessa.FirstOrDefault(x => x.remessa_ano_mes == $"{ano}{mes.ToString().PadLeft(2, '0')}" && x.remessa_status == true);
+            return remessa == null ? null : remessa;
         }
         public List<BuscarTodasRemessas> BuscarTodasRemessas(int? ano, int? mes)
         {
@@ -202,7 +229,8 @@ namespace AASPA.Domain.Service
                     Mes = CultureInfo.CreateSpecificCulture("pt-BR").DateTimeFormat.GetMonthName(mesDaRemessa).ToUpper(),
                     Ano = anoDaRemessa,
                     DataCriacao = buscar.remessa_data_criacao.ToString(),
-                    Periodo = "De " + buscar.remessa_periodo_de.ToString("dd/MM/yyyy") + " até " + buscar.remessa_periodo_ate.ToString("dd/MM/yyyy")
+                    Periodo = "De " + buscar.remessa_periodo_de.ToString("dd/MM/yyyy") + " até " + buscar.remessa_periodo_ate.ToString("dd/MM/yyyy"),
+                    remessa_status = buscar.remessa_status,
                 };
 
                 listaTodasRemessas.Add(buscarTodasRemessas);
@@ -356,7 +384,7 @@ namespace AASPA.Domain.Service
             {
                 using var tran = _mysql.Database.BeginTransaction();
 
-                var remessa = _mysql.remessa.FirstOrDefault(x => x.remessa_ano_mes == anomes);
+                var remessa = _mysql.remessa.FirstOrDefault(x => x.remessa_ano_mes == anomes && x.remessa_status == true);
                 if (remessa == null)
                 {
                     throw new Exception("Não existe nenhuma remessa para o retorno importado!");

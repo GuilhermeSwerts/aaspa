@@ -23,11 +23,6 @@ namespace AASPA.Controllers
         {
             try
             {
-                if (_remessa.RemessaExiste(mes, ano))
-                {
-                    return BadRequest($"Já existe remessa criada para o período informado.");
-                }
-
                 RetornoRemessaResponse retorno = _remessa.GerarRemessa(mes, ano, dateInit, dateEnd);
 
                 return Ok(retorno.remessa_id);
