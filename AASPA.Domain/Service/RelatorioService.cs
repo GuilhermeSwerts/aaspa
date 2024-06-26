@@ -323,15 +323,21 @@ namespace AASPA.Domain.Service
                 workbook.SaveAs(caminhoArquivoSaida);
             }
         }
-        public BuscarArquivoResponse BuscarArquivoAverbacao(string anomes)
+        public BuscarArquivoResponse BuscarArquivoRelatorio(string anomes, int tiporel)
         {
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Remessa")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Remessa"))); }
             string diretorioBase = Path.Combine(_env.ContentRootPath, "Relatorio");
             var path = string.Empty;
 
             string[] todosLogs = Directory.GetFiles(diretorioBase);
-
-            path = todosLogs.FirstOrDefault(arquivo => Path.GetFileName(arquivo).Contains($"RelAverbacao.{anomes}.xlsx"));
+            if (tiporel == 1)
+            {
+                path = todosLogs.FirstOrDefault(arquivo => Path.GetFileName(arquivo).Contains($"RelAverbacao.{anomes}.xlsx"));
+            }
+            else
+            {
+                path = todosLogs.FirstOrDefault(arquivo => Path.GetFileName(arquivo).Contains($"RelCarteira.{anomes}.xlsx"));
+            }         
 
             if (!File.Exists(path)) throw new Exception("Arquivo não encontrado");
 
