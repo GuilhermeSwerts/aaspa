@@ -160,6 +160,7 @@ namespace AASPA.Domain.Service
                     cliente_numero = novoCliente.Cliente.Numero ?? "",
                     cliente_complemento = novoCliente.Cliente.Complemento ?? "",
                     cliente_dataNasc = novoCliente.Cliente.DataNasc,
+                    cliente_dataCadastro = novoCliente.Cliente.DataCad,
                     cliente_nrDocto = novoCliente.Cliente.NrDocto ?? string.Empty,
                     cliente_empregador = novoCliente.Cliente.Empregador ?? "",
                     cliente_matriculaBeneficio = novoCliente.Cliente.MatriculaBeneficio ?? "",
@@ -174,6 +175,12 @@ namespace AASPA.Domain.Service
                     cliente_estado_civil = novoCliente.Cliente.EstadoCivil,
                     cliente_sexo = novoCliente.Cliente.Sexo
                 };
+
+                if (novoCliente.Cliente.DataCad != default(DateTime))
+                {
+                    cliente.cliente_dataCadastro = novoCliente.Cliente.DataCad;
+                }
+
                 _mysql.clientes.Add(cliente);
                 _mysql.SaveChanges();
 
@@ -395,7 +402,10 @@ namespace AASPA.Domain.Service
                                 Localidade = item.Cidade,
                                 Uf = item.Uf,
                                 Complemento = item.Complemento,
-                                Numero = item.EndNumero
+                                Numero = item.EndNumero,
+                                DataCad = item.DataCadastro,
+                                DataNasc = item.DataNascimento,
+                                MatriculaBeneficio = item.Matricula                                
                             };
 
                             var clientes = new ClienteRequest()
