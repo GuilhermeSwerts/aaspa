@@ -357,19 +357,11 @@ namespace AASPA.Domain.Service
 
             using (var workbook = new XLWorkbook())
             {
-                var worksheet = workbook.Worksheets.Add("Relatório Averbacao");
+                var worksheet = workbook.Worksheets.Add("Relatório Carteira");
 
                 int lastRow = 15 + dados.Relatorio.Count;
 
-                //DateTime data = DateTime.ParseExact(anomes, "yyyyMM", System.Globalization.CultureInfo.InvariantCulture);
-                //string dataFormatada = data.ToString("dd/MM/yyyy");
-
-                //foreach(var item in dados.Relatorio)
-                //{
-                //    var inadimplente = item.DataPagamento.Value.ToString() < dataFormatada;
-                //}
-
-                var title = worksheet.Range("A1:G4");
+                var title = worksheet.Range("A1:I4");
                 title.Merge();
                 title.Value = "EXTRATO DE RETORNO DATA PREV";
                 title.Style.Font.Bold = true;
@@ -385,7 +377,7 @@ namespace AASPA.Domain.Service
                                 .WithSize((int)(8.16 * 28.3465), (int)(2.83 * 28.3465));
                 }
 
-                worksheet.Range("A5:G5").Merge();
+                worksheet.Range("A5:I5").Merge();
                 worksheet.Cell("A5").Value = "Resumo de Produção";
                 worksheet.Cell("A5").Style.Fill.BackgroundColor = XLColor.FromArgb(221, 235, 247);
                 worksheet.Cell("A5").Style.Font.Bold = true;
@@ -396,28 +388,30 @@ namespace AASPA.Domain.Service
                 rangeA6C13.Style.Border.RightBorder = XLBorderStyleValues.None;
                 rangeA6C13.Style.Border.TopBorder = XLBorderStyleValues.None;
                 rangeA6C13.Style.Border.BottomBorder = XLBorderStyleValues.None;
+                var rangeAC = worksheet.Range("C13:C13");
+                rangeAC.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
                 worksheet.Cell("A6").Value = "COMPETENCIA:";
                 worksheet.Cell("B6").Value = long.TryParse(dados.Detalhes.Competencia, out var detalhes) ? detalhes : 0;
                 worksheet.Cell("A7").Value = "CORRETORA:";
                 worksheet.Cell("B7").Value = captador.captador_nome;
-                worksheet.Cell("A8").Value = "Carteira:";
-                worksheet.Cell("B8").Value = "Qtde total";
-                worksheet.Cell("C8").Value = dados.Relatorio.Count;
-                worksheet.Cell("B9").Value = "Cancelados";
-                worksheet.Cell("C9").Value = dados.Relatorio.Count(x=> x.Status == "Excluido");
-                worksheet.Cell("B10").Value = "Inadimplentes";
-                worksheet.Cell("C10").Value = dados.Relatorio.Count(x => x.Status == "Sem desconto");
-                worksheet.Cell("B11").Value = "Em dia";
-                worksheet.Cell("C11").Value = dados.Relatorio.Count(x => x.Status == "Pago");
+                worksheet.Cell("A9").Value = "Carteira:";
+                worksheet.Cell("B9").Value = "Qtde total";
+                worksheet.Cell("C9").Value = dados.Relatorio.Count;
+                worksheet.Cell("B10").Value = "Cancelados";
+                worksheet.Cell("C10").Value = dados.Relatorio.Count(x=> x.Status == "Excluido");
+                worksheet.Cell("B11").Value = "Inadimplentes";
+                worksheet.Cell("C11").Value = dados.Relatorio.Count(x => x.Status == "Sem desconto");
+                worksheet.Cell("B12").Value = "Em dia";
+                worksheet.Cell("C12").Value = dados.Relatorio.Count(x => x.Status == "Pago");
 
-                var rangeD6G13 = worksheet.Range("D6:G13");
+                var rangeD6G13 = worksheet.Range("D6:I13");
                 rangeD6G13.Style.Border.LeftBorder = XLBorderStyleValues.None;
                 rangeD6G13.Style.Border.RightBorder = XLBorderStyleValues.None;
                 rangeD6G13.Style.Border.TopBorder = XLBorderStyleValues.None;
                 rangeD6G13.Style.Border.BottomBorder = XLBorderStyleValues.None;
-                var rangeF6G13 = worksheet.Range("F6:G13");
-                rangeF6G13.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                rangeA6C13.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                rangeA6C13.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
 
                 worksheet.Cell("D6").Value = "Motivos não averbados";
                 worksheet.Cell("D7").Value = "002 - Espécie incompatível";
@@ -428,46 +422,46 @@ namespace AASPA.Domain.Service
                 worksheet.Cell("D12").Value = "012 - Benefício bloqueado para desconto";
                 worksheet.Cell("D13").Value = "Total Não averbado";
 
-                worksheet.Cell("F7").Value = 0;
-                worksheet.Cell("G7").Value = $"{0}%";
-                worksheet.Cell("F8").Value = 0;
-                worksheet.Cell("G8").Value = $"{0}%";
-                worksheet.Cell("F9").Value = 0;
-                worksheet.Cell("G9").Value = $"{0}%";
-                worksheet.Cell("F10").Value = 0;
-                worksheet.Cell("G10").Value = $"{0}%";
-                worksheet.Cell("F11").Value = 0;
-                worksheet.Cell("G11").Value = $"{0}%";
-                worksheet.Cell("F12").Value = 0;
-                worksheet.Cell("G12").Value = $"{0}%";
-                worksheet.Cell("F13").Value = 0;
-                worksheet.Cell("G13").Value = $"{0}%";
+                worksheet.Cell("G7").Value = 0;
+                worksheet.Cell("H7").Value = $"{0}%";
+                worksheet.Cell("G7").Value = 0;
+                worksheet.Cell("H8").Value = $"{0}%";
+                worksheet.Cell("G9").Value = 0;
+                worksheet.Cell("H9").Value = $"{0}%";
+                worksheet.Cell("G10").Value = 0;
+                worksheet.Cell("H10").Value = $"{0}%";
+                worksheet.Cell("G11").Value = 0;
+                worksheet.Cell("H11").Value = $"{0}%";
+                worksheet.Cell("G12").Value = 0;
+                worksheet.Cell("GH12").Value = $"{0}%";
+                worksheet.Cell("G13").Value = 0;
+                worksheet.Cell("H13").Value = $"{0}%";
 
                 if (dados.MotivosNaoAverbada != null && dados.MotivosNaoAverbada.Count > 0)
                 {
                     foreach (var item in dados.MotivosNaoAverbada)
                     {
-                        worksheet.Cell("F6").Value = "Total não averbados";
-                        worksheet.Cell("G6").Value = "%";
-                        worksheet.Cell("F7").Value = item.CodigoErro == "2".PadLeft(3, '0') ? item.TotalPorCodigoErro : 0; ;
-                        worksheet.Cell("G7").Value = item.CodigoErro == "2".PadLeft(3, '0') ? $"{item.TotalPorcentagem}&" : $"{0}%";
-                        worksheet.Cell("F8").Value = item.CodigoErro == "4".PadLeft(3, '0') ? item.TotalPorCodigoErro : 0; ;
-                        worksheet.Cell("G8").Value = item.CodigoErro == "4".PadLeft(3, '0') ? $"{item.TotalPorcentagem}%" : $"{0}%";
-                        worksheet.Cell("F9").Value = item.CodigoErro == "5".PadLeft(3, '0') ? item.TotalPorCodigoErro : 0;
-                        worksheet.Cell("G9").Value = item.CodigoErro == "5".PadLeft(3, '0') ? $"{item.TotalPorcentagem}%" : $"{0}%";
+                        worksheet.Cell("G6").Value = "Total não averbados";
+                        worksheet.Cell("H6").Value = "%";
+                        worksheet.Cell("G7").Value = item.CodigoErro == "2".PadLeft(3, '0') ? item.TotalPorCodigoErro : 0; ;
+                        worksheet.Cell("H7").Value = item.CodigoErro == "2".PadLeft(3, '0') ? $"{item.TotalPorcentagem}&" : $"{0}%";
+                        worksheet.Cell("G8").Value = item.CodigoErro == "4".PadLeft(3, '0') ? item.TotalPorCodigoErro : 0; ;
+                        worksheet.Cell("H8").Value = item.CodigoErro == "4".PadLeft(3, '0') ? $"{item.TotalPorcentagem}%" : $"{0}%";
+                        worksheet.Cell("G9").Value = item.CodigoErro == "5".PadLeft(3, '0') ? item.TotalPorCodigoErro : 0;
+                        worksheet.Cell("H9").Value = item.CodigoErro == "5".PadLeft(3, '0') ? $"{item.TotalPorcentagem}%" : $"{0}%";
                         worksheet.Cell("G10").Value = item.CodigoErro == "6".PadLeft(3, '0') ? $"{item.TotalPorcentagem}%" : $"{0}%";
-                        worksheet.Cell("F10").Value = item.CodigoErro == "6".PadLeft(3, '0') ? item.TotalPorCodigoErro : 0;
+                        worksheet.Cell("H10").Value = item.CodigoErro == "6".PadLeft(3, '0') ? item.TotalPorCodigoErro : 0;
                         worksheet.Cell("G11").Value = item.CodigoErro == "8".PadLeft(3, '0') ? $"{item.TotalPorcentagem}%" : $"{0}";
-                        worksheet.Cell("F11").Value = item.CodigoErro == "8".PadLeft(3, '0') ? item.TotalPorCodigoErro : 0;
-                        worksheet.Cell("F12").Value = item.CodigoErro == "12".PadLeft(3, '0') ? $"{item.TotalPorCodigoErro}%" : $"{0}";
-                        worksheet.Cell("G12").Value = item.CodigoErro == "12".PadLeft(3, '0') ? $"{item.TotalPorcentagem}%" : $"{0}%";
+                        worksheet.Cell("H11").Value = item.CodigoErro == "8".PadLeft(3, '0') ? item.TotalPorCodigoErro : 0;
+                        worksheet.Cell("G12").Value = item.CodigoErro == "12".PadLeft(3, '0') ? $"{item.TotalPorCodigoErro}%" : $"{0}";
+                        worksheet.Cell("H12").Value = item.CodigoErro == "12".PadLeft(3, '0') ? $"{item.TotalPorcentagem}%" : $"{0}%";
                     }
                 }
                 worksheet.Cell("F13").Value = dados.MotivosNaoAverbada.Count;
                 worksheet.Cell("G13").Value = $"{dados.TaxaNaoAverbado}%";
 
                 worksheet.Cell("A14").Value = "Detalhe de Produção";
-                worksheet.Range("A14:G14").Merge();
+                worksheet.Range("A14:I14").Merge();
                 worksheet.Cell("A14").Style.Fill.BackgroundColor = XLColor.FromArgb(221, 235, 247);
                 worksheet.Cell("A14").Style.Font.Bold = true;
                 worksheet.Cell("A14").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
@@ -508,10 +502,12 @@ namespace AASPA.Domain.Service
                 worksheet.Column("A").Width = 18;
                 worksheet.Column("B").Width = 15;
                 worksheet.Column("C").Width = 40;
-                worksheet.Column("D").Width = 18;
-                worksheet.Column("E").Width = 18;
-                worksheet.Column("F").Width = 18;
-                worksheet.Column("G").Width = 38;
+                worksheet.Column("D").Width = 15;
+                worksheet.Column("E").Width = 15;
+                worksheet.Column("F").Width = 15;
+                worksheet.Column("G").Width = 15;
+                worksheet.Column("H").Width = 15;
+                worksheet.Column("I").Width = 25;
 
                 worksheet.PageSetup.PageOrientation = XLPageOrientation.Landscape;
                 worksheet.PageSetup.PrintAreas.Add("A1:I" + row);
