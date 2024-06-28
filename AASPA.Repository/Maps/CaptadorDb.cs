@@ -17,6 +17,6 @@ namespace AASPA.Repository.Maps
         public string? captador_descricao { get; set; }
         public bool captador_e_cnpj { get; set; }
         public bool captador_situacao { get; set; }
-        
+
     }
 }

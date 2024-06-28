@@ -5,11 +5,18 @@ using AASPA.Models.Requests;
 using AASPA.Models.Response;
 using AASPA.Repository;
 using AASPA.Repository.Maps;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json;
+using Paket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AASPA.Domain.Service
 {
@@ -17,6 +24,11 @@ namespace AASPA.Domain.Service
     {
         private readonly MysqlContexto _mysql;
         private readonly IHostEnvironment _env;
+        private static readonly HttpClient _httpClient = new HttpClient();
+        private string login = "AASPA";
+        private string senha = "l@znNL,Lkc9x";
+        private string captcha = "XD5V";
+        private string token = "LWGb8VjYsZZkmJfA9JK9tQ==:E1huR9Q8It+WFpAES+pLsA==:0urZEQiqBcMNEGchHF8Elg==";
 
         public ClienteService(MysqlContexto mysql, IHostEnvironment env)
         {
@@ -118,14 +130,23 @@ namespace AASPA.Domain.Service
             }
         }
 
-        public void NovoCliente(ClienteRequest novoCliente)
+        public void NovoCliente(ClienteRequest novoCliente, bool isList = false)
         {
             using var tran = _mysql.Database.BeginTransaction();
             try
             {
                 string cpf = novoCliente.Cliente.Cpf.Replace(".", "").Replace("-", "");
                 if (_mysql.clientes.Any(x => x.cliente_cpf == cpf))
-                    throw new ClienteException($"Cliente com o cpf: {cpf} já cadastrado.");
+                {
+                    if (!isList)
+                    {
+                        throw new ClienteException($"Cliente com o cpf: {cpf} já cadastrado.");
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
 
                 var cliente = new ClienteDb
                 {
@@ -197,6 +218,7 @@ namespace AASPA.Domain.Service
                 tran.Rollback();
                 throw new Exception("Houve um erro ao cadastrar um novo cliente.");
             }
+
         }
 
         private void VincularCaptadorCliente(CaptadorDb captador, ClienteDb cliente)
@@ -323,12 +345,200 @@ namespace AASPA.Domain.Service
             for (int i = 0; i < clientesData.Clientes.Count; i++)
             {
                 var cliente = clientesData.Clientes[i];
-                texto +=  $"{cliente.Cliente.cliente_id};{cliente.Cliente.cliente_cpf};{cliente.Cliente.cliente_nome};{cliente.Cliente.cliente_cep};{cliente.Cliente.cliente_logradouro};{cliente.Cliente.cliente_bairro};{cliente.Cliente.cliente_localidade};{cliente.Cliente.cliente_uf};{cliente.Cliente.cliente_numero};{cliente.Cliente.cliente_complemento};{cliente.Cliente.cliente_dataNasc};{cliente.Cliente.cliente_dataCadastro};{cliente.Cliente.cliente_nrDocto};{cliente.Cliente.cliente_empregador};{cliente.Cliente.cliente_matriculaBeneficio};{cliente.Cliente.cliente_nomeMae};{cliente.Cliente.cliente_nomePai};{cliente.Cliente.cliente_telefoneFixo};{cliente.Cliente.cliente_telefoneCelular};{cliente.Cliente.cliente_possuiWhatsapp};{cliente.Cliente.cliente_funcaoAASPA};{cliente.Cliente.cliente_email};{cliente.Cliente.cliente_situacao};{cliente.Cliente.cliente_estado_civil};{cliente.Cliente.cliente_sexo};{cliente.Cliente.cliente_remessa_id}";
+                texto += $"{cliente.Cliente.cliente_id};{cliente.Cliente.cliente_cpf};{cliente.Cliente.cliente_nome};{cliente.Cliente.cliente_cep};{cliente.Cliente.cliente_logradouro};{cliente.Cliente.cliente_bairro};{cliente.Cliente.cliente_localidade};{cliente.Cliente.cliente_uf};{cliente.Cliente.cliente_numero};{cliente.Cliente.cliente_complemento};{cliente.Cliente.cliente_dataNasc};{cliente.Cliente.cliente_dataCadastro};{cliente.Cliente.cliente_nrDocto};{cliente.Cliente.cliente_empregador};{cliente.Cliente.cliente_matriculaBeneficio};{cliente.Cliente.cliente_nomeMae};{cliente.Cliente.cliente_nomePai};{cliente.Cliente.cliente_telefoneFixo};{cliente.Cliente.cliente_telefoneCelular};{cliente.Cliente.cliente_possuiWhatsapp};{cliente.Cliente.cliente_funcaoAASPA};{cliente.Cliente.cliente_email};{cliente.Cliente.cliente_situacao};{cliente.Cliente.cliente_estado_civil};{cliente.Cliente.cliente_sexo};{cliente.Cliente.cliente_remessa_id}";
                 texto += "\n";
             }
 
             byte[] fileBytes = Encoding.Latin1.GetBytes(texto);
             return fileBytes;
+        }
+        public async Task<List<ClienteRequest>> GetClientesIntegraall(string DataCadastroInicio)
+        {
+            var clientesIntegral = new List<ClienteRequest>();
+            try
+            {
+                using (var client = new HttpClient() { Timeout = TimeSpan.FromMinutes(2) })
+                {
+                    string token = await GerarToken();
+
+                    var captadores = await GetCaptador(token);
+
+                    string requestUri = "https://integraall.com/api/Pessoa/ListarPessoasPorFiltro?DataCadastroInicio=" + DataCadastroInicio;
+                    var requestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
+                    requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
+                    var response = await client.SendAsync(requestMessage);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        client.Dispose();
+                        string responseBody = await response.Content.ReadAsStringAsync();
+                        var data = JsonConvert.DeserializeObject<List<ClienteIntegraallResponse>>(responseBody);
+
+                        foreach (var item in data)
+                        {
+                            var cliente = new NovoCliente()
+                            {
+                                Id = item.Id,
+                                Nome = item.NomeCliente,
+                                Cpf = item.Cpf,
+                                EstadoCivil = ConverterTextoParaInt(item.EstadoCivil),
+                                Sexo = item.Sexo.ToLower() == "masculino" ? 1 : 2,
+                                NrDocto = item.DocIdentidade,
+                                NomeMae = item.NomeMae,
+                                NomePai = item.NomePai,
+                                Email = item.EmailPessoal,
+                                TelefoneCelular = item.TelefonePessoal,
+                                TelefoneFixo = item.TelefoneCorporativo,
+                                Logradouro = item.Logradouro,
+                                Bairro = item.Bairro,
+                                Cep = item.Cep,
+                                Localidade = item.Cidade,
+                                Uf = item.Uf,
+                                Complemento = item.Complemento,
+                                Numero = item.EndNumero
+                            };
+
+                            var clientes = new ClienteRequest()
+                            {
+                                Cliente = cliente,
+                                Captador = ObterCaptador(item.RevendedorId, captadores)
+                            };
+                            clientesIntegral.Add(clientes);
+                        }
+                    }
+                }
+                return clientesIntegral;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+        private NovoCaptador ObterCaptador(int revendedorId, List<VinculoCaptadoRevendedor> captadores)
+        {
+            var vinculo = captadores.FirstOrDefault(x => x.RevendedorId == revendedorId);
+
+            if (vinculo != null)
+            {
+                return new NovoCaptador()
+                {
+                    CpfOuCnpj = vinculo.captador.captador_cpf_cnpj,
+                    Descricao = vinculo.captador.captador_descricao,
+                    Nome = vinculo.captador.captador_nome
+                };
+            }
+            else
+            {
+                return new NovoCaptador();
+            }
+        }
+
+        public async Task<List<VinculoCaptadoRevendedor>> GetCaptador(string token)
+        {
+            VinculoCaptadoRevendedor revendedor = new VinculoCaptadoRevendedor();
+            try
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                var requestUricaptador = "https://integraall.com/api/Revendedor/ListarRevendedores";
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, requestUricaptador);
+                requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
+                requestMessage.Content = new StringContent("", Encoding.UTF8, "application/json");
+
+                var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+
+                var response = await _httpClient.SendAsync(requestMessage, cts.Token);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseString = await response.Content.ReadAsStringAsync();
+                    var data = JsonConvert.DeserializeObject<RevendedorResponse>(responseString);
+
+                    var cap = new List<VinculoCaptadoRevendedor>();
+                    foreach (var c in data.Resultado)
+                    {
+                        var captador = new CaptadorDb()
+                        {
+                            captador_cpf_cnpj = c.CpfCnpj,
+                            captador_descricao = c.Nome,
+                            captador_nome = c.Nome,
+                        };
+                        revendedor = new VinculoCaptadoRevendedor()
+                        {
+                            captador = captador,
+                            RevendedorId = c.Id,
+                        };
+                        cap.Add(revendedor);
+                    }
+                    return cap;
+                }
+                else
+                {
+                    throw new Exception($"Erro na requisição: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Erro ao obter captadores: {ex.Message}");
+            }
+        }
+        public void SalvarNovoCliente(List<ClienteRequest> clientes)
+        {
+            foreach (var cli in clientes)
+            {
+                NovoCliente(cli, true);
+            }
+        }
+        private async Task<string> GerarToken()
+        {
+            try
+            {
+                var requestUriLogin = "https://integraall.com/api/Login/validar";
+                var loginRequest = new
+                {
+                    login,
+                    senha,
+                    captcha,
+                    token
+                };
+
+                var json = JsonConvert.SerializeObject(loginRequest);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync(requestUriLogin, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseString = await response.Content.ReadAsStringAsync();
+                    var responseObject = JsonConvert.DeserializeObject<dynamic>(responseString);
+                    return responseObject.token;
+                }
+                return "";
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao tentar gerar token.", ex);
+            }
+        }
+
+        public int ConverterTextoParaInt(string estadoCivilTexto)
+        {
+            switch (estadoCivilTexto.ToLower()) // Converter para minúsculas para comparar sem diferenciação de maiúsculas/minúsculas
+            {
+                case "solteiro":
+                    return 1;
+                case "casado":
+                    return 2;
+                case "viúvo":
+                    return 3;
+                case "separado judicialmente":
+                    return 4;
+                case "união estável":
+                    return 5;
+                case "outros":
+                    return 6;
+                default:
+                    throw new ArgumentException("Estado civil não reconhecido.");
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ using AASPA.Models.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Threading.Tasks;
 
 namespace AASPA.Host.Controllers
 {
@@ -36,10 +37,12 @@ namespace AASPA.Host.Controllers
 
         [HttpGet]
         [Route("/BuscarTodosClientes")]
-        public ActionResult Get([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual)
+        public async Task<ActionResult> Get([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual)
         {
             try
             {
+                 var clientes = await _service.GetClientesIntegraall("2024/06/01");
+                _service.SalvarNovoCliente(clientes);
                 var (Clientes, QtdPaginas, TotalClientes) = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd, paginaAtual);
                 return Ok(new
                 {
@@ -49,6 +52,21 @@ namespace AASPA.Host.Controllers
                 });
             }
             catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpGet]
+        [Route("/GetClientesIntegraall")]
+        public ActionResult GetClientesIntegraall([FromQuery] string DataCadastroInicio)
+        {
+            try
+            {
+                _service.GetClientesIntegraall(DataCadastroInicio);
+
+                return Ok();
+            }
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -65,7 +83,7 @@ namespace AASPA.Host.Controllers
         {
             try
             {
-                _service.NovoCliente(request);
+                _service.NovoCliente(request, false);
                 return Ok();
             }
             catch (System.Exception ex)
@@ -104,7 +122,6 @@ namespace AASPA.Host.Controllers
                 return BadRequest(ex.Message);
             }
         }
-
         #endregion
 
     }

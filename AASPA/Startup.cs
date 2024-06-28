@@ -38,7 +38,10 @@ namespace AASPA
                 .EnableSensitiveDataLogging());
 
             services.AddCors(x=> x.AddDefaultPolicy(c=> c.AllowAnyMethod().AllowAnyOrigin().AllowAnyHeader()));
-
+            services.AddHttpClient<ClienteService>(client =>
+            {
+                client.BaseAddress = new Uri("https://integraall.com/api/");
+            });
             services.AddControllersWithViews(options =>
             {
                 options.Filters.Add(typeof(UnauthorizedMiddleware));
