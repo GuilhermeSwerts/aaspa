@@ -20,6 +20,7 @@ import Retorno from '../views/Gerenciamento/Retorno/Retorno'
 import RepasseFinanceiro from '../views/Gerenciamento/RepasseFinanceiro/RepasseFinanceiro'
 import Relatorio from '../views/Gerenciamento/Relatorio/Relatorio';
 import Captador from '../views/Gerenciamento/Captador/index';
+import RelatorioCarteira from '../views/Gerenciamento/RepasseCarteira/RelatorioCarteira';
 
 export default _ => {
     return (
@@ -38,6 +39,7 @@ export default _ => {
             <Route exact path='/gcaptador' component={Captador} />
             <Route exact path='/rrelatorio' component={Relatorio} />
             <Route exact path='/rrepassefinanceiro' component={RepasseFinanceiro} />
+            <Route exact path='/relatoriocarteira' component={RelatorioCarteira} />
             <Route exact path='/rretorno' component={Retorno} />
             <Route exact path='/rremessa' component={Remessa} />
             <Route exact path='/gorigem' component={Origem} />

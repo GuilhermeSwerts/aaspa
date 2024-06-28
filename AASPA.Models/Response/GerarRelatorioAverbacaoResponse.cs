@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace AASPA.Models.Response
 {
-    public class GerarRelatorioAverbacaoResponse
+    public class GerarRelatoriResponse
     {
         public List<RelatorioAverbacaoResponse> Relatorio { get; set; }
         public ResumoAverbacaoResponse Resumo { get; set; }

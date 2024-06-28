@@ -29,73 +29,70 @@ namespace AASPA.Domain.Service
             _mysql = mysql;
             _env = env;
         }
-        public GerarRelatorioAverbacaoResponse GerarRelatorioAverbacao(string anomes)
+
+        public GerarRelatoriResponse GerarRelatorioAverbacao(string anomes, int captadorId)
         {
             try
             {
+                var captador = _mysql.captadores.First(x => x.captador_id == captadorId);
+
                 var corporelatorio = (from c in _mysql.clientes
-                                      join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
-                                      join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
-                                      join cr in _mysql.codigo_retorno on new { CodigoErro = r.Motivo_Rejeicao.ToString().PadLeft(3, '0'), CodigoOperacao = r.Codigo_Operacao } equals new { CodigoErro = cr.CodigoErro, CodigoOperacao = cr.CodigoOperacao }
-                                      join p in _mysql.pagamentos on c.cliente_id equals p.pagamento_cliente_id into pg
-                                      from p in pg.DefaultIfEmpty()
-                                      where rr.AnoMes == anomes
-                                      group new { c, r, cr, p } by new
-                                      {
-                                          c.cliente_matriculaBeneficio,
-                                          c.cliente_cpf,
-                                          c.cliente_nome,
-                                          r.Data_Inicio_Desconto,
-                                          r.Valor_Desconto,
-                                          r.Codigo_Resultado,
-                                          cr.DescricaoErro,
-                                          p.pagamento_dt_pagamento
-                                      } into g
-                                      orderby g.Count(x => x.p != null) descending,
-                                              g.Key.pagamento_dt_pagamento
-                                      select new RelatorioAverbacaoResponse
-                                      {
-                                          CodExterno = g.Key.cliente_matriculaBeneficio,
-                                          ClienteCpf = g.Key.cliente_cpf,
-                                          ClienteNome = g.Key.cliente_nome,
-                                          DataInicioDesconto = g.Key.Data_Inicio_Desconto,
-                                          ValorDesconto = g.Key.Valor_Desconto,
-                                          CodigoResultado = g.Key.Codigo_Resultado,
-                                          DescricaoErro = g.Key.DescricaoErro,
-                                          QuantidadeParcelas = g.Count(x => x.p != null),
-                                          DataPagamento = g.Key.pagamento_dt_pagamento
-                                      }).ToList();
+                             join vin in _mysql.vinculo_cliente_captador on c.cliente_id equals vin.vinculo_cliente_id
+                             join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
+                             join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
+                             join cr in _mysql.codigo_retorno on
+                                        new { CodigoErro = r.Motivo_Rejeicao.ToString().PadLeft(3, '0'), CodigoOperacao = r.Codigo_Operacao }
+                                 equals new { CodigoErro = cr.CodigoErro, CodigoOperacao = cr.CodigoOperacao }
+                             join rrf in _mysql.registro_retorno_financeiro on c.cliente_matriculaBeneficio equals rrf.numero_beneficio into rrfGroup
+                             from rrf in rrfGroup.DefaultIfEmpty()
+                             join p in _mysql.pagamentos on c.cliente_id equals p.pagamento_cliente_id into pGroup
+                             from p in pGroup.DefaultIfEmpty()
+                             where rr.AnoMes == anomes && vin.vinculo_captador_id == captadorId
+                             group new { c, r, cr, p, rrf } by new
+                             {
+                                 c.cliente_remessa_id,
+                                 c.cliente_matriculaBeneficio,
+                                 c.cliente_cpf,
+                                 c.cliente_nome,
+                                 r.Data_Inicio_Desconto,
+                                 r.Valor_Desconto,
+                                 r.Codigo_Resultado,
+                                 cr.DescricaoErro,
+                                 rrf.id,
+                                 r.Codigo_Operacao
+                             } into g
+                             orderby g.Count(x => x.p != null) descending,
+                                     g.Max(x => x.p.pagamento_dt_pagamento)
+                             select new RelatorioAverbacaoResponse
+                             {
+                                 RemessaId = g.Key.cliente_remessa_id,
+                                 CodExterno = g.Key.cliente_matriculaBeneficio,
+                                 ClienteCpf = g.Key.cliente_cpf,
+                                 ClienteNome = g.Key.cliente_nome,
+                                 DataInicioDesconto = g.Key.Data_Inicio_Desconto,
+                                 ValorDesconto = g.Key.Valor_Desconto,
+                                 CodigoResultado = g.Key.Codigo_Resultado,
+                                 CodigoOperacao = g.Key.Codigo_Operacao,
+                                 DescricaoErro = g.Key.DescricaoErro,
+                                 QuantidadeParcelas = g.Count(x => x.p != null),
+                                 DataPagamento = g.Max(x => x.p.pagamento_dt_pagamento),
+                                 Status = g.Key.Codigo_Operacao == 5 && g.Key.Codigo_Resultado == 1 ? "Excluido"
+                                          : g.Key.id != null && g.Key.Codigo_Resultado == 1 ? "Pago"
+                                          : g.Key.id == null && g.Key.Codigo_Resultado > 1 ? "Sem desconto"
+                                          : "Erro automático"
+                             }
+                            ).Distinct().ToList();
 
-                var totalRemessa = (from r in _mysql.retornos_remessa
-                                    join rr in _mysql.registros_retorno_remessa on r.Retorno_Id equals rr.Retorno_Remessa_Id
-                                    where r.AnoMes == anomes
-                                    select r).Count();
+                var totalRemessa = corporelatorio.Count;
+                var totalNaoAverbada = corporelatorio.Count(x => x.CodigoResultado == 2 || x.CodigoResultado == 0);
+                var totalAverbada = corporelatorio.Count(x => x.CodigoResultado == 1);
 
-                var totalNaoAverbada = (from c in _mysql.clientes
-                                        join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
-                                        join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
-                                        join cr in _mysql.codigo_retorno
-                                          on new { CodigoErro = r.Motivo_Rejeicao.ToString().PadLeft(3, '0'), CodigoOperacao = r.Codigo_Operacao }
-                                          equals new { CodigoErro = cr.CodigoErro, CodigoOperacao = cr.CodigoOperacao }
-                                        where rr.AnoMes == anomes && r.Codigo_Resultado == 2
-                                        select r).Count();
-
-                var totalAverbada = (from c in _mysql.clientes
-                                     join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
-                                     join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
-                                     join cr in _mysql.codigo_retorno
-                                          on new { CodigoErro = r.Motivo_Rejeicao.ToString().PadLeft(3, '0'), CodigoOperacao = r.Codigo_Operacao }
-                                          equals new { CodigoErro = cr.CodigoErro, CodigoOperacao = cr.CodigoOperacao }
-                                     where rr.AnoMes == anomes && r.Codigo_Resultado == 1
-                                     select r).Count();
-
-                var motivoNaoAverbada = (from c in _mysql.clientes
-                                         join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
-                                         join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
+                var motivoNaoAverbada = (from c in corporelatorio
+                                         join r in _mysql.registros_retorno_remessa on c.CodExterno equals r.Numero_Beneficio
                                          join cr in _mysql.codigo_retorno
                                           on new { CodigoErro = r.Motivo_Rejeicao.ToString().PadLeft(3, '0'), CodigoOperacao = r.Codigo_Operacao }
                                           equals new { CodigoErro = cr.CodigoErro, CodigoOperacao = cr.CodigoOperacao }
-                                         where rr.AnoMes == anomes && r.Codigo_Resultado == 2
+                                         where r.Codigo_Resultado == 2
                                          group cr by new { cr.CodigoErro, cr.DescricaoErro } into g
                                          select new MotivoNaoAverbacaoResponse
                                          {
@@ -104,14 +101,7 @@ namespace AASPA.Domain.Service
                                              DescricaoErro = g.Key.DescricaoErro
                                          }).ToList();
 
-                var numeroRemessa = (from c in _mysql.clientes
-                                     join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
-                                     join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
-                                     join cr in _mysql.codigo_retorno
-                                          on new { CodigoErro = r.Motivo_Rejeicao.ToString().PadLeft(3, '0'), CodigoOperacao = r.Codigo_Operacao }
-                                          equals new { CodigoErro = cr.CodigoErro, CodigoOperacao = cr.CodigoOperacao }
-                                     where rr.AnoMes == anomes
-                                     select r.Retorno_Remessa_Id).FirstOrDefault();
+                var numeroRemessa = corporelatorio.Count > 0 ? corporelatorio.FirstOrDefault().RemessaId : 0;
 
                 var taxaaverbacao = 0;
                 if (totalAverbada != 0 && totalRemessa != 0)
@@ -123,11 +113,10 @@ namespace AASPA.Domain.Service
                 {
                     Competencia = $"{anomes.Substring(0, 4)}{anomes.Substring(4, 2)}",
                     Averbados = totalAverbada,
-                    Corretora = "Confia",
+                    Corretora = captador.captador_nome,
                     Remessa = numeroRemessa,
                     TaxaAverbacao = taxaaverbacao,
                 };
-                
 
                 var resumoAverbacao = new ResumoAverbacaoResponse
                 {
@@ -146,10 +135,10 @@ namespace AASPA.Domain.Service
                     if (resumoAverbacao.TotalNaoAverbada != 0)
                     {
                         item.TotalPorcentagem = (item.TotalPorCodigoErro * 100) / resumoAverbacao.TotalNaoAverbada;
-                    }                    
+                    }
                 }
 
-                var resultado = new GerarRelatorioAverbacaoResponse
+                var resultado = new GerarRelatoriResponse
                 {
                     Detalhes = detalhes,
                     TaxaNaoAverbado = taxanaoaverbacao,
@@ -165,13 +154,18 @@ namespace AASPA.Domain.Service
                 throw;
             }
         }
-        public void GerarArquivoRelatorioAverbacao(string anomes)
+        public void GerarArquivoRelatorioAverbacao(string anomes, int captadorId)
         {
+            var captador = _mysql.captadores.First(x => x.captador_id == captadorId);
+
             string diretorioBase = _env.ContentRootPath;
             string caminhoArquivoSaida = Path.Combine(diretorioBase, "Relatorio", $"RelAverbacao.{anomes}.xlsx");
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Relatorio")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Relatorio"))); }
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Imagens")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Imagens"))); }
-            var dados = GerarRelatorioAverbacao(anomes);
+            var dados = GerarRelatorioAverbacao(anomes, captadorId);
+
+            if (File.Exists(caminhoArquivoSaida))
+                File.Delete(caminhoArquivoSaida);
 
             using (var workbook = new XLWorkbook())
             {
@@ -208,15 +202,15 @@ namespace AASPA.Domain.Service
                 rangeA6C13.Style.Border.BottomBorder = XLBorderStyleValues.None;
 
                 worksheet.Cell("A6").Value = "COMPETENCIA:";
-                worksheet.Cell("B6").Value = long.TryParse(dados.Detalhes.Competencia, out var detalhes)? detalhes : 0;
+                worksheet.Cell("B6").Value = long.TryParse(dados.Detalhes.Competencia, out var detalhes) ? detalhes : 0;
                 worksheet.Cell("A7").Value = "CORRETORA:";
-                worksheet.Cell("B7").Value = "Confia";
+                worksheet.Cell("B7").Value = captador.captador_nome;
                 worksheet.Cell("A8").Value = "Remessa:";
                 worksheet.Cell("B8").Value = dados.Resumo.TotalRemessa;
                 worksheet.Cell("A9").Value = "Averbados:";
                 worksheet.Cell("B9").Value = dados.Detalhes.Averbados;
                 worksheet.Cell("A10").Value = "Taxa de Averbação:";
-                worksheet.Cell("B10").Value = $"{dados.Detalhes.TaxaAverbacao}%"; 
+                worksheet.Cell("B10").Value = $"{dados.Detalhes.TaxaAverbacao}%";
 
                 var rangeD6G13 = worksheet.Range("D6:G13");
                 rangeD6G13.Style.Border.LeftBorder = XLBorderStyleValues.None;
@@ -290,11 +284,11 @@ namespace AASPA.Domain.Service
                 int row = 16;
                 foreach (var item in dados.Relatorio)
                 {
-                    worksheet.Cell(row, 1).Value = long.TryParse(item.CodExterno, out long codexterno)? codexterno : item.CodExterno;
-                    worksheet.Cell(row, 2).Value = long.TryParse(item.ClienteCpf, out long cpfNumber)? cpfNumber : item.ClienteCpf;
+                    worksheet.Cell(row, 1).Value = long.TryParse(item.CodExterno, out long codexterno) ? codexterno : item.CodExterno;
+                    worksheet.Cell(row, 2).Value = long.TryParse(item.ClienteCpf, out long cpfNumber) ? cpfNumber : item.ClienteCpf;
                     worksheet.Cell(row, 3).Value = item.ClienteNome;
                     worksheet.Cell(row, 4).Value = item.DataInicioDesconto;
-                    worksheet.Cell(row, 5).Value = decimal.TryParse(item.ValorDesconto.ToString("C"), out decimal valordesconto)? valordesconto : item.ValorDesconto;
+                    worksheet.Cell(row, 5).Value = decimal.TryParse(item.ValorDesconto.ToString("C"), out decimal valordesconto) ? valordesconto : item.ValorDesconto;
                     worksheet.Cell(row, 6).Value = item.CodigoResultado == 1 ? "Averbado" : "Não Averbado";
                     worksheet.Cell(row, 7).Value = item.DescricaoErro;
                     row++;
@@ -337,7 +331,7 @@ namespace AASPA.Domain.Service
             else
             {
                 path = todosLogs.FirstOrDefault(arquivo => Path.GetFileName(arquivo).Contains($"RelCarteira.{anomes}.xlsx"));
-            }         
+            }
 
             if (!File.Exists(path)) throw new Exception("Arquivo não encontrado");
 
@@ -348,13 +342,18 @@ namespace AASPA.Domain.Service
             };
 
         }
-        public void GerarArquivoRelatorioCarteiras(string anomes)
+        public void GerarArquivoRelatorioCarteiras(string anomes, int captadorId)
         {
+            var captador = _mysql.captadores.First(x => x.captador_id == captadorId);
+
             string diretorioBase = _env.ContentRootPath;
             string caminhoArquivoSaida = Path.Combine(diretorioBase, "Relatorio", $"RelCarteira.{anomes}.xlsx");
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Relatorio")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Relatorio"))); }
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Imagens")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Imagens"))); }
-            var dados = GerarRelatorioAverbacao(anomes);
+            var dados = GerarRelatorioAverbacao(anomes, captadorId);
+
+            if (File.Exists(caminhoArquivoSaida))
+                File.Delete(caminhoArquivoSaida);
 
             using (var workbook = new XLWorkbook())
             {
@@ -401,14 +400,16 @@ namespace AASPA.Domain.Service
                 worksheet.Cell("A6").Value = "COMPETENCIA:";
                 worksheet.Cell("B6").Value = long.TryParse(dados.Detalhes.Competencia, out var detalhes) ? detalhes : 0;
                 worksheet.Cell("A7").Value = "CORRETORA:";
-                worksheet.Cell("B7").Value = "Confia";
+                worksheet.Cell("B7").Value = captador.captador_nome;
                 worksheet.Cell("A8").Value = "Carteira:";
                 worksheet.Cell("B8").Value = "Qtde total";
                 worksheet.Cell("C8").Value = dados.Relatorio.Count;
                 worksheet.Cell("B9").Value = "Cancelados";
+                worksheet.Cell("C9").Value = dados.Relatorio.Count(x=> x.Status == "Excluido");
                 worksheet.Cell("B10").Value = "Inadimplentes";
-                worksheet.Cell("C10").Value = "";
-                worksheet.Cell("B10").Value = "Em dia";
+                worksheet.Cell("C10").Value = dados.Relatorio.Count(x => x.Status == "Sem desconto");
+                worksheet.Cell("B11").Value = "Em dia";
+                worksheet.Cell("C11").Value = dados.Relatorio.Count(x => x.Status == "Pago");
 
                 var rangeD6G13 = worksheet.Range("D6:G13");
                 rangeD6G13.Style.Border.LeftBorder = XLBorderStyleValues.None;
@@ -491,15 +492,15 @@ namespace AASPA.Domain.Service
                     worksheet.Cell(row, 5).Value = decimal.TryParse(item.ValorDesconto.ToString("C"), out decimal valordesconto) ? valordesconto : item.ValorDesconto;
                     worksheet.Cell(row, 6).Value = item.QuantidadeParcelas;
                     worksheet.Cell(row, 7).Value = item.DataPagamento;
-                    worksheet.Cell(row, 8).Value = "";
+                    worksheet.Cell(row, 8).Value = item.Status;
                     worksheet.Cell(row, 9).Value = item.DescricaoErro;
                     row++;
                 }
 
-                var range = worksheet.Range("A15:G" + row);
+                var range = worksheet.Range("A15:I" + row);
                 range.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-                var outlineRange = worksheet.Range("A1:G" + row);
+                var outlineRange = worksheet.Range("A1:I" + row);
                 outlineRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thick;
                 outlineRange.Style.Border.OutsideBorderColor = XLColor.Blue;
 
@@ -513,7 +514,7 @@ namespace AASPA.Domain.Service
                 worksheet.Column("G").Width = 38;
 
                 worksheet.PageSetup.PageOrientation = XLPageOrientation.Landscape;
-                worksheet.PageSetup.PrintAreas.Add("A1:G" + row);
+                worksheet.PageSetup.PrintAreas.Add("A1:I" + row);
                 worksheet.PageSetup.SetRowsToRepeatAtTop(1, 4);
 
                 workbook.SaveAs(caminhoArquivoSaida);

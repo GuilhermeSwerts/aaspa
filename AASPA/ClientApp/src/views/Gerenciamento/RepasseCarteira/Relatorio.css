@@ -1,0 +1,36 @@
+.resuto-title {
+    width: 100%;
+    text-align: center;
+    padding: 10px;
+    background: #333;
+    color: #fff;
+}
+
+.container-relatorio-center {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 20px;
+}
+
+.container-motivo-nao-verbados {
+    list-style: none;
+}
+
+.container-resumo {
+    padding: 25px;
+    background: #fff;
+    border-radius: 30px;
+    width: 80%;
+}
+
+.container-main-resumo
+{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
