@@ -37,12 +37,10 @@ namespace AASPA.Host.Controllers
 
         [HttpGet]
         [Route("/BuscarTodosClientes")]
-        public async Task<ActionResult> Get([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual)
+        public ActionResult Get([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual)
         {
             try
             {
-                 var clientes = await _service.GetClientesIntegraall("2024/06/01");
-                _service.SalvarNovoCliente(clientes);
                 var (Clientes, QtdPaginas, TotalClientes) = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd, paginaAtual);
                 return Ok(new
                 {
@@ -58,11 +56,12 @@ namespace AASPA.Host.Controllers
         }
         [HttpGet]
         [Route("/GetClientesIntegraall")]
-        public ActionResult GetClientesIntegraall([FromQuery] string DataCadastroInicio)
+        public async Task<ActionResult> GetClientesIntegraall([FromQuery] string DataCadastroInicio)
         {
             try
             {
-                _service.GetClientesIntegraall(DataCadastroInicio);
+                var clientes = await _service.GetClientesIntegraall(DataCadastroInicio);
+                _service.SalvarNovoCliente(clientes);
 
                 return Ok();
             }
