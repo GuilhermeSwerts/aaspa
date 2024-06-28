@@ -7,7 +7,7 @@ import { FaDownload } from 'react-icons/fa';
 import { api } from '../../../api/api';
 import moment from 'moment';
 import { Mascara } from '../../../util/mascara';
-import { Alert } from '../../../util/alertas';
+import { Alert, Info } from '../../../util/alertas';
 
 function RelatorioCarteira() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -61,6 +61,11 @@ function RelatorioCarteira() {
             setMotivosNaoAverbada(response.data.motivosNaoAverbada)
             setDetalhes(response.data.detalhes);
             setDetalheProducao(response.data.relatorio);
+
+            if (response.data.relatorio.length === 0) {
+                Info("Nenhum dado foi encontrado!");
+            }
+
         }, erro => {
             Alert('Houve um erro ao buscar o relatório.', false)
         })
@@ -100,7 +105,7 @@ function RelatorioCarteira() {
             // Create a link element
             let a = document.createElement("a");
             a.href = url;
-            a.download = nomeArquivo.endsWith(".xlsx") ? nomeArquivo : `RelatorioCarteiras.xlsx`;
+            a.download = `RelatorioCarteiras_${anoSelecionado}${mesSelecionado}.xlsx`;
 
             // Trigger the download
             a.click();
@@ -209,7 +214,6 @@ function ResumoProducao({ motivosNaoAverbada,
 
         return Object.values(obj);
     }
-    debugger;
     return (
         <div className="container-main-resumo">
             <div className="resuto-title">
@@ -226,11 +230,10 @@ function ResumoProducao({ motivosNaoAverbada,
                     <h4>CARTEIRA</h4>
                     <ul>
                         <li>Qtde total: {detalhes ? detalhes.length : 0}</li>
-                        <li>cancelados: 0</li>
-                        <li>Inadimplentes: 0</li>
-                        <li>Em dia: 0</li>
+                        <li>cancelados: {detalhes.filter(x => x.status == "Excluido").length}</li>
+                        <li>Inadimplentes: {detalhes.filter(x => x.status == "Sem desconto").length}</li>
+                        <li>Em dia: {detalhes.filter(x => x.status == "Pago").length}</li>
                     </ul>
-                    <p>Taxa de Averbação: {resumo.taxaAverbacao}%</p>
                 </div>
                 <div className="col-md-5 container-relatorio-center">
                     <h4>Motivos não averbados</h4>
@@ -274,6 +277,7 @@ function DetalheProducao({ detalhes, DownloadAverbacao }) {
                             <th>Parcela Atual</th>
                             <th>Data Pagamento</th>
                             <th>Status</th>
+                            <th>Motivo</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -286,7 +290,8 @@ function DetalheProducao({ detalhes, DownloadAverbacao }) {
                                 <td>R$ {detalhe.valorDesconto.toFixed(2)}</td>
                                 <td>{detalhe.quantidadeParcelas}</td>
                                 <td>{(Mascara.data(detalhe.dataPagamento)).split(' ')[0]}</td>
-                                <td>-</td>
+                                <td>{detalhe.status}</td>
+                                <td>{detalhe.descricaoErro}</td>
                             </tr>
                         ))}
                     </tbody>

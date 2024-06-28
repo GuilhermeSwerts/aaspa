@@ -7,7 +7,7 @@ import { FaDownload } from 'react-icons/fa';
 import { api } from '../../../api/api';
 import moment from 'moment';
 import { Mascara } from '../../../util/mascara';
-import { Alert } from '../../../util/alertas';
+import { Alert, Info } from '../../../util/alertas';
 
 function Relatorio() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -61,6 +61,9 @@ function Relatorio() {
             setMotivosNaoAverbada(response.data.motivosNaoAverbada)
             setDetalhes(response.data.detalhes);
             setDetalheProducao(response.data.relatorio);
+            if (response.data.relatorio.length === 0) {
+                Info("Nenhum dado foi encontrado!");
+            }
         }, erro => {
             Alert('Houve um erro ao buscar o relatório.', false)
         })

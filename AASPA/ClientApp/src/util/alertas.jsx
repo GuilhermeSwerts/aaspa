@@ -24,4 +24,14 @@ const Pergunta = (texto) => {
         });
     });
 };
-export { Alert, Pergunta };
+
+const Info = (texto) => {
+    Swal.fire({
+        title: "",
+        text: texto,
+        icon: "info"
+    });
+};
+
+
+export { Alert, Pergunta, Info };
