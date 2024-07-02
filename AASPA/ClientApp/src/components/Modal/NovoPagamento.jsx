@@ -51,7 +51,7 @@ function ModalNovoPagamento({ ClienteId, ClienteNome, BuscarPagamentos = null })
                 className='btn btn-success'
                 text={'Vincular Novo Pagamento'}
                 top={true}
-                textButton={<MdOutlineAttachMoney size={25} />}
+                textButton={<MdOutlineAttachMoney size={17} />}
             />
             <Modal isOpen={show}>
                 <form onSubmit={e => { e.preventDefault(); handdleSubmit() }}>

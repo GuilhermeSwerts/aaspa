@@ -130,7 +130,7 @@ namespace AASPA.Domain.Service
             }
         }
 
-        public void NovoCliente(ClienteRequest novoCliente, bool isList = false)
+        public void NovoCliente(ClienteRequest novoCliente, bool isList = false, bool cadastroExterno = false)
         {
             using var tran = _mysql.Database.BeginTransaction();
             try
@@ -173,7 +173,8 @@ namespace AASPA.Domain.Service
                     cliente_email = novoCliente.Cliente.Email ?? "",
                     cliente_situacao = true,
                     cliente_estado_civil = novoCliente.Cliente.EstadoCivil,
-                    cliente_sexo = novoCliente.Cliente.Sexo
+                    cliente_sexo = novoCliente.Cliente.Sexo,
+                    clientes_cadastro_externo = cadastroExterno
                 };
 
                 if (novoCliente.Cliente.DataCad != default(DateTime))
@@ -495,7 +496,7 @@ namespace AASPA.Domain.Service
         {
             foreach (var cli in clientes)
             {
-                NovoCliente(cli, true);
+                NovoCliente(cli, true,true);
             }
         }
         private async Task<string> GerarToken()

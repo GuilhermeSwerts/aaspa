@@ -72,7 +72,7 @@ function ModalEditarStatusAtual({ BuscarTodosClientes, ClienteId, StatusId }) {
                 className='btn btn-danger button-container-item'
                 text={'Editar Status'}
                 top={true}
-                textButton={<FiMoreHorizontal size={25} />}
+                textButton={<FiMoreHorizontal size={17} />}
             />
             <Modal isOpen={show}>
                 <ModalHeader>

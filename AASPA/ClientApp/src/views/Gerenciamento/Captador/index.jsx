@@ -70,7 +70,7 @@ function Captador() {
                         placeholder='Nome do beneficio' />
                 </div>
                 <div style={{ marginTop: '22px' }} className="col-md-2">
-                    <button className='btn btn-primary' onClick={() => AbrirModalCaptador(0, '', '', '', false)}><FaPlus size={25}></FaPlus></button>
+                    <button className='btn btn-primary' onClick={() => AbrirModalCaptador(0, '', '', '', false)}><FaPlus size={17}></FaPlus></button>
                 </div>
             </div>
             <hr />

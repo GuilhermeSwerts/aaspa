@@ -142,10 +142,10 @@ export default () => {
                     <input type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)} name="dateEnd" id="dateEnd" className='form-control' />
                 </div>
                 <div className="col-md-1" style={{ marginTop: '20px' }}>
-                    <button style={{ width: '100%' }} onClick={() => BuscarTodosClientes(statusCliente, statusRemessa, 1)} className='btn btn-primary'><FaSearch size={25} /></button>
+                    <button style={{ width: '100%' }} onClick={() => BuscarTodosClientes(statusCliente, statusRemessa, 1)} className='btn btn-primary'><FaSearch size={17} /></button>
                 </div>
                 <div className="col-md-2" style={{ marginTop: '20px' }}>
-                    <button style={{ width: '100%' }} onClick={DownloadClienteFiltro} className='btn btn-primary'>Extrair Clientes<FaDownload size={25} /></button>
+                    <button style={{ width: '100%' }} onClick={DownloadClienteFiltro} className='btn btn-primary'>Extrair Clientes<FaDownload size={17} /></button>
                 </div>
             </div>
             <span>Total Clientes: {totalClientes}</span>
@@ -190,7 +190,7 @@ export default () => {
                                             className='btn btn-success button-container-item'
                                             text={'Historico De Pagamentos'}
                                             top={true}
-                                            textButton={<TbZoomMoney size={25} />}
+                                            textButton={<TbZoomMoney size={17} />}
                                         />
                                         <ButtonTooltip
                                             backgroundColor={'#006600'}
@@ -198,7 +198,7 @@ export default () => {
                                             className='btn btn-success button-container-item'
                                             text={'Historico Contatos/Ocorrências'}
                                             top={true}
-                                            textButton={<RiChatHistoryLine size={25} />}
+                                            textButton={<RiChatHistoryLine size={17} />}
                                         />
                                         <ModalLogStatus ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />
                                         <ModalLogBeneficios ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />
@@ -209,7 +209,7 @@ export default () => {
                                             className='btn btn-warning button-container-item'
                                             text={'Editar Dados'}
                                             top={true}
-                                            textButton={<FaUserEdit color='#fff' size={25} />}
+                                            textButton={<FaUserEdit color='#fff' size={17} />}
                                         />
                                         <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />
                                     </td>}
@@ -220,7 +220,7 @@ export default () => {
                                         className='btn btn-warning button-container-item'
                                         text={'Editar Dados'}
                                         top={true}
-                                        textButton={<FaUserEdit color='#fff' size={25} />}
+                                        textButton={<FaUserEdit color='#fff' size={17} />}
                                     />
                                     <ModalVisualizarCliente Cliente={cliente.cliente} />
                                     <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />
@@ -232,7 +232,7 @@ export default () => {
                                         className='btn btn-warning'
                                         text={'Editar Dados'}
                                         top={true}
-                                        textButton={<FaUserEdit color='#fff' size={25} />}
+                                        textButton={<FaUserEdit color='#fff' size={17} />}
                                     />
                                     <ModalVisualizarCliente Cliente={cliente.cliente} />
                                     <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />

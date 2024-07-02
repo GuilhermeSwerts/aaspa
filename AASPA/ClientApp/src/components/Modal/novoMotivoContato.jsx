@@ -34,7 +34,7 @@ function ModalNovoMotivoDoContato({ BuscarMotivos }) {
                 className='btn btn-success'
                 text={'Adicionar Motivo Do Contato'}
                 top={true}
-                textButton={<FaPlus size={25} />}
+                textButton={<FaPlus size={17} />}
             />
             <Modal isOpen={show}>
                 <form onSubmit={e => { e.preventDefault(); handdleSubmit() }}>

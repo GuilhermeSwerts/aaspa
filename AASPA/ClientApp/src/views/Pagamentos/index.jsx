@@ -94,7 +94,7 @@ function Pagamentos() {
                     <input type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)} name="dateEnd" id="dateEnd" className='form-control' />
                 </div>
                 <div className="col-md-2" style={{ marginTop: '20px' }}>
-                    <button style={{ width: '100%' }} onClick={BuscarTodosClientes} className='btn btn-primary'>BUSCAR <FaSearch size={25} /></button>
+                    <button style={{ width: '100%' }} onClick={BuscarTodosClientes} className='btn btn-primary'>BUSCAR <FaSearch size={17} /></button>
                 </div>
             </div>
             <br />
@@ -124,7 +124,7 @@ function Pagamentos() {
                                             className='btn btn-danger'
                                             text={'Historico De Pagamentos'}
                                             top={true}
-                                            textButton={<TbZoomMoney size={25} />}
+                                            textButton={<TbZoomMoney size={17} />}
                                         />
                                         {cliente.statusAtual.status_id !== Enum.EStatus.Deletado && cliente.statusAtual.status_id !== Enum.EStatus.Inativo
                                             && <NovoPagamento ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />}
