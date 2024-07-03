@@ -246,7 +246,7 @@ namespace AASPA.Domain.Service
             }
         }
 
-        public (List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) BuscarTodosClientes(int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual)
+        public (List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) BuscarTodosClientes(int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual, int cadastroExterno = 0, string nome = "", string cpf = "")
         {
             statusCliente = statusCliente ?? 0;
             statusRemessa = statusRemessa ?? 0;
@@ -257,11 +257,24 @@ namespace AASPA.Domain.Service
                             where
                                    (dateInit == null || cli.cliente_dataCadastro >= dateInit)
                                 && (dateEnd == null || cli.cliente_dataCadastro < dateEnd.Value.AddDays(1))
+                                && (string.IsNullOrEmpty(nome) || cli.cliente_nome.ToUpper().Contains(nome))
+                                && (string.IsNullOrEmpty(cpf) || cli.cliente_cpf.ToUpper().Contains(cpf))
+                                 
                             select new BuscarClienteByIdResponse
                             {
                                 Captador = cpt,
                                 Cliente = cli,
                             }).ToList().Distinct().ToList();
+
+            if(cadastroExterno == 1)
+            {
+                clientes = clientes.Where(x => x.Cliente.clientes_cadastro_externo).ToList();
+            }
+
+            if (cadastroExterno == 2)
+            {
+                clientes = clientes.Where(x => !x.Cliente.clientes_cadastro_externo).ToList();
+            }
 
             if (statusCliente == 1)
             {

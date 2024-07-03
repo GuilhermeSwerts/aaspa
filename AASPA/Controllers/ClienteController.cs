@@ -5,6 +5,7 @@ using AASPA.Models.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AASPA.Host.Controllers
@@ -37,14 +38,14 @@ namespace AASPA.Host.Controllers
 
         [HttpGet]
         [Route("/BuscarTodosClientes")]
-        public ActionResult Get([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual)
+        public ActionResult Get([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual,int cadastroExterno = 0, string nome = "", string cpf = "")
         {
             try
             {
-                var (Clientes, QtdPaginas, TotalClientes) = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd, paginaAtual);
+                var (Clientes, QtdPaginas, TotalClientes) = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd, paginaAtual, cadastroExterno, nome, cpf);
                 return Ok(new
                 {
-                    Clientes,
+                    Clientes = Clientes.OrderByDescending(x=> x.Cliente.cliente_dataCadastro).ToList(),
                     QtdPaginas,
                     TotalClientes
                 });
@@ -54,6 +55,27 @@ namespace AASPA.Host.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpGet]
+        [Route("/BuscarFiltroClientes")]
+        public ActionResult BuscarFiltroClientes([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual,int cadastroExterno = 0, string nome = "", string cpf = "")
+        {
+            try
+            {
+                var (Clientes, QtdPaginas, TotalClientes) = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd, paginaAtual, cadastroExterno, nome, cpf);
+                return Ok(new
+                {
+                    Clientes = Clientes.OrderByDescending(x => x.Cliente.cliente_dataCadastro).ToList(),
+                    QtdPaginas,
+                    TotalClientes
+                });
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpGet]
         [Route("/GetClientesIntegraall")]
         public async Task<ActionResult> GetClientesIntegraall([FromQuery] string DataCadastroInicio,string DataCadastroFim)

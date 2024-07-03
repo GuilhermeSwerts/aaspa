@@ -13,8 +13,9 @@ import ModalLogBeneficios from '../../components/Modal/ModalLogBeneficios';
 import { TbZoomMoney } from 'react-icons/tb';
 import * as Enum from '../../util/enum';
 import ModalVisualizarCliente from '../../components/Modal/visualizarDadosCliente';
-import { Alert } from '../../util/alertas';
+import { Alert, Info } from '../../util/alertas';
 import ImportarCLientesIntegral from '../../components/Modal/importarClientesIntegral';
+import axios from 'axios';
 
 export default () => {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -49,6 +50,9 @@ export default () => {
     const [paginaAtual, setPaginaAtual] = useState(1);
     const [qtdPaginas, setQtdPaginas] = useState(0);
     const [totalClientes, setTotalClientes] = useState(0);
+    const [cadastroExterno, setcadastroExterno] = useState(0);
+    const [nome, setNome] = useState('');
+    const [cpf, setCpf] = useState('');
 
     const BuscarTodosClientes = (sCliente, sRemessa, pPagina) => {
         if (!pPagina) {
@@ -61,7 +65,7 @@ export default () => {
             sRemessa = statusRemessa;
         }
 
-        api.get(`BuscarTodosClientes?statusCliente=${sCliente}&statusRemessa=${sRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${pPagina}`, res => {
+        api.get(`BuscarTodosClientes?statusCliente=${sCliente}&statusRemessa=${sRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${pPagina}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}`, res => {
             setClientes([]);
             setClientesFiltro([]);
             setClientes(res.data.clientes);
@@ -80,16 +84,48 @@ export default () => {
 
     const onChangeFiltro = ({ target }) => {
         const { value } = target;
-        if (value && value != "" && filtroNome)
-            setClientesFiltro(clientes.filter(x => x.cliente.cliente_nome.toUpperCase().includes(value.toUpperCase())));
-        else if (value && value != "" && !filtroNome)
-            setClientesFiltro(clientes.filter(x => x.cliente.cliente_cpf.includes(value.replace('.', '').replace('.', '').replace('-', ''))));
-        else
-            setClientesFiltro(clientes);
+        // if (value && value != "" && filtroNome)
+        //     setClientesFiltro(clientes.filter(x => x.cliente.cliente_nome.toUpperCase().includes(value.toUpperCase())));
+        // else if (value && value != "" && !filtroNome)
+        //     setClientesFiltro(clientes.filter(x => x.cliente.cliente_cpf.includes(value.replace('.', '').replace('.', '').replace('-', ''))));
+        // else
+        //     setClientesFiltro(clientes);
+
+        if (filtroNome) {
+            setNome(value);
+        } else {
+            setCpf(value);
+        }
+
+        axios.get(`BuscarTodosClientes?statusCliente=${statusCliente}&statusRemessa=${statusRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${paginaAtual}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}`, {
+            baseURL: api.urlBase,
+            headers: {
+                "Authorization": `Bearer ${api.access_token ? api.access_token : ""}`
+            }
+        }).then(res => {
+            setClientes([]);
+            setClientesFiltro([]);
+            setClientes(res.data.clientes);
+            setClientesFiltro(res.data.clientes);
+            setQtdPaginas(res.data.qtdPaginas);
+            setTotalClientes(res.data.totalClientes);
+        }).catch(err => {
+            Alert("Houve um erro ao buscar clientes.", false)
+        })
+
     }
 
     const DownloadClienteFiltro = () => {
         window.open(api.urlBase + `/DownloadClienteFiltro?statusCliente=${statusCliente}&statusRemessa=${statusRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}`)
+    }
+
+    const AlterarPagina = (e) => {
+        if (e.target.value <= qtdPaginas) {
+            setPaginaAtual(e.target.value)
+            BuscarTodosClientes(statusCliente, statusRemessa, e.target.value)
+        } else {
+            Info("Numero da página digitada maior que quantidade de paginas")
+        }
     }
 
     return (
@@ -109,7 +145,10 @@ export default () => {
                         onChange={onChangeFiltro}
                         maxLength={!filtroNome ? 14 : 255}
                         className='form-control'
-                        placeholder={!filtroNome ? 'CPF do cliente' : 'Nome do cliente'} />
+                        value={!filtroNome ? cpf : nome}
+                        placeholder={!filtroNome ? 'CPF do cliente' : 'Nome do cliente'}
+
+                    />
                 </div>}
                 <div style={{ marginTop: '22px' }} className="col-md-2">
                     <ImportarCLientesIntegral />
@@ -145,10 +184,18 @@ export default () => {
                     <span>Até:</span>
                     <input type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)} name="dateEnd" id="dateEnd" className='form-control' />
                 </div>
+                <div className="col-md-2">
+                    <span>Cadastro Externo:</span>
+                    <select className='form-control' value={cadastroExterno} onChange={e => setcadastroExterno(e.target.value == 1)}>
+                        <option value={0}>TODOS</option>
+                        <option value={1}>SIM</option>
+                        <option value={2}>NÃO</option>
+                    </select>
+                </div>
                 <div className="col-md-1" style={{ marginTop: '20px' }}>
                     <button style={{ width: '100%' }} onClick={() => BuscarTodosClientes(statusCliente, statusRemessa, 1)} className='btn btn-primary'><FaSearch size={17} /></button>
                 </div>
-                <div className="col-md-2" style={{ marginTop: '20px' }}>
+                <div className="col-md-2" style={{ marginTop: '22px' }}>
                     <button style={{ width: '100%' }} onClick={DownloadClienteFiltro} className='btn btn-primary'>Extrair Clientes<FaDownload size={17} /></button>
                 </div>
             </div>
@@ -255,7 +302,7 @@ export default () => {
             </table>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, color: '#000' }}>
                 <button onClick={() => { setPaginaAtual(paginaAtual - 1); BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual - 1) }} disabled={paginaAtual === 1} className='btn btn-primary'>Voltar</button>
-                <span>{paginaAtual} de {qtdPaginas}</span>
+                <span><input type="number" max={qtdPaginas} min={1} value={paginaAtual} onChange={AlterarPagina} />  de {qtdPaginas}</span>
                 <button onClick={() => { setPaginaAtual(paginaAtual + 1); BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual + 1) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>Próxima</button>
             </div>
 
