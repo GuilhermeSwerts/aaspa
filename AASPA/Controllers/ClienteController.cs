@@ -56,11 +56,11 @@ namespace AASPA.Host.Controllers
         }
         [HttpGet]
         [Route("/GetClientesIntegraall")]
-        public async Task<ActionResult> GetClientesIntegraall([FromQuery] string DataCadastroInicio)
+        public async Task<ActionResult> GetClientesIntegraall([FromQuery] string DataCadastroInicio,string DataCadastroFim)
         {
             try
             {
-                var clientes = await _service.GetClientesIntegraall(DataCadastroInicio);
+                var clientes = await _service.GetClientesIntegraall(DataCadastroInicio, DataCadastroFim);
                 _service.SalvarNovoCliente(clientes);
 
                 return Ok();

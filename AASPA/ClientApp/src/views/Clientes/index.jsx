@@ -14,6 +14,7 @@ import { TbZoomMoney } from 'react-icons/tb';
 import * as Enum from '../../util/enum';
 import ModalVisualizarCliente from '../../components/Modal/visualizarDadosCliente';
 import { Alert } from '../../util/alertas';
+import ImportarCLientesIntegral from '../../components/Modal/importarClientesIntegral';
 
 export default () => {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -102,7 +103,7 @@ export default () => {
                         <option value={2}>CPF</option>
                     </select>
                 </div>
-                {<div className="col-md-8">
+                {<div className="col-md-6">
                     <span>{!filtroNome ? 'Pesquisar pelo CPF' : 'Pesquisar pelo nome'} </span>
                     <input type="text"
                         onChange={onChangeFiltro}
@@ -110,6 +111,9 @@ export default () => {
                         className='form-control'
                         placeholder={!filtroNome ? 'CPF do cliente' : 'Nome do cliente'} />
                 </div>}
+                <div style={{ marginTop: '22px' }} className="col-md-2">
+                    <ImportarCLientesIntegral />
+                </div>
                 <div style={{ marginTop: '22px' }} className="col-md-2">
                     <button style={{ width: '100%' }} type='button' onClick={() => window.location.href = '/cliente'} className='btn btn-primary'>Novo Cliente</button>
                 </div>
@@ -161,6 +165,7 @@ export default () => {
                         <th>Captador</th>
                         <th>Beneficios Ativos</th>
                         <th>Remessa</th>
+                        <th>Cadastro Externo</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
@@ -180,6 +185,7 @@ export default () => {
                                     ))}
                                 </select></td>
                                 <td>{cliente.cliente.cliente_remessa_id > 0 ? cliente.cliente.cliente_remessa_id : '-'}</td>
+                                <td>{cliente.clientes_cadastro_externo ? 'SIM' : 'NÃO'}</td>
                                 {cliente.statusAtual.status_id !== Enum.EStatus.Deletado
                                     && cliente.statusAtual.status_id !== Enum.EStatus.ExcluidoAguardandoEnvio
                                     && cliente.statusAtual.status_id !== Enum.EStatus.Inativo
