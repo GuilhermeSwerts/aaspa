@@ -85,4 +85,4 @@ export default class Api {
     }
 }
 
-export const api = new Api(`${window.location.protocol}${window.location.hostname}/`);
+export const api = new Api(process.env.NODE_ENV === 'production' ? 'http://hmlaaspa.aaspa.org.br' : "https://localhost:44326");
