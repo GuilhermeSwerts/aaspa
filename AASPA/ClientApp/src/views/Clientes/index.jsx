@@ -185,7 +185,7 @@ export default () => {
                 </div>
                 <div className="col-md-2">
                     <span>Cadastro Externo:</span>
-                    <select className='form-control' value={cadastroExterno} onChange={e => setcadastroExterno(e.target.value == 1)}>
+                    <select className='form-control' value={cadastroExterno} onChange={e => setcadastroExterno(e.target.value)}>
                         <option value={0}>TODOS</option>
                         <option value={1}>SIM</option>
                         <option value={2}>NÃO</option>
@@ -231,7 +231,7 @@ export default () => {
                                     ))}
                                 </select></td>
                                 <td>{cliente.cliente.cliente_remessa_id > 0 ? cliente.cliente.cliente_remessa_id : '-'}</td>
-                                <td>{cliente.clientes_cadastro_externo ? 'SIM' : 'NÃO'}</td>
+                                <td>{cliente.clientes_cadastro_externo == true ? 'SIM' : 'NÃO'}</td>
                                 {cliente.statusAtual.status_id !== Enum.EStatus.Deletado
                                     && cliente.statusAtual.status_id !== Enum.EStatus.ExcluidoAguardandoEnvio
                                     && cliente.statusAtual.status_id !== Enum.EStatus.Inativo
