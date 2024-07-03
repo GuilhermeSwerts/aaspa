@@ -139,7 +139,6 @@ export default () => {
 
         if (isProxima && (paginaAtual + pagina) > qtdPaginas) {
             if (await Pergunta("Numero da página digitada maior que quantidade de paginas\nDeseja buscar pelo numero maximo?")) {
-                Info("Numero da página digitada maior que quantidade de paginas");
                 setPaginaAtual(qtdPaginas);
                 buscar = true;
                 BuscarTodosClientes(statusCliente, statusRemessa, qtdPaginas)
@@ -340,13 +339,13 @@ export default () => {
                 </tbody>
             </table>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, color: '#000' }}>
-                <button onClick={() => { AlterarPagina(paginaAtual - 1, false); BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual - 10) }} disabled={paginaAtual === 1} className='btn btn-primary'>-10</button>
-                <button onClick={() => { AlterarPagina(paginaAtual - 1, false); BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual - 5) }} disabled={paginaAtual === 1} className='btn btn-primary'>-5</button>
-                <button onClick={() => { AlterarPagina(paginaAtual - 1, false); BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual - 1) }} disabled={paginaAtual === 1} className='btn btn-primary'>Anterior</button>
+                <button onClick={() => { AlterarPagina(10, false) }} disabled={paginaAtual === 1} className='btn btn-primary'>-10</button>
+                <button onClick={() => { AlterarPagina(5, false) }} disabled={paginaAtual === 1} className='btn btn-primary'>-5</button>
+                <button onClick={() => { AlterarPagina(1, false) }} disabled={paginaAtual === 1} className='btn btn-primary'>Anterior</button>
                 <span>{paginaAtual} de {qtdPaginas}</span>
-                <button onClick={() => { AlterarPagina(paginaAtual + 1, true); BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual + 1) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>Próxima</button>
-                <button onClick={() => { AlterarPagina(paginaAtual + 1, true); BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual + 1) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>+5</button>
-                <button onClick={() => { AlterarPagina(paginaAtual + 1, true); BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual + 1) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>+10</button>
+                <button onClick={() => { AlterarPagina(1, true) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>Próxima</button>
+                <button onClick={() => { AlterarPagina(5, true) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>+5</button>
+                <button onClick={() => { AlterarPagina(10, true) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>+10</button>
             </div>
 
 
