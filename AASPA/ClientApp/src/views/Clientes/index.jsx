@@ -13,7 +13,7 @@ import ModalLogBeneficios from '../../components/Modal/ModalLogBeneficios';
 import { TbZoomMoney } from 'react-icons/tb';
 import * as Enum from '../../util/enum';
 import ModalVisualizarCliente from '../../components/Modal/visualizarDadosCliente';
-import { Alert, Info } from '../../util/alertas';
+import { Alert, Info, Pergunta } from '../../util/alertas';
 import ImportarCLientesIntegral from '../../components/Modal/importarClientesIntegral';
 import axios from 'axios';
 
@@ -68,14 +68,14 @@ export default () => {
         api.get(`BuscarTodosClientes?statusCliente=${sCliente}&statusRemessa=${sRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${pPagina}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}`, res => {
             setClientes([]);
             setClientesFiltro([]);
-            
+
             let clt = res.data.clientes;
             clt = clt.sort((a, b) => {
                 let dataA = new Date(a.cliente.cliente_dataCadastro);
                 let dataB = new Date(b.cliente.cliente_dataCadastro);
                 return dataA - dataB;
             });
-            
+
             setClientes(clt);
             setClientesFiltro(clt);
             setQtdPaginas(res.data.qtdPaginas);
@@ -110,11 +110,11 @@ export default () => {
         }).then(res => {
             setClientes([]);
             setClientesFiltro([]);
-            let clt = res.data.clientes;       
+            let clt = res.data.clientes;
             setClientes(clt);
             setClientesFiltro(clt);
             setQtdPaginas(res.data.qtdPaginas);
-            
+
             setTotalClientes(res.data.totalClientes);
         }).catch(err => {
             Alert("Houve um erro ao buscar clientes.", false)
@@ -126,13 +126,45 @@ export default () => {
         window.open(api.urlBase + `/DownloadClienteFiltro?statusCliente=${statusCliente}&statusRemessa=${statusRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}`)
     }
 
-    const AlterarPagina = (e) => {
-        if (e.target.value <= qtdPaginas) {
-            setPaginaAtual(e.target.value)
+    // const AlterarPagina = (e) => {
+    //     if (e.target.value <= qtdPaginas) {
+    //         setPaginaAtual(e.target.value)
+    //     // } else {
+    //         Info("Numero da página digitada maior que quantidade de paginas")
+    //     }
+    // }
+
+    const AlterarPagina = async (pagina, isProxima) => {
+        let buscar = false;
+
+        if (isProxima && (paginaAtual + pagina) > qtdPaginas) {
+            if (await Pergunta("Numero da página digitada maior que quantidade de paginas\nDeseja buscar pelo numero maximo?")) {
+                Info("Numero da página digitada maior que quantidade de paginas");
+                setPaginaAtual(qtdPaginas);
+                buscar = true;
+                BuscarTodosClientes(statusCliente, statusRemessa, qtdPaginas)
+            } else {
+                return;
+            }
+        } else if (!isProxima && (paginaAtual - pagina) <= 0) {
+            if (await Pergunta("Numero da página digitada menor que 1\nDeseja buscar pelo numero minimo?")) {
+                setPaginaAtual(1);
+                buscar = true;
+                BuscarTodosClientes(statusCliente, statusRemessa, 1)
+            } else {
+                return;
+            }
         } else {
-            Info("Numero da página digitada maior que quantidade de paginas")
+            if (isProxima) {
+                setPaginaAtual(paginaAtual + pagina);
+                BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual + pagina)
+            } else {
+                setPaginaAtual(paginaAtual - pagina);
+                BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual - pagina)
+            }
         }
     }
+
 
     return (
         <NavBar pagina_atual={'CLIENTES'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
@@ -308,12 +340,15 @@ export default () => {
                 </tbody>
             </table>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, color: '#000' }}>
-                <button onClick={() => { setPaginaAtual(paginaAtual - 1); BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual - 1) }} disabled={paginaAtual === 1} className='btn btn-primary'>Voltar</button>
-                {/* <span><input onBlur={e => BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual)} type="number" max={qtdPaginas} min={1} value={paginaAtual} onChange={AlterarPagina} />  de {qtdPaginas}</span> */}
+                <button onClick={() => { AlterarPagina(paginaAtual - 1, false); BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual - 10) }} disabled={paginaAtual === 1} className='btn btn-primary'>-10</button>
+                <button onClick={() => { AlterarPagina(paginaAtual - 1, false); BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual - 5) }} disabled={paginaAtual === 1} className='btn btn-primary'>-5</button>
+                <button onClick={() => { AlterarPagina(paginaAtual - 1, false); BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual - 1) }} disabled={paginaAtual === 1} className='btn btn-primary'>Anterior</button>
                 <span>{paginaAtual} de {qtdPaginas}</span>
-                <button onClick={() => { setPaginaAtual(paginaAtual + 1); BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual + 1) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>Próxima</button>
+                <button onClick={() => { AlterarPagina(paginaAtual + 1, true); BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual + 1) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>Próxima</button>
+                <button onClick={() => { AlterarPagina(paginaAtual + 1, true); BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual + 1) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>+5</button>
+                <button onClick={() => { AlterarPagina(paginaAtual + 1, true); BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual + 1) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>+10</button>
             </div>
-            
+
 
         </NavBar >
     );
