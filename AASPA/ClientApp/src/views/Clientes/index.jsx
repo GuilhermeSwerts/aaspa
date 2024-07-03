@@ -68,9 +68,21 @@ export default () => {
         api.get(`BuscarTodosClientes?statusCliente=${sCliente}&statusRemessa=${sRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${pPagina}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}`, res => {
             setClientes([]);
             setClientesFiltro([]);
-            setClientes(res.data.clientes);
-            setClientesFiltro(res.data.clientes);
+            
+            let clt = res.data.clientes;
+            clt = clt.sort((a, b) => {
+                let dataA = new Date(a.cliente.cliente_dataCadastro);
+                let dataB = new Date(b.cliente.cliente_dataCadastro);
+                return dataA - dataB;
+            });
+            
+            setClientes(clt);
+            setClientesFiltro(clt);
             setQtdPaginas(res.data.qtdPaginas);
+
+            if (res.data.qtdPaginas < paginaAtual)
+                setPaginaAtual(1);
+
             setTotalClientes(res.data.totalClientes);
         }, err => {
             Alert("Houve um erro ao buscar clientes.", false)
@@ -84,19 +96,12 @@ export default () => {
 
     const onChangeFiltro = ({ target }) => {
         const { value } = target;
-        // if (value && value != "" && filtroNome)
-        //     setClientesFiltro(clientes.filter(x => x.cliente.cliente_nome.toUpperCase().includes(value.toUpperCase())));
-        // else if (value && value != "" && !filtroNome)
-        //     setClientesFiltro(clientes.filter(x => x.cliente.cliente_cpf.includes(value.replace('.', '').replace('.', '').replace('-', ''))));
-        // else
-        //     setClientesFiltro(clientes);
-
         if (filtroNome) {
             setNome(value);
         } else {
             setCpf(value);
         }
-
+        setPaginaAtual(1);
         axios.get(`BuscarTodosClientes?statusCliente=${statusCliente}&statusRemessa=${statusRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${paginaAtual}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}`, {
             baseURL: api.urlBase,
             headers: {
@@ -105,9 +110,11 @@ export default () => {
         }).then(res => {
             setClientes([]);
             setClientesFiltro([]);
-            setClientes(res.data.clientes);
-            setClientesFiltro(res.data.clientes);
+            let clt = res.data.clientes;       
+            setClientes(clt);
+            setClientesFiltro(clt);
             setQtdPaginas(res.data.qtdPaginas);
+            
             setTotalClientes(res.data.totalClientes);
         }).catch(err => {
             Alert("Houve um erro ao buscar clientes.", false)
@@ -121,7 +128,7 @@ export default () => {
 
     const AlterarPagina = (e) => {
         if (e.target.value <= qtdPaginas) {
-            setPaginaAtual(e.target.value)           
+            setPaginaAtual(e.target.value)
         } else {
             Info("Numero da página digitada maior que quantidade de paginas")
         }
@@ -217,6 +224,7 @@ export default () => {
                 </thead>
                 <tbody>
                     {clientesFiltro.map(cliente => {
+                        console.log(cliente)
                         return (
                             <tr>
                                 <td>{Mascara.cpf(cliente.cliente.cliente_cpf)}</td>
@@ -231,7 +239,7 @@ export default () => {
                                     ))}
                                 </select></td>
                                 <td>{cliente.cliente.cliente_remessa_id > 0 ? cliente.cliente.cliente_remessa_id : '-'}</td>
-                                <td>{cliente.clientes_cadastro_externo == true ? 'SIM' : 'NÃO'}</td>
+                                <td>{cliente.cliente.clientes_cadastro_externo == true ? 'SIM' : 'NÃO'}</td>
                                 {cliente.statusAtual.status_id !== Enum.EStatus.Deletado
                                     && cliente.statusAtual.status_id !== Enum.EStatus.ExcluidoAguardandoEnvio
                                     && cliente.statusAtual.status_id !== Enum.EStatus.Inativo
@@ -301,9 +309,11 @@ export default () => {
             </table>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, color: '#000' }}>
                 <button onClick={() => { setPaginaAtual(paginaAtual - 1); BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual - 1) }} disabled={paginaAtual === 1} className='btn btn-primary'>Voltar</button>
-                <span><input onBlur={e=>  BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual)} type="number" max={qtdPaginas} min={1} value={paginaAtual} onChange={AlterarPagina} />  de {qtdPaginas}</span>
+                {/* <span><input onBlur={e => BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual)} type="number" max={qtdPaginas} min={1} value={paginaAtual} onChange={AlterarPagina} />  de {qtdPaginas}</span> */}
+                <span>{paginaAtual} de {qtdPaginas}</span>
                 <button onClick={() => { setPaginaAtual(paginaAtual + 1); BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual + 1) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>Próxima</button>
             </div>
+            
 
         </NavBar >
     );

@@ -42,7 +42,7 @@ function ImportarCLientesIntegral() {
                 style={{ width: '100%' }}
                 type='button'
                 onClick={() => setShow(true)}
-                className='btn btn-primary'>Importar Clientes Integrall <LuImport size={17} /></button>
+                className='btn btn-primary'>Importar Clientes Integraall <LuImport size={17} /></button>
             <Modal isOpen={show}>
                 <form onSubmit={e => { e.preventDefault(); handdleSubmit() }}>
                     <ModalHeader>

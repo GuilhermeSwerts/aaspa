@@ -259,12 +259,15 @@ namespace AASPA.Domain.Service
                                 && (dateEnd == null || cli.cliente_dataCadastro < dateEnd.Value.AddDays(1))
                                 && (string.IsNullOrEmpty(nome) || cli.cliente_nome.ToUpper().Contains(nome))
                                 && (string.IsNullOrEmpty(cpf) || cli.cliente_cpf.ToUpper().Contains(cpf))
-                                 
+
                             select new BuscarClienteByIdResponse
                             {
                                 Captador = cpt,
                                 Cliente = cli,
-                            }).ToList().Distinct().ToList();
+                            }).ToList()
+                            .Distinct()
+                            .ToList()
+                            .OrderByDescending(x => x.Cliente.cliente_dataCadastro).ToList();
 
             if(cadastroExterno == 1)
             {
@@ -336,7 +339,7 @@ namespace AASPA.Domain.Service
                 clientes = clientes.Where(x => x.Cliente.cliente_situacao && x.StatusAtual != null && x.StatusAtual.status_id == (int)EStatus.Inativo).ToList();
             }
 
-            var todosClientes = clientes.ToList().Distinct().ToList().OrderBy(x => x.Cliente.cliente_dataCadastro).ToList();
+            var todosClientes = clientes.ToList().Distinct().ToList();
             int totalClientes = todosClientes.Count();
             if (paginaAtual == null)
                 return (todosClientes, 0, totalClientes);
@@ -357,7 +360,7 @@ namespace AASPA.Domain.Service
 
             qtdPaginas = qtdPaginas > 0 ? qtdPaginas : 1;
 
-            return (todosClientes.Skip(indiceInicial).Take(qtdPorPagina).ToList(), Convert.ToInt32(qtdPaginas), totalClientes);
+            return (todosClientes.Skip(indiceInicial).Take(qtdPorPagina).ToList().OrderByDescending(x=> x.Cliente.cliente_dataCadastro).ToList(), Convert.ToInt32(qtdPaginas), totalClientes);
         }
 
         public byte[] DownloadFiltro((List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) clientesData)
