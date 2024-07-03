@@ -121,8 +121,7 @@ export default () => {
 
     const AlterarPagina = (e) => {
         if (e.target.value <= qtdPaginas) {
-            setPaginaAtual(e.target.value)
-            BuscarTodosClientes(statusCliente, statusRemessa, e.target.value)
+            setPaginaAtual(e.target.value)           
         } else {
             Info("Numero da página digitada maior que quantidade de paginas")
         }
@@ -302,7 +301,7 @@ export default () => {
             </table>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, color: '#000' }}>
                 <button onClick={() => { setPaginaAtual(paginaAtual - 1); BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual - 1) }} disabled={paginaAtual === 1} className='btn btn-primary'>Voltar</button>
-                <span><input type="number" max={qtdPaginas} min={1} value={paginaAtual} onChange={AlterarPagina} />  de {qtdPaginas}</span>
+                <span><input onBlur={e=>  BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual)} type="number" max={qtdPaginas} min={1} value={paginaAtual} onChange={AlterarPagina} />  de {qtdPaginas}</span>
                 <button onClick={() => { setPaginaAtual(paginaAtual + 1); BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual + 1) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>Próxima</button>
             </div>
 
