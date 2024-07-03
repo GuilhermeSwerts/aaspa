@@ -359,7 +359,7 @@ namespace AASPA.Domain.Service
             byte[] fileBytes = Encoding.Latin1.GetBytes(texto);
             return fileBytes;
         }
-        public async Task<List<ClienteRequest>> GetClientesIntegraall(string DataCadastroInicio)
+        public async Task<List<ClienteRequest>> GetClientesIntegraall(string DataCadastroInicio, string DataCadastroFim)
         {
             var clientesIntegral = new List<ClienteRequest>();
             try
@@ -370,7 +370,7 @@ namespace AASPA.Domain.Service
 
                     var captadores = await GetCaptador(token);
 
-                    string requestUri = "https://integraall.com/api/Pessoa/ListarPessoasPorFiltro?DataCadastroInicio=" + DataCadastroInicio;
+                    string requestUri = $"https://integraall.com/api/Pessoa/ListarPessoasPorFiltro?DataCadastroInicio={DataCadastroInicio}&DataCadastroFim={DataCadastroFim}";
                     var requestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
                     requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
                     var response = await client.SendAsync(requestMessage);
