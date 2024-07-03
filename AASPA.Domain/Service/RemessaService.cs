@@ -61,7 +61,7 @@ namespace AASPA.Domain.Service
                     var clienteData = _clienteService.BuscarClienteID(cliente.cliente_id);
 
                     var statusNovo = clienteData.StatusAtual.status_id == (int)EStatus.AtivoAguardandoAverbacao ?
-                        (int)EStatus.Ativo : (int)EStatus.Deletado;                    
+                        (int)EStatus.Ativo : (int)EStatus.Deletado;
 
                     VincularRemessaCliente(cliente.cliente_id, idRegistro);
                 }
@@ -101,11 +101,11 @@ namespace AASPA.Domain.Service
 
             result = result
                 .Where(x => x.cliente_dataCadastro < dateEnd.AddDays(1)).ToList();
-            
+
 
             foreach (var item in result)
             {
-                if(!clientes.Any(x=> x.cliente_id == item.cliente_id))
+                if (!clientes.Any(x => x.cliente_id == item.cliente_id))
                 {
                     clientes.Add(item);
                 }
@@ -116,16 +116,16 @@ namespace AASPA.Domain.Service
 
         public int SalvarDadosRemessa(List<ClienteDb> clientes, int mes, int ano, string nomeArquivo, DateTime dateInit, DateTime dateEnd)
         {
+            var RetornoVinculado = new object();
             var RemessaDeletar = RemessaExiste(mes, ano);
-            var RetornoVinculado = VerificarRetornoVinculadoRemessa(RemessaDeletar.remessa_id);
-            if (RetornoVinculado != null)
-            {
-                throw new Exception("Remessa já vinculada a um retorno! Não será possível gerar outra remessa.");
-            }
+
             if (RemessaDeletar != null)
             {
+                RetornoVinculado = VerificarRetornoVinculadoRemessa(RemessaDeletar.remessa_id);
+                if (RetornoVinculado != null){  throw new Exception("Remessa já vinculada a um retorno! Não será possível gerar outra remessa.");}
                 InativarRemessa(RemessaDeletar);
             }
+
             var remessa = new RemessaDb
             {
                 remessa_ano_mes = $"{ano}{mes.ToString().PadLeft(2, '0')}",
@@ -166,8 +166,8 @@ namespace AASPA.Domain.Service
         {
             var atualizarremessa = _mysql.remessa.FirstOrDefault(x => x.remessa_id == remessa.remessa_id);
             atualizarremessa.remessa_status = false;
-           _mysql.remessa.Update(atualizarremessa);
-           _mysql.SaveChanges();
+            _mysql.remessa.Update(atualizarremessa);
+            _mysql.SaveChanges();
 
         }
 
@@ -181,7 +181,7 @@ namespace AASPA.Domain.Service
             {
                 ValorLinha.Add("0AASPA            11                        ".PadRight(45));
 
-                var clientes = _mysql.registro_remessa.Where(x => x.remessa_id == idRegistro).ToList();                
+                var clientes = _mysql.registro_remessa.Where(x => x.remessa_id == idRegistro).ToList();
 
                 foreach (var cliente in clientes)
                 {
@@ -198,7 +198,7 @@ namespace AASPA.Domain.Service
         }
         public RemessaDb RemessaExiste(int mes, int ano)
         {
-            RemessaDb remessa =  _mysql.remessa.FirstOrDefault(x => x.remessa_ano_mes == $"{ano}{mes.ToString().PadLeft(2, '0')}" && x.remessa_status == true);
+            RemessaDb remessa = _mysql.remessa.FirstOrDefault(x => x.remessa_ano_mes == $"{ano}{mes.ToString().PadLeft(2, '0')}" && x.remessa_status == true);
             return remessa == null ? null : remessa;
         }
         public List<BuscarTodasRemessas> BuscarTodasRemessas(int? ano, int? mes)
@@ -311,11 +311,11 @@ namespace AASPA.Domain.Service
                                     {
                                         throw new Exception("Arquivo não pertence a AASPA");
                                     }
-                                    
+
                                     retorno_financeiro = new RetornoFinanceiroDb()
                                     {
-                                        repasse = line.Substring(1,7),
-                                        competencia_Repasse = int.Parse(line.Substring(9,6)),
+                                        repasse = line.Substring(1, 7),
+                                        competencia_Repasse = int.Parse(line.Substring(9, 6)),
                                         ano_mes = anomes,
                                         data_importacao = DateTime.Now,
                                         nome_arquivo = file.FileName,
@@ -334,17 +334,17 @@ namespace AASPA.Domain.Service
                                     var uf = line.Substring(19, 2);
                                     var dc = decimal.Parse(line.Substring(21, 5));
                                     var rId = retorno_financeiro.retorno_financeiro_id;
-                                    
+
                                     var registro_Financeiro = new RegistroRetornoFinanceiroDb()
-                                    {                                     
+                                    {
                                         numero_beneficio = nb,
                                         competencia_desconto = cd,
                                         especie = ep,
                                         uf = uf,
                                         desconto = dc,
-                                        retorno_financeiro_id = rId,                                
-                                    };                        
-                                    
+                                        retorno_financeiro_id = rId,
+                                    };
+
                                     _mysql.registro_retorno_financeiro.Add(registro_Financeiro);
                                     _mysql.SaveChanges();
                                 }
@@ -353,7 +353,7 @@ namespace AASPA.Domain.Service
                         tran.Commit();
                         return anomes;
                     }
-                }                
+                }
             }
             catch (Exception)
             {
@@ -431,7 +431,8 @@ namespace AASPA.Domain.Service
                                     if (int.Parse(line.Substring(12, 1)) == 2)
                                     {
                                         clientesparainativar.Add(line);
-                                    }else if (int.Parse(line.Substring(11, 1)) != (int)EStatus.ExcluidoAguardandoEnvio && int.Parse(line.Substring(12, 1)) == 1)
+                                    }
+                                    else if (int.Parse(line.Substring(11, 1)) != (int)EStatus.ExcluidoAguardandoEnvio && int.Parse(line.Substring(12, 1)) == 1)
                                     {
                                         ClienteparaAtivar.Add(line);
                                     }
@@ -521,7 +522,7 @@ namespace AASPA.Domain.Service
                     };
 
                     _statusService.AlterarStatusCliente(novostatus);
-                }                
+                }
             }
         }
 
@@ -550,7 +551,7 @@ namespace AASPA.Domain.Service
 
                     _statusService.AlterarStatusCliente(novostatus);
                 }
-            }           
+            }
         }
         bool IsValidClienteMatricula(string line, string clienteMatriculaBeneficio)
         {
@@ -647,7 +648,7 @@ namespace AASPA.Domain.Service
                     (string.IsNullOrEmpty(filtro) || x.remessa_ano_mes.Contains(filtro))
                 ).FirstOrDefault();
 
-            if(remessa == null )
+            if (remessa == null)
             {
                 return new
                 {
