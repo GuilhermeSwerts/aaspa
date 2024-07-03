@@ -554,9 +554,13 @@ namespace AASPA.Domain.Service
                     return 2;
                 case "viúvo":
                     return 3;
+                case "viuvo":
+                    return 3;
                 case "separado judicialmente":
                     return 4;
                 case "união estável":
+                    return 5;
+                case "uniao estavel":
                     return 5;
                 case "outros":
                     return 6;
