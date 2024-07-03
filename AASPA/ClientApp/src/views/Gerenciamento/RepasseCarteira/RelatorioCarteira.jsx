@@ -260,7 +260,7 @@ function DetalheProducao({ detalhes, DownloadAverbacao }) {
                     className='btn btn-primary'
                     text={'Extrair Para Excel(.csv)'}
                     top={false}
-                    textButton={<FaDownload size={25} />}
+                    textButton={<FaDownload size={17} />}
                 />
             </div>
             <br />

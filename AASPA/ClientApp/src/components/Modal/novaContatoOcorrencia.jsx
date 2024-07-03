@@ -87,7 +87,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                 className='btn btn-success'
                 text={'Historico Contatos/Ocorrências'}
                 top={true}
-                textButton={<FaPlus size={25} />}
+                textButton={<FaPlus size={17} />}
             />
             <Modal isOpen={show}>
                 <form onSubmit={e => { e.preventDefault(); handdleSubmit(e) }}>

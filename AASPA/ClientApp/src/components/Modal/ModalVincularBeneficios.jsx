@@ -68,7 +68,7 @@ function ModalVincularBeneficios({ BuscarTodosClientes, ClienteId }) {
                 className='btn btn-success'
                 text={'Gerenciar Beneficios'}
                 top={true}
-                textButton={<FaGear color='#fff' size={25} />}
+                textButton={<FaGear color='#fff' size={17} />}
             />
             <Modal isOpen={show}>
                 <ModalHeader>

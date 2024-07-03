@@ -56,7 +56,7 @@ namespace AASPA.Host.Controllers
         }
         [HttpGet]
         [Route("/GetClientesIntegraall")]
-        public async Task<ActionResult> GetClientesIntegraall([FromQuery] string DataCadastroInicio, string DataCadastroFim)
+        public async Task<ActionResult> GetClientesIntegraall([FromQuery] string DataCadastroInicio,string DataCadastroFim)
         {
             try
             {

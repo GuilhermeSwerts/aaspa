@@ -34,7 +34,7 @@ function ModalNovaOrigem({ BuscarOrigem }) {
                 className='btn btn-success'
                 text={'Adicionar Origem'}
                 top={true}
-                textButton={<FaPlus size={25} />}
+                textButton={<FaPlus size={17} />}
             />
             <Modal isOpen={show}>
                 <form onSubmit={e => { e.preventDefault(); handdleSubmit() }}>

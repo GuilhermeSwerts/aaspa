@@ -41,7 +41,7 @@ function ModalEditarOrigem({ BuscarOrigem, OrigemId }) {
                 className='btn btn-warning'
                 text={'Editar Origem'}
                 top={true}
-                textButton={<FaPencil color='#fff' size={25} />}
+                textButton={<FaPencil color='#fff' size={17} />}
             />
             <Modal isOpen={show}>
                 <form onSubmit={e => { e.preventDefault(); handdleSubmit() }}>
