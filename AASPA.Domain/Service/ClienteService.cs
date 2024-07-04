@@ -487,7 +487,6 @@ namespace AASPA.Domain.Service
                         var captador = new CaptadorDb()
                         {
                             captador_cpf_cnpj = c.CpfCnpj,
-                            captador_descricao = c.Nome,
                             captador_nome = c.Nome,
                         };
                         revendedor = new VinculoCaptadoRevendedor()
