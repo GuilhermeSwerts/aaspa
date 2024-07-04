@@ -170,7 +170,7 @@ function RelatorioCarteira() {
             </div>
             <hr />
             {detalheProducao.length > 0 && captadoreSelecionado > 0 && <div className="container-relatorio">
-                <h1 style={{ textAlign: 'center' }}>EXTRATO DE RETORNO DATA PREV</h1>
+                <h1 style={{ textAlign: 'center' }}>EXTRATO DE REPASSE DATA PREV</h1>
                 <ResumoProducao
                     motivosNaoAverbada={motivosNaoAverbada}
                     resumoTotal={resumo}
