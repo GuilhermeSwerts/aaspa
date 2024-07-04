@@ -645,7 +645,7 @@ namespace AASPA.Domain.Service
             var remessa = _mysql.remessa
                 .Where(
                     x => x.remessa_id > 0 &&
-                    (string.IsNullOrEmpty(filtro) || x.remessa_ano_mes.Contains(filtro))
+                    (string.IsNullOrEmpty(filtro) || x.remessa_ano_mes.Contains(filtro) && x.remessa_status == true)
                 ).FirstOrDefault();
 
             if (remessa == null)
