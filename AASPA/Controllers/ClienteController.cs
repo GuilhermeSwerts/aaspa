@@ -45,7 +45,7 @@ namespace AASPA.Host.Controllers
                 var (Clientes, QtdPaginas, TotalClientes) = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd, paginaAtual, cadastroExterno, nome, cpf);
                 return Ok(new
                 {
-                    Clientes = Clientes.OrderByDescending(x=> x.Cliente.cliente_dataCadastro).ToList(),
+                    Clientes,
                     QtdPaginas,
                     TotalClientes
                 });

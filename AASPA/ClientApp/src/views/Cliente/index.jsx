@@ -92,6 +92,7 @@ function Cliente() {
                 nome: cpt.captador_nome,
                 descricao: cpt.captador_descricao
             })
+            setcaptadorSelecionado(cpt.captador_id);
         }, erro => {
             Alert('Houve um erro ao buscar o cliente.', false)
         })

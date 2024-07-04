@@ -259,12 +259,15 @@ namespace AASPA.Domain.Service
                                 && (dateEnd == null || cli.cliente_dataCadastro < dateEnd.Value.AddDays(1))
                                 && (string.IsNullOrEmpty(nome) || cli.cliente_nome.ToUpper().Contains(nome))
                                 && (string.IsNullOrEmpty(cpf) || cli.cliente_cpf.ToUpper().Contains(cpf))
-                                 
+
                             select new BuscarClienteByIdResponse
                             {
                                 Captador = cpt,
                                 Cliente = cli,
-                            }).ToList().Distinct().ToList();
+                            }).ToList()
+                            .Distinct()
+                            .ToList()
+                            .OrderByDescending(x => x.Cliente.cliente_dataCadastro).ToList();
 
             if(cadastroExterno == 1)
             {
@@ -336,7 +339,7 @@ namespace AASPA.Domain.Service
                 clientes = clientes.Where(x => x.Cliente.cliente_situacao && x.StatusAtual != null && x.StatusAtual.status_id == (int)EStatus.Inativo).ToList();
             }
 
-            var todosClientes = clientes.ToList().Distinct().ToList().OrderBy(x => x.Cliente.cliente_dataCadastro).ToList();
+            var todosClientes = clientes.ToList().Distinct().ToList();
             int totalClientes = todosClientes.Count();
             if (paginaAtual == null)
                 return (todosClientes, 0, totalClientes);
@@ -357,16 +360,16 @@ namespace AASPA.Domain.Service
 
             qtdPaginas = qtdPaginas > 0 ? qtdPaginas : 1;
 
-            return (todosClientes.Skip(indiceInicial).Take(qtdPorPagina).ToList(), Convert.ToInt32(qtdPaginas), totalClientes);
+            return (todosClientes.Skip(indiceInicial).Take(qtdPorPagina).ToList().OrderByDescending(x=> x.Cliente.cliente_dataCadastro).ToList(), Convert.ToInt32(qtdPaginas), totalClientes);
         }
 
         public byte[] DownloadFiltro((List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) clientesData)
         {
-            string texto = "#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID\n";
+            string texto = "#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO\n";
             for (int i = 0; i < clientesData.Clientes.Count; i++)
             {
                 var cliente = clientesData.Clientes[i];
-                texto += $"{cliente.Cliente.cliente_id};{cliente.Cliente.cliente_cpf};{cliente.Cliente.cliente_nome};{cliente.Cliente.cliente_cep};{cliente.Cliente.cliente_logradouro};{cliente.Cliente.cliente_bairro};{cliente.Cliente.cliente_localidade};{cliente.Cliente.cliente_uf};{cliente.Cliente.cliente_numero};{cliente.Cliente.cliente_complemento};{cliente.Cliente.cliente_dataNasc};{cliente.Cliente.cliente_dataCadastro};{cliente.Cliente.cliente_nrDocto};{cliente.Cliente.cliente_empregador};{cliente.Cliente.cliente_matriculaBeneficio};{cliente.Cliente.cliente_nomeMae};{cliente.Cliente.cliente_nomePai};{cliente.Cliente.cliente_telefoneFixo};{cliente.Cliente.cliente_telefoneCelular};{cliente.Cliente.cliente_possuiWhatsapp};{cliente.Cliente.cliente_funcaoAASPA};{cliente.Cliente.cliente_email};{cliente.Cliente.cliente_situacao};{cliente.Cliente.cliente_estado_civil};{cliente.Cliente.cliente_sexo};{cliente.Cliente.cliente_remessa_id}";
+                texto += $"{cliente.Cliente.cliente_id};{cliente.Cliente.cliente_cpf};{cliente.Cliente.cliente_nome};{cliente.Cliente.cliente_cep};{cliente.Cliente.cliente_logradouro};{cliente.Cliente.cliente_bairro};{cliente.Cliente.cliente_localidade};{cliente.Cliente.cliente_uf};{cliente.Cliente.cliente_numero};{cliente.Cliente.cliente_complemento};{cliente.Cliente.cliente_dataNasc};{cliente.Cliente.cliente_dataCadastro};{cliente.Cliente.cliente_nrDocto};{cliente.Cliente.cliente_empregador};{cliente.Cliente.cliente_matriculaBeneficio};{cliente.Cliente.cliente_nomeMae};{cliente.Cliente.cliente_nomePai};{cliente.Cliente.cliente_telefoneFixo};{cliente.Cliente.cliente_telefoneCelular};{cliente.Cliente.cliente_possuiWhatsapp};{cliente.Cliente.cliente_funcaoAASPA};{cliente.Cliente.cliente_email};{cliente.Cliente.cliente_situacao};{cliente.Cliente.cliente_estado_civil};{cliente.Cliente.cliente_sexo};{cliente.Cliente.cliente_remessa_id};{cliente.Captador.captador_nome};{cliente.Captador.captador_cpf_cnpj};{cliente.Captador.captador_descricao}";
                 texto += "\n";
             }
 
