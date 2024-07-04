@@ -69,15 +69,8 @@ export default () => {
             setClientes([]);
             setClientesFiltro([]);
 
-            let clt = res.data.clientes;
-            clt = clt.sort((a, b) => {
-                let dataA = new Date(a.cliente.cliente_dataCadastro);
-                let dataB = new Date(b.cliente.cliente_dataCadastro);
-                return dataA - dataB;
-            });
-
-            setClientes(clt);
-            setClientesFiltro(clt);
+            setClientes(res.data.clientes);
+            setClientesFiltro(res.data.clientes);
             setQtdPaginas(res.data.qtdPaginas);
 
             if (res.data.qtdPaginas < paginaAtual)

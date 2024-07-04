@@ -213,12 +213,12 @@ function ClienteForm({
                         <Input required disabled maxLength={18} type="text" name='cpfOuCnpj' onChange={handleChangeCaptador} value={captador.cpfOuCnpj.length > 14 ? Mascara.cnpj(captador.cpfOuCnpj) : Mascara.cpf(captador.cpfOuCnpj)} />
                     </FormGroup>
                 </Col>
-                <Col md={4}>
+                {/*<Col md={4}>
                     <FormGroup>
                         <Label for="nome">Nome*</Label>
                         <Input required disabled maxLength={255} type="text" name="nome" id="nome" value={captador.nome} onChange={handleChangeCaptador} />
                     </FormGroup>
-                </Col>
+                </Col>*/}
             </Row>
             <Row>
                 <Col md={12}>
