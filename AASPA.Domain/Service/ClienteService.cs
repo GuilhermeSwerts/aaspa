@@ -208,6 +208,7 @@ namespace AASPA.Domain.Service
                         captador_nome = novoCliente.Captador.Nome,
                         captador_descricao = novoCliente.Captador.Descricao ?? "",
                         captador_e_cnpj = captadorCpfCnpj.Length > 11,
+                        captador_situacao = true
                     };
                     _mysql.captadores.Add(captador);
                     _mysql.SaveChanges();
