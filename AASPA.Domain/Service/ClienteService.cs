@@ -343,7 +343,7 @@ namespace AASPA.Domain.Service
             var todosClientes = clientes.ToList().Distinct().ToList();
             int totalClientes = todosClientes.Count();
             if (paginaAtual == null)
-                return (todosClientes.OrderByDescending(x=> x.Cliente.cliente_id).ToList(), 0, totalClientes);
+                return (todosClientes.OrderByDescending(x=> x.Cliente.cliente_dataCadastro).ToList(), 0, totalClientes);
 
             return CalcularPagina(todosClientes, paginaAtual, totalClientes);
         }
@@ -361,7 +361,7 @@ namespace AASPA.Domain.Service
 
             qtdPaginas = qtdPaginas > 0 ? qtdPaginas : 1;
 
-            return (todosClientes.Skip(indiceInicial).Take(qtdPorPagina).ToList().OrderByDescending(x => x.Cliente.cliente_id).ToList(), Convert.ToInt32(qtdPaginas), totalClientes);
+            return (todosClientes.Skip(indiceInicial).Take(qtdPorPagina).ToList().OrderByDescending(x => x.Cliente.cliente_dataCadastro).ToList(), Convert.ToInt32(qtdPaginas), totalClientes);
         }
 
         public byte[] DownloadFiltro((List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) clientesData)
