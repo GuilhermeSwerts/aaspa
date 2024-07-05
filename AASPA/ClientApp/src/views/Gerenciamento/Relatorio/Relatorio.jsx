@@ -127,6 +127,7 @@ function Relatorio() {
 
     return (
         <NavBar pagina_atual={'AVERBAÇÃO'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
+            <h1>Relatório de averbação</h1>
             <small>FILTRO:</small>
             <div className='row'>
                 <div className="col-md-4">
