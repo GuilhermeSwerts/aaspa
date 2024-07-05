@@ -175,7 +175,7 @@ namespace AASPA.Domain.Service
 
                 var title = worksheet.Range("A1:G4");
                 title.Merge();
-                title.Value = "EXTRATO DE RETORNO DATA PREV";
+                title.Value = "EXTRATO DE RETORNO DATAPREV";
                 title.Style.Font.Bold = true;
                 title.Style.Font.FontSize = 16;
                 title.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
@@ -363,7 +363,7 @@ namespace AASPA.Domain.Service
 
                 var title = worksheet.Range("A1:I4");
                 title.Merge();
-                title.Value = "EXTRATO DE REPASSE DATA PREV";
+                title.Value = "EXTRATO DE REPASSE DATAPREV";
                 title.Style.Font.Bold = true;
                 title.Style.Font.FontSize = 16;
                 title.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;

@@ -388,7 +388,7 @@ namespace AASPA.Domain.Service
 
                     var captadores = await GetCaptador(token);
 
-                    string requestUri = $"https://integraall.com/api/Pessoa/ListarPessoasPorFiltro?DataCadastroInicio={DataCadastroInicio}&DataCadastroFim={DataCadastroFim}";
+                    string requestUri = $"https://integraall.com/api/Pessoa/ListarPessoasPorFiltro?StatusId=11&DataCadastroInicio={DataCadastroInicio}&DataCadastroFim={DataCadastroFim}";
                     var requestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
                     requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
                     var response = await client.SendAsync(requestMessage);
