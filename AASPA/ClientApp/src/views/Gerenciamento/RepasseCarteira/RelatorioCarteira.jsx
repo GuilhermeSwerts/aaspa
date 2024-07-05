@@ -130,7 +130,7 @@ function RelatorioCarteira() {
 
 
     return (
-        <NavBar pagina_atual={'AVERBAÇÃO'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
+        <NavBar pagina_atual={'CARTEIRA'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
             <small>FILTRO:</small>
             <div className='row'>
                 <div className="col-md-4">
@@ -170,7 +170,7 @@ function RelatorioCarteira() {
             </div>
             <hr />
             {detalheProducao.length > 0 && captadoreSelecionado > 0 && <div className="container-relatorio">
-                <h1 style={{ textAlign: 'center' }}>EXTRATO DE RETORNO DATA PREV</h1>
+                <h1 style={{ textAlign: 'center' }}>EXTRATO DE RETORNO DATAPREV</h1>
                 <ResumoProducao
                     motivosNaoAverbada={motivosNaoAverbada}
                     resumoTotal={resumo}

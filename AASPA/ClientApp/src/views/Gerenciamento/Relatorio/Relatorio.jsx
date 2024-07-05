@@ -166,7 +166,7 @@ function Relatorio() {
             </div>
             <hr />
             {detalheProducao.length > 0 && captadoreSelecionado > 0 && <div className="container-relatorio">
-                <h1 style={{ textAlign: 'center' }}>EXTRATO DE RETORNO DATA PREV</h1>
+                <h1 style={{ textAlign: 'center' }}>EXTRATO DE RETORNO DATAPREV</h1>
                 <ResumoProducao
                     motivosNaoAverbada={motivosNaoAverbada}
                     resumoTotal={resumo}
@@ -267,7 +267,7 @@ function DetalheProducao({ detalhes, DownloadAverbacao }) {
                             <th>Nome</th>
                             <th>Data Adesão</th>
                             <th>Taxa Associativa</th>
-                            <th>Status</th>
+                            <th>Status</th> 
                             <th>Motivo</th>
                         </tr>
                     </thead>
