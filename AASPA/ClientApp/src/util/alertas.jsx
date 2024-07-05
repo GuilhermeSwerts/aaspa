@@ -2,7 +2,7 @@ import Swal from 'sweetalert2'
 
 const Alert = (texto, sucesso = true) => {
     Swal.fire({
-        title: sucesso ? "" : "Oops...Algo deu errado :(",
+        title: sucesso ? "" : "Atenção",
         text: texto,
         icon: sucesso ? "success" : "error"
     });
