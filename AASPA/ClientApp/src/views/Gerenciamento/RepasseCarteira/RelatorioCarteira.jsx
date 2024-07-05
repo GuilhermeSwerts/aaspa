@@ -169,7 +169,7 @@ function RelatorioCarteira() {
                 </div>
             </div>
             <hr />
-            {detalheProducao.length > 0 && captadoreSelecionado > 0 && <div className="container-relatorio">
+            {detalheProducao.length > 0 && <div className="container-relatorio">
                 <h1 style={{ textAlign: 'center' }}>EXTRATO DE RETORNO DATAPREV</h1>
                 <ResumoProducao
                     motivosNaoAverbada={motivosNaoAverbada}

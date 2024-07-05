@@ -50,10 +50,10 @@ function Relatorio() {
 
     const BuscarRelatorio = () => {
 
-        if (captadoreSelecionado === 0) {
-            Alert('Selecione um captador', false);
-            return
-        }
+        // if (captadoreSelecionado === 0) {
+        //     Alert('Selecione um captador', false);
+        //     return
+        // }
 
         api.get(`RelatorioAverbacao?mes=${mesSelecionado}&ano=${anoSelecionado}&captadorId=${captadoreSelecionado}`, response => {
             SetResumo(response.data.resumo);
@@ -132,7 +132,7 @@ function Relatorio() {
                 <div className="col-md-4">
                     <label htmlFor="">Selecione a corretora:</label>
                     <select className='form-control' value={captadoreSelecionado} onChange={(e) => setCaptadoreSelecionado(e.target.value)}>
-                        <option value={0}>SELECIONE</option>
+                        <option value={0}>TODOS</option>
                         {captadores.map((captador) => (
                             <option key={captador.captador_id} value={captador.captador_id}>
                                 {captador.captador_nome.toUpperCase()}
@@ -165,7 +165,7 @@ function Relatorio() {
                 </div>
             </div>
             <hr />
-            {detalheProducao.length > 0 && captadoreSelecionado > 0 && <div className="container-relatorio">
+            {detalheProducao.length > 0 && <div className="container-relatorio">
                 <h1 style={{ textAlign: 'center' }}>EXTRATO DE RETORNO DATAPREV</h1>
                 <ResumoProducao
                     motivosNaoAverbada={motivosNaoAverbada}
