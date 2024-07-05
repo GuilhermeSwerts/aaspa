@@ -50,11 +50,6 @@ function RelatorioCarteira() {
 
     const BuscarRelatorio = () => {
 
-        if (captadoreSelecionado === 0) {
-            Alert('Selecione um captador', false);
-            return
-        }
-
         api.get(`RelatorioCarteiras?mes=${mesSelecionado}&ano=${anoSelecionado}&captadorId=${captadoreSelecionado}`, response => {
             SetResumo(response.data.resumo);
             setTaxaNaoAverbado(response.data.taxaNaoAverbado);
@@ -131,12 +126,13 @@ function RelatorioCarteira() {
 
     return (
         <NavBar pagina_atual={'CARTEIRA'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
+            <h1>Relatório de carteira</h1>
             <small>FILTRO:</small>
             <div className='row'>
                 <div className="col-md-4">
                     <label htmlFor="">Selecione a corretora:</label>
                     <select className='form-control' value={captadoreSelecionado} onChange={(e) => setCaptadoreSelecionado(e.target.value)}>
-                        <option value={0}>SELECIONE</option>
+                        <option value={0}>TODOS</option>
                         {captadores.map((captador) => (
                             <option key={captador.captador_id} value={captador.captador_id}>
                                 {captador.captador_nome.toUpperCase()}
