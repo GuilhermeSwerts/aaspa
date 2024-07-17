@@ -42,15 +42,36 @@ namespace AASPA.Domain.Service
             _mysql.SaveChanges();
         }
 
+        public void AtualizarRemessaCliente(int clienteId, int remessaId)
+        {
+            var cliente = _mysql.clientes.FirstOrDefault(x => x.cliente_id == clienteId);
+            cliente.cliente_remessa_id = remessaId;
+            _mysql.clientes.Update(cliente);
+            _mysql.SaveChanges();
+        }
+
         public RetornoRemessaResponse GerarRemessa(int mes, int ano, DateTime dateInit, DateTime dateEnd)
         {
             try
             {
+                var RetornoVinculado = new object();
+                var Remessaexist = RemessaExiste(mes, ano);
+
+                if (Remessaexist != null)
+                {
+                    RetornoVinculado = VerificarRetornoVinculadoRemessa(Remessaexist.remessa_id);
+                    if (RetornoVinculado != null) { throw new Exception($"Remessa já vinculada a um retorno! Não será possível gerar outra remessa com a competência {ano}{mes.ToString().PadLeft(2, '0')}."); }
+                    InativarRemessa(Remessaexist);
+                    RemoverVinculoClientesRemessa(Remessaexist);
+                }
+
                 string nomeArquivo = $"D.SUB.GER.176.{ano}{mes.ToString().PadLeft(2, '0')}";
 
                 var clientes = RecuperarClientesAtivosExcluidos(dateInit, dateEnd);
 
                 clientes = RecuperarClientesAtivosExcluidosLegados(dateEnd, clientes);
+
+                if(clientes == null) { throw new Exception("Não existe nenhum cliente para ser gerado remessa no período informado!"); }
 
                 var idRegistro = SalvarDadosRemessa(clientes, mes, ano, nomeArquivo, dateInit, dateEnd);
 
@@ -62,8 +83,6 @@ namespace AASPA.Domain.Service
 
                     var statusNovo = clienteData.StatusAtual.status_id == (int)EStatus.AtivoAguardandoAverbacao ?
                         (int)EStatus.Ativo : (int)EStatus.Deletado;
-
-                    VincularRemessaCliente(cliente.cliente_id, idRegistro);
                 }
 
                 return new RetornoRemessaResponse
@@ -77,6 +96,19 @@ namespace AASPA.Domain.Service
 
                 throw;
             }
+        }
+
+        private void RemoverVinculoClientesRemessa(RemessaDb remessaexist)
+        {
+            var clientes = _mysql.clientes.Where(x => x.cliente_remessa_id == remessaexist.remessa_id).ToList();
+
+            foreach (var cliente in clientes)
+            {
+                cliente.cliente_remessa_id = 0;
+
+                _mysql.clientes.Update(cliente);
+            }
+            _mysql.SaveChanges();
         }
 
         private List<ClienteDb> RecuperarClientesAtivosExcluidosLegados(DateTime dateEnd, List<ClienteDb> clientes)
@@ -116,16 +148,6 @@ namespace AASPA.Domain.Service
 
         public int SalvarDadosRemessa(List<ClienteDb> clientes, int mes, int ano, string nomeArquivo, DateTime dateInit, DateTime dateEnd)
         {
-            var RetornoVinculado = new object();
-            var RemessaDeletar = RemessaExiste(mes, ano);
-
-            if (RemessaDeletar != null)
-            {
-                RetornoVinculado = VerificarRetornoVinculadoRemessa(RemessaDeletar.remessa_id);
-                if (RetornoVinculado != null){  throw new Exception("Remessa já vinculada a um retorno! Não será possível gerar outra remessa.");}
-                InativarRemessa(RemessaDeletar);
-            }
-
             var remessa = new RemessaDb
             {
                 remessa_ano_mes = $"{ano}{mes.ToString().PadLeft(2, '0')}",
@@ -150,6 +172,8 @@ namespace AASPA.Domain.Service
                     registro_valor_percentual_desconto = 500,
                     remessa_id = idRemessa
                 });
+
+                AtualizarRemessaCliente(clienteDb.cliente_id, remessa.remessa_id);
             }
 
             _mysql.SaveChanges();
