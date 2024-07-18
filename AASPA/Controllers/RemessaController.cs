@@ -53,6 +53,7 @@ namespace AASPA.Controllers
             try
             {
                 var response = _remessa.BuscarArquivo(remessaId);
+                Response.Headers.Add("X-File-Name", response.NomeArquivo);
                 return File(response.Bytes, "application/csv;charset=utf-8", response.NomeArquivo);
             }
             catch(System.Exception ex)
