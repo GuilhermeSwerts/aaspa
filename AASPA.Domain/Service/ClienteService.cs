@@ -135,8 +135,9 @@ namespace AASPA.Domain.Service
             using var tran = _mysql.Database.BeginTransaction();
             try
             {
-                string cpf = novoCliente.Cliente.Cpf.Replace(".", "").Replace("-", "");
-                if (_mysql.clientes.Any(x => x.cliente_cpf == cpf))
+                string cpf = novoCliente.Cliente.Cpf.Replace(".", "").Replace("-", "").PadLeft(11, '0');
+                var clienteCadastrado = _mysql.clientes.FirstOrDefault(x => x.cliente_cpf == cpf);
+                if (clienteCadastrado != null)
                 {
                     if (!isList)
                     {
@@ -144,79 +145,104 @@ namespace AASPA.Domain.Service
                     }
                     else
                     {
-                        return;
+                        clienteCadastrado.cliente_nome = novoCliente.Cliente.Nome ?? "";
+                        clienteCadastrado.cliente_cep = novoCliente.Cliente.Cep.Replace(".", "").Replace("-", "");
+                        clienteCadastrado.cliente_logradouro = novoCliente.Cliente.Logradouro ?? "";
+                        clienteCadastrado.cliente_bairro = novoCliente.Cliente.Bairro ?? "";
+                        clienteCadastrado.cliente_localidade = novoCliente.Cliente.Localidade ?? "";
+                        clienteCadastrado.cliente_uf = novoCliente.Cliente.Uf ?? "";
+                        clienteCadastrado.cliente_numero = novoCliente.Cliente.Numero ?? "";
+                        clienteCadastrado.cliente_complemento = novoCliente.Cliente.Complemento ?? "";
+                        clienteCadastrado.cliente_dataNasc = novoCliente.Cliente.DataNasc;
+                        clienteCadastrado.cliente_dataCadastro = novoCliente.Cliente.DataCad;
+                        clienteCadastrado.cliente_nrDocto = novoCliente.Cliente.NrDocto ?? string.Empty;
+                        clienteCadastrado.cliente_empregador = novoCliente.Cliente.Empregador ?? "";
+                        clienteCadastrado.cliente_matriculaBeneficio = novoCliente.Cliente.MatriculaBeneficio ?? "";
+                        clienteCadastrado.cliente_nomeMae = novoCliente.Cliente.NomeMae ?? "";
+                        clienteCadastrado.cliente_nomePai = novoCliente.Cliente.NomePai ?? "";
+                        clienteCadastrado.cliente_telefoneFixo = novoCliente.Cliente.TelefoneFixo != null ? novoCliente.Cliente.TelefoneFixo.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "") : null;
+                        clienteCadastrado.cliente_telefoneCelular = novoCliente.Cliente.TelefoneCelular.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "");
+                        clienteCadastrado.cliente_possuiWhatsapp = novoCliente.Cliente.PossuiWhatsapp;
+                        clienteCadastrado.cliente_funcaoAASPA = novoCliente.Cliente.FuncaoAASPA ?? "";
+                        clienteCadastrado.cliente_estado_civil = novoCliente.Cliente.EstadoCivil;
+                        clienteCadastrado.cliente_sexo = novoCliente.Cliente.Sexo;
+                        clienteCadastrado.clientes_cadastro_externo = cadastroExterno;
+
+                        _mysql.clientes.Update(clienteCadastrado);
+                        _mysql.SaveChanges();
                     }
-                }
-
-                var cliente = new ClienteDb
-                {
-                    cliente_cpf = cpf,
-                    cliente_nome = novoCliente.Cliente.Nome ?? "",
-                    cliente_cep = novoCliente.Cliente.Cep.Replace(".", "").Replace("-", ""),
-                    cliente_logradouro = novoCliente.Cliente.Logradouro ?? "",
-                    cliente_bairro = novoCliente.Cliente.Bairro ?? "",
-                    cliente_localidade = novoCliente.Cliente.Localidade ?? "",
-                    cliente_uf = novoCliente.Cliente.Uf ?? "",
-                    cliente_numero = novoCliente.Cliente.Numero ?? "",
-                    cliente_complemento = novoCliente.Cliente.Complemento ?? "",
-                    cliente_dataNasc = novoCliente.Cliente.DataNasc,
-                    cliente_dataCadastro = novoCliente.Cliente.DataCad,
-                    cliente_nrDocto = novoCliente.Cliente.NrDocto ?? string.Empty,
-                    cliente_empregador = novoCliente.Cliente.Empregador ?? "",
-                    cliente_matriculaBeneficio = novoCliente.Cliente.MatriculaBeneficio ?? "",
-                    cliente_nomeMae = novoCliente.Cliente.NomeMae ?? "",
-                    cliente_nomePai = novoCliente.Cliente.NomePai ?? "",
-                    cliente_telefoneFixo = novoCliente.Cliente.TelefoneFixo != null ? novoCliente.Cliente.TelefoneFixo.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "") : null,
-                    cliente_telefoneCelular = novoCliente.Cliente.TelefoneCelular.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", ""),
-                    cliente_possuiWhatsapp = novoCliente.Cliente.PossuiWhatsapp,
-                    cliente_funcaoAASPA = novoCliente.Cliente.FuncaoAASPA ?? "",
-                    cliente_email = novoCliente.Cliente.Email ?? "",
-                    cliente_situacao = true,
-                    cliente_estado_civil = novoCliente.Cliente.EstadoCivil,
-                    cliente_sexo = novoCliente.Cliente.Sexo,
-                    clientes_cadastro_externo = cadastroExterno
-                };
-
-                if (novoCliente.Cliente.DataCad != default(DateTime))
-                {
-                    cliente.cliente_dataCadastro = novoCliente.Cliente.DataCad;
-                }
-
-                _mysql.clientes.Add(cliente);
-                _mysql.SaveChanges();
-
-                _mysql.log_status.Add(new LogStatusDb
-                {
-                    log_status_antigo_id = 1,
-                    log_status_novo_id = 1,
-                    log_status_cliente_id = cliente.cliente_id,
-                    log_status_dt_cadastro = DateTime.Now
-                });
-                _mysql.SaveChanges();
-
-                string captadorCpfCnpj = novoCliente.Captador.CpfOuCnpj.Replace(".", "").Replace("-", "").Replace("/", "");
-                var captador = _mysql.captadores.FirstOrDefault(x => x.captador_cpf_cnpj == captadorCpfCnpj);
-                if (captador != null)
-                {
-                    VincularCaptadorCliente(captador, cliente);
                 }
                 else
                 {
-                    captador = new CaptadorDb
+                    var cliente = new ClienteDb
                     {
-                        captador_cpf_cnpj = captadorCpfCnpj,
-                        captador_nome = novoCliente.Captador.Nome,
-                        captador_descricao = novoCliente.Captador.Descricao ?? "",
-                        captador_e_cnpj = captadorCpfCnpj.Length > 11,
-                        captador_situacao = true
+                        cliente_cpf = cpf.PadLeft(11, '0'),
+                        cliente_nome = novoCliente.Cliente.Nome ?? "",
+                        cliente_cep = novoCliente.Cliente.Cep.Replace(".", "").Replace("-", ""),
+                        cliente_logradouro = novoCliente.Cliente.Logradouro ?? "",
+                        cliente_bairro = novoCliente.Cliente.Bairro ?? "",
+                        cliente_localidade = novoCliente.Cliente.Localidade ?? "",
+                        cliente_uf = novoCliente.Cliente.Uf ?? "",
+                        cliente_numero = novoCliente.Cliente.Numero ?? "",
+                        cliente_complemento = novoCliente.Cliente.Complemento ?? "",
+                        cliente_dataNasc = novoCliente.Cliente.DataNasc,
+                        cliente_dataCadastro = novoCliente.Cliente.DataCad,
+                        cliente_nrDocto = novoCliente.Cliente.NrDocto ?? string.Empty,
+                        cliente_empregador = novoCliente.Cliente.Empregador ?? "",
+                        cliente_matriculaBeneficio = novoCliente.Cliente.MatriculaBeneficio ?? "",
+                        cliente_nomeMae = novoCliente.Cliente.NomeMae ?? "",
+                        cliente_nomePai = novoCliente.Cliente.NomePai ?? "",
+                        cliente_telefoneFixo = novoCliente.Cliente.TelefoneFixo != null ? novoCliente.Cliente.TelefoneFixo.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "") : null,
+                        cliente_telefoneCelular = novoCliente.Cliente.TelefoneCelular.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", ""),
+                        cliente_possuiWhatsapp = novoCliente.Cliente.PossuiWhatsapp,
+                        cliente_funcaoAASPA = novoCliente.Cliente.FuncaoAASPA ?? "",
+                        cliente_email = novoCliente.Cliente.Email ?? "",
+                        cliente_situacao = true,
+                        cliente_estado_civil = novoCliente.Cliente.EstadoCivil,
+                        cliente_sexo = novoCliente.Cliente.Sexo,
+                        clientes_cadastro_externo = cadastroExterno
                     };
-                    _mysql.captadores.Add(captador);
+
+                    if (novoCliente.Cliente.DataCad != default(DateTime))
+                    {
+                        cliente.cliente_dataCadastro = novoCliente.Cliente.DataCad;
+                    }
+
+                    _mysql.clientes.Add(cliente);
                     _mysql.SaveChanges();
-                    VincularCaptadorCliente(captador, cliente);
+
+                    _mysql.log_status.Add(new LogStatusDb
+                    {
+                        log_status_antigo_id = 1,
+                        log_status_novo_id = 1,
+                        log_status_cliente_id = cliente.cliente_id,
+                        log_status_dt_cadastro = DateTime.Now
+                    });
+                    _mysql.SaveChanges();
+
+                    string captadorCpfCnpj = novoCliente.Captador.CpfOuCnpj.Replace(".", "").Replace("-", "").Replace("/", "");
+                    var captador = _mysql.captadores.FirstOrDefault(x => x.captador_cpf_cnpj == captadorCpfCnpj);
+                    if (captador != null)
+                    {
+                        VincularCaptadorCliente(captador, cliente);
+                    }
+                    else
+                    {
+                        captador = new CaptadorDb
+                        {
+                            captador_cpf_cnpj = captadorCpfCnpj,
+                            captador_nome = novoCliente.Captador.Nome,
+                            captador_descricao = novoCliente.Captador.Descricao ?? "",
+                            captador_e_cnpj = captadorCpfCnpj.Length > 11,
+                            captador_situacao = true
+                        };
+                        _mysql.captadores.Add(captador);
+                        _mysql.SaveChanges();
+                        VincularCaptadorCliente(captador, cliente);
+                    }
                 }
 
                 tran.Commit();
-
             }
             catch (ClienteException ce)
             {
@@ -388,7 +414,7 @@ namespace AASPA.Domain.Service
 
                     var captadores = await GetCaptador(token);
 
-                    string requestUri = $"https://integraall.com/api/Pessoa/ListarPessoasPorFiltro?DataCadastroInicio={DataCadastroInicio}&DataCadastroFim={DataCadastroFim}";
+                    string requestUri = $"https://integraall.com/api/Pessoa/ListarPessoasPorFiltro?StatusId=11&DataCadastroInicio={DataCadastroInicio}&DataCadastroFim={DataCadastroFim}";
                     var requestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
                     requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
                     var response = await client.SendAsync(requestMessage);
