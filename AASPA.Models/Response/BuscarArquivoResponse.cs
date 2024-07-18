@@ -9,6 +9,6 @@ namespace AASPA.Models.Response
     public class BuscarArquivoResponse
     {
         public string NomeArquivo { get; set; }
-        public string Base64 { get; set; }
+        public byte[] Bytes { get; set; }
     }
 }

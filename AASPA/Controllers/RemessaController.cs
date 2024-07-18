@@ -53,9 +53,7 @@ namespace AASPA.Controllers
             try
             {
                 var response = _remessa.BuscarArquivo(remessaId);
-                byte[] conteudoBytes = System.IO.File.ReadAllBytes(response.Base64);
-                response.Base64 = Convert.ToBase64String(conteudoBytes);
-                return Ok(response);
+                return File(response.Bytes, "application/csv;charset=utf-8", response.NomeArquivo);
             }
             catch(System.Exception ex)
             {
