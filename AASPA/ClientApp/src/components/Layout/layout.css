@@ -12,7 +12,6 @@
     flex-direction: column;
     align-items: center;
     padding: 20px 0;
-    overflow: auto;
     position: fixed;
     left: -215px;
     transition: 0.5s ease-in-out;
@@ -59,7 +58,7 @@
     color: #fff;
 }
 
-.menu-item-active{
+.menu-item-active {
     background-color: #3355F4;
     color: #fff;
 }
@@ -140,9 +139,43 @@
     left: 0px !important;
 }
 
-.dashboard-container{
+.dashboard-container {
     padding: 2rem;
     background: #fff;
     min-height: 100vh;
     border-radius: 50px;
+}
+
+.menu-item {
+    position: relative;
+    /* Necessário para posicionar o tooltip */
+    padding: 15px 20px;
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #ccc;
+}
+
+.menu-item:hover .nav-tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+.nav-tooltip {
+    position: absolute;
+    left: 100%;
+    /* Posiciona o tooltip à direita do item */
+    bottom: 50%;
+    /* Ajusta a posição vertical do tooltip */
+    background-color: #333;
+    color: #fff;
+    padding: 5px;
+    border-radius: 3px;
+    white-space: nowrap;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 1000;
 }
