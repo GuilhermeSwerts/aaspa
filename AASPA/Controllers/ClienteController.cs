@@ -116,11 +116,11 @@ namespace AASPA.Host.Controllers
         [AllowAnonymous]
         [HttpGet]
         [Route("/DownloadClienteFiltro")]
-        public IActionResult DownloadFiltro([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd)
-        {
+        public IActionResult DownloadFiltro([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual, int cadastroExterno = 0, string nome = "", string cpf = "", DateTime? dateInitAverbacao = null, DateTime? dateEndAverbacao = null)
+            {
             try
             {
-                var clientes = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd,null);
+                var clientes = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd, paginaAtual, cadastroExterno, nome, cpf, dateInitAverbacao, dateEndAverbacao);
                 byte[] base64 = _service.DownloadFiltro(clientes);
                 return File(base64, "application/csv;charset=utf-8", "FiltroClientes.csv");
             }

@@ -119,7 +119,7 @@ export default () => {
     }
 
     const DownloadClienteFiltro = () => {
-        window.open(api.urlBase + `/DownloadClienteFiltro?statusCliente=${statusCliente}&statusRemessa=${statusRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}`)
+        window.open(`${process.env.NODE_ENV === "production" ? "https://adm.aaspa.org.br" : api.urlBase}/DownloadClienteFiltro?statusCliente=${statusCliente}&statusRemessa=${statusRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${paginaAtual}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}`)
     }
 
     // const AlterarPagina = (e) => {
