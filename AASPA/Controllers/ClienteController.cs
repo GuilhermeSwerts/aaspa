@@ -38,11 +38,11 @@ namespace AASPA.Host.Controllers
 
         [HttpGet]
         [Route("/BuscarTodosClientes")]
-        public ActionResult Get([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual,int cadastroExterno = 0, string nome = "", string cpf = "")
+        public ActionResult Get([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual,int cadastroExterno = 0, string nome = "", string cpf = "",DateTime? dateInitAverbacao = null, DateTime? dateEndAverbacao = null)
         {
             try
             {
-                var (Clientes, QtdPaginas, TotalClientes) = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd, paginaAtual, cadastroExterno, nome, cpf);
+                var (Clientes, QtdPaginas, TotalClientes) = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd, paginaAtual, cadastroExterno, nome, cpf, dateInitAverbacao, dateEndAverbacao);
                 return Ok(new
                 {
                     Clientes,

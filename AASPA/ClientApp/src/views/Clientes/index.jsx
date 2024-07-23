@@ -43,6 +43,9 @@ export default () => {
     const [dateInit, setDateInit] = useState(get1DiaDoMes());
     const [dateEnd, setDateEnd] = useState(getDataDeHoje());
 
+    const [dateInitAverbacao, setDateInitAverbacao] = useState('');
+    const [dateEndAverbacao, setDateEndAverbacao] = useState('');
+
     const [clientes, setClientes] = useState([]);
     const [clientesFiltro, setClientesFiltro] = useState([]);
     const [filtroNome, setFiltroNome] = useState(true);
@@ -65,7 +68,7 @@ export default () => {
             sRemessa = statusRemessa;
         }
 
-        api.get(`BuscarTodosClientes?statusCliente=${sCliente}&statusRemessa=${sRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${pPagina}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}`, res => {
+        api.get(`BuscarTodosClientes?statusCliente=${sCliente}&statusRemessa=${sRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${pPagina}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}&dateInitAverbacao=${dateInitAverbacao}&dateEndAverbacao=${dateEndAverbacao}`, res => {
             setClientes([]);
             setClientesFiltro([]);
 
@@ -221,6 +224,14 @@ export default () => {
                         <option value={1}>SIM</option>
                         <option value={2}>NÃO</option>
                     </select>
+                </div>
+                <div className="col-md-2">
+                    <span>Data Da Averbação De:</span>
+                    <input type="date" value={dateInitAverbacao} onChange={e => setDateInitAverbacao(e.target.value)} name="dateInitAverbacao" id="dateInitAverbacao" className='form-control' />
+                </div>
+                <div className="col-md-2">
+                    <span>Até:</span>
+                    <input type="date" value={dateEndAverbacao} onChange={e => setDateEndAverbacao(e.target.value)} name="dateEndAverbacao" id="dateEndAverbacao" className='form-control' />
                 </div>
                 <div className="col-md-1" style={{ marginTop: '20px' }}>
                     <button style={{ width: '100%' }} onClick={() => BuscarTodosClientes(statusCliente, statusRemessa, 1)} className='btn btn-primary'><FaSearch size={17} /></button>

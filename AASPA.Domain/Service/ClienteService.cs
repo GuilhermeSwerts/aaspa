@@ -275,7 +275,7 @@ namespace AASPA.Domain.Service
             }
         }
 
-        public (List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) BuscarTodosClientes(int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual, int cadastroExterno = 0, string nome = "", string cpf = "")
+        public (List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) BuscarTodosClientes(int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual, int cadastroExterno = 0, string nome = "", string cpf = "", DateTime? dateInitAverbacao = null, DateTime? dateEndAverbacao = null)
         {
             statusCliente = statusCliente ?? 0;
             statusRemessa = statusRemessa ?? 0;
@@ -286,6 +286,8 @@ namespace AASPA.Domain.Service
                             where
                                    (dateInit == null || cli.cliente_dataCadastro >= dateInit)
                                 && (dateEnd == null || cli.cliente_dataCadastro < dateEnd.Value.AddDays(1))
+                                && (dateInitAverbacao == null || cli.cliente_DataAverbacao >= dateInitAverbacao)
+                                && (dateEndAverbacao == null || cli.cliente_DataAverbacao < dateEndAverbacao.Value.AddDays(1))
                                 && (string.IsNullOrEmpty(nome) || cli.cliente_nome.ToUpper().Contains(nome))
                                 && (string.IsNullOrEmpty(cpf) || cli.cliente_cpf.ToUpper().Contains(cpf))
 
