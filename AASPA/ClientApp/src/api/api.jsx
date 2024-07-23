@@ -85,4 +85,4 @@ export default class Api {
     }
 }
 
-export const api = new Api(process.env.NODE_ENV === 'production' ? 'http://hmlaaspa.aaspa.org.br' : "https://localhost:44326");
+export const api = new Api(document.getElementsByTagName('base')[0].getAttribute('href'));

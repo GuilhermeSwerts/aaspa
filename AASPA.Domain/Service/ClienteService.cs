@@ -167,6 +167,7 @@ namespace AASPA.Domain.Service
                         clienteCadastrado.cliente_estado_civil = novoCliente.Cliente.EstadoCivil;
                         clienteCadastrado.cliente_sexo = novoCliente.Cliente.Sexo;
                         clienteCadastrado.clientes_cadastro_externo = cadastroExterno;
+                        clienteCadastrado.cliente_DataAverbacao = novoCliente.Cliente.DataAverbacao;
 
                         _mysql.clientes.Update(clienteCadastrado);
                         _mysql.SaveChanges();
@@ -200,8 +201,9 @@ namespace AASPA.Domain.Service
                         cliente_situacao = true,
                         cliente_estado_civil = novoCliente.Cliente.EstadoCivil,
                         cliente_sexo = novoCliente.Cliente.Sexo,
-                        clientes_cadastro_externo = cadastroExterno
-                    };
+                        clientes_cadastro_externo = cadastroExterno,
+                        cliente_DataAverbacao = novoCliente.Cliente.DataAverbacao
+                };
 
                     if (novoCliente.Cliente.DataCad != default(DateTime))
                     {
@@ -414,7 +416,7 @@ namespace AASPA.Domain.Service
 
                     var captadores = await GetCaptador(token);
 
-                    string requestUri = $"https://integraall.com/api/Pessoa/ListarPessoasPorFiltro?StatusId=11&DataCadastroInicio={DataCadastroInicio}&DataCadastroFim={DataCadastroFim}";
+                    string requestUri = $"https://dev.integraall.com/api/Pessoa/ListarPessoasPorFiltro?StatusId=11&DataCadastroInicio={DataCadastroInicio}&DataCadastroFim={DataCadastroFim}";
                     var requestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
                     requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
                     var response = await client.SendAsync(requestMessage);
@@ -449,7 +451,8 @@ namespace AASPA.Domain.Service
                                 Numero = item.EndNumero,
                                 DataCad = item.DataCadastro,
                                 DataNasc = item.DataNascimento,
-                                MatriculaBeneficio = item.Matricula                                
+                                MatriculaBeneficio = item.Matricula,
+                                DataAverbacao = item.dataSolicitacaoAtivacao
                             };
 
                             var clientes = new ClienteRequest()

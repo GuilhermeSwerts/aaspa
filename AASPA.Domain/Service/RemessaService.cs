@@ -69,7 +69,7 @@ namespace AASPA.Domain.Service
 
                 var clientes = RecuperarClientesAtivosExcluidos(dateInit, dateEnd);
 
-                clientes = RecuperarClientesAtivosExcluidosLegados(dateEnd, clientes);
+                //clientes = RecuperarClientesAtivosExcluidosLegados(dateEnd, clientes);
 
                 if (clientes == null) { throw new Exception("Não existe nenhum cliente para ser gerado remessa no período informado!"); }
 
@@ -156,7 +156,7 @@ namespace AASPA.Domain.Service
                           select c).ToList();
 
             result = result
-                .Where(x => x.cliente_dataCadastro < dateEnd.AddDays(1)).ToList();
+                .Where(x => x.cliente_DataAverbacao < dateEnd.AddDays(1)).ToList();
 
 
             foreach (var item in result)
@@ -663,7 +663,7 @@ namespace AASPA.Domain.Service
                           select c).ToList();
 
             result = result
-                .Where(x => x.cliente_dataCadastro >= dateInit && x.cliente_dataCadastro < dateEnd.AddDays(1)).ToList();
+                .Where(x => x.cliente_DataAverbacao >= dateInit && x.cliente_DataAverbacao < dateEnd.AddDays(1)).ToList();
 
             return result;
         }
