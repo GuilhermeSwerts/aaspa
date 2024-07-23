@@ -69,13 +69,11 @@ namespace AASPA.Domain.Service
 
                 var clientes = RecuperarClientesAtivosExcluidos(dateInit, dateEnd);
 
-                clientes = RecuperarClientesAtivosExcluidosLegados(dateEnd, clientes);
+                //clientes = RecuperarClientesAtivosExcluidosLegados(dateEnd, clientes);
 
-                if(clientes == null) { throw new Exception("Não existe nenhum cliente para ser gerado remessa no período informado!"); }
+                if (clientes == null) { throw new Exception("Não existe nenhum cliente para ser gerado remessa no período informado!"); }
 
                 var idRegistro = SalvarDadosRemessa(clientes, mes, ano, nomeArquivo, dateInit, dateEnd);
-
-                string caminho = GerarArquivoRemessa(idRegistro, mes, ano, nomeArquivo);
 
                 foreach (var cliente in clientes)
                 {
@@ -85,9 +83,12 @@ namespace AASPA.Domain.Service
                         (int)EStatus.Ativo : (int)EStatus.Deletado;
                 }
 
+                var remessa = _mysql.remessa.FirstOrDefault(x => x.remessa_id == idRegistro);
+                remessa.remessa_arquivo = GetByteRemessa(idRegistro, mes, ano, nomeArquivo);
+                _mysql.SaveChanges();
+
                 return new RetornoRemessaResponse
                 {
-                    caminho = caminho,
                     remessa_id = idRegistro,
                 };
             }
@@ -96,6 +97,29 @@ namespace AASPA.Domain.Service
 
                 throw;
             }
+        }
+
+        private byte[] GetByteRemessa(int idRegistro, int mes, int ano, string nomeArquivo)
+        {
+            string linhaArquivo = string.Empty;
+            List<string> ValorLinha = new List<string>();
+            
+            ValorLinha.Add("0AASPA            11                        ".PadRight(45));
+
+            var clientes = _mysql.registro_remessa.Where(x => x.remessa_id == idRegistro).ToList();
+
+            foreach (var cliente in clientes)
+            {
+                ValorLinha.Add($"1{cliente.registro_numero_beneficio}{cliente.registro_codigo_operacao}000{cliente.registro_decimo_terceiro}{cliente.registro_valor_percentual_desconto.ToString().PadLeft(5, '0')}".PadRight(45));
+            }
+            ValorLinha.Add($"9{clientes.Count.ToString().PadLeft(6, '0')}".PadRight(45));
+
+            foreach (var linha in ValorLinha)
+            {
+                linhaArquivo += linha + "\n";
+            }
+
+            return Encoding.Latin1.GetBytes(linhaArquivo);
         }
 
         private void RemoverVinculoClientesRemessa(RemessaDb remessaexist)
@@ -132,7 +156,7 @@ namespace AASPA.Domain.Service
                           select c).ToList();
 
             result = result
-                .Where(x => x.cliente_dataCadastro < dateEnd.AddDays(1)).ToList();
+                .Where(x => x.cliente_DataAverbacao < dateEnd.AddDays(1)).ToList();
 
 
             foreach (var item in result)
@@ -261,29 +285,19 @@ namespace AASPA.Domain.Service
             }
             return listaTodasRemessas;
         }
+
         public BuscarArquivoResponse BuscarArquivo(int remessaId)
         {
             var remessaDb = _mysql.remessa.FirstOrDefault(x => x.remessa_id == remessaId)
                 ?? throw new Exception($"Remessa não encontrada. id: {remessaId}");
 
-            var anoMes = remessaDb.remessa_ano_mes.Replace("-", "");
-
-            if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Remessa")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Remessa"))); }
-            string diretorioBase = Path.Combine(_env.ContentRootPath, "Remessa");
-            var path = string.Empty;
-
-            string[] todosLogs = Directory.GetFiles(diretorioBase);
-
-            path = todosLogs.FirstOrDefault(arquivo => Path.GetFileName(arquivo).Contains($"D.SUB.GER.176.{anoMes}"));
-
-            if (!File.Exists(path)) throw new Exception("Arquivo não encontrado");
-
             return new BuscarArquivoResponse
             {
-                NomeArquivo = $"D.SUB.GER.176.{anoMes}",
-                Base64 = path
+                NomeArquivo = $"D.SUB.GER.176.{remessaDb.remessa_ano_mes}",
+                Bytes = remessaDb.remessa_arquivo
             };
         }
+
         public async Task<string> LerRetornoRepasse(IFormFile file)
         {
             RetornoFinanceiroDb retorno_financeiro = new RetornoFinanceiroDb();
@@ -649,7 +663,7 @@ namespace AASPA.Domain.Service
                           select c).ToList();
 
             result = result
-                .Where(x => x.cliente_dataCadastro >= dateInit && x.cliente_dataCadastro < dateEnd.AddDays(1)).ToList();
+                .Where(x => x.cliente_DataAverbacao >= dateInit && x.cliente_DataAverbacao < dateEnd.AddDays(1)).ToList();
 
             return result;
         }

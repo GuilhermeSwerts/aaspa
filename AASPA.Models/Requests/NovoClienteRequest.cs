@@ -38,6 +38,7 @@ namespace AASPA.Models.Requests
         public string Email { get; set; } = string.Empty;
         public int EstadoCivil { get; set; }
         public int? Sexo { get; set; }
+        public DateTime? DataAverbacao { get; set; }
     }
 
     public class NovoCaptador 

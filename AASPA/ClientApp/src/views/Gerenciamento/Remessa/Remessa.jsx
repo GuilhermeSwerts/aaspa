@@ -6,7 +6,7 @@ import { Col, Row } from 'reactstrap';
 import BuscarPorMesAno from './BuscarPorMesAno';
 import { api } from '../../../api/api';
 import { Alert } from '../../../util/alertas';
-
+import axios from 'axios';
 function Remessa() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext)
     const [mesSelecionado, setMesSelecionado] = useState(null);
@@ -25,19 +25,30 @@ function Remessa() {
         BuscarRemessas();
     }, [])
 
-    const DownloadRemessa = (RemessaId) => {
-        api.get(`DownloadRemessa/${RemessaId}`, res => {
-            const { nomeArquivo, base64 } = res.data;
-            let csvContent = atob(base64);
-            var blob = new Blob([csvContent], { type: "data:application/octet-stream;base64" });
-            var url = window.URL.createObjectURL(blob);
-            var a = document.createElement("a");
-            a.href = url
-            a.download = nomeArquivo;
-            a.click();
-        }, err => {
-            Alert(err.response.data, false)
-        })
+    const DownloadRemessa = async (RemessaId) => {
+        try {
+            const token = api.access_token;
+
+            const response = await axios.get(`DownloadRemessa/${RemessaId}`, {
+                responseType: 'blob',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const nomeArquivo = response.headers['x-file-name'];
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', nomeArquivo);
+            document.body.appendChild(link);
+            link.click();
+
+            link.parentNode.removeChild(link);
+        } catch (error) {
+            console.error('Erro ao baixar o arquivo:', error);
+        }
     }
 
     return (
@@ -72,7 +83,7 @@ function Remessa() {
                         <td>{remessa.ano}</td>
                         <td>{remessa.periodo}</td>
                         <td>{remessa.dataCriacao}</td>
-                        <td>{remessa.remessa_status === true? "Ativo" : "Inativo"}</td>
+                        <td>{remessa.remessa_status === true ? "Ativo" : "Inativo"}</td>
                         <td><button onClick={_ => DownloadRemessa(remessa.remessaId)} className='btn btn-info'><FaDownload size={20} color='#fff' /></button></td>
                     </tr>))}
                 </tbody>
