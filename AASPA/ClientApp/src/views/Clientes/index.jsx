@@ -119,7 +119,7 @@ export default () => {
     }
 
     const DownloadClienteFiltro = () => {
-        window.open(`${process.env.NODE_ENV === "production" ? "https://adm.aaspa.org.br" : "https://localhost:5001"}/DownloadClienteFiltro?statusCliente=${statusCliente}&statusRemessa=${statusRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${null}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}`)
+        window.open(`${process.env.NODE_ENV === "production" ? "http://hmlaaspa.aaspa.org.br" : "https://localhost:5001"}/DownloadClienteFiltro?statusCliente=${statusCliente}&statusRemessa=${statusRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${null}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}`)
     }
 
     // const AlterarPagina = (e) => {
@@ -248,7 +248,7 @@ export default () => {
                         <th>CPF</th>
                         <th>Nome</th>
                         <th>Telefone(Celular)</th>
-                        <th>Data Cadastro</th>
+                        <th>Data Averbação</th>
                         <th>Status Atual</th>
                         <th>Captador</th>
                         <th>Beneficios Ativos</th>
@@ -265,7 +265,7 @@ export default () => {
                                 <td>{Mascara.cpf(cliente.cliente.cliente_cpf)}</td>
                                 <td>{cliente.cliente.cliente_nome}</td>
                                 <td>{Mascara.telefone(cliente.cliente.cliente_telefoneCelular)}</td>
-                                <td>{Mascara.data(cliente.cliente.cliente_dataCadastro)}</td>
+                                <td>{Mascara.data(cliente.cliente.cliente_DataAverbacao)}</td>
                                 <td>{cliente.statusAtual.status_nome}</td>
                                 <td>{cliente.captador.captador_nome}</td>
                                 <td><select className='form-control'>
