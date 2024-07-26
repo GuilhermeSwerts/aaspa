@@ -119,7 +119,7 @@ export default () => {
     }
 
     const DownloadClienteFiltro = () => {
-        window.open(`${process.env.NODE_ENV === "production" ? "http://hmlaaspa.aaspa.org.br" : "https://localhost:5001"}/DownloadClienteFiltro?statusCliente=${statusCliente}&statusRemessa=${statusRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${null}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}`)
+        window.open(`${process.env.NODE_ENV === "production" ? "http://adm.aaspa.org.br" : "https://localhost:5001"}/DownloadClienteFiltro?statusCliente=${statusCliente}&statusRemessa=${statusRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${null}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}&dateInitAverbacao=${dateInitAverbacao}&dateEndAverbacao=${dateEndAverbacao}`)
     }
 
     // const AlterarPagina = (e) => {
