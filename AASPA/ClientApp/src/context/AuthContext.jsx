@@ -1,4 +1,4 @@
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import { api } from '../api/api';
 
 export const AuthContext = createContext();
@@ -12,6 +12,8 @@ export function AuthProvider({ children }) {
     }
 
     const handdleUsuarioLogado = () => {
+        if(usuario) return;
+        
         var usuario_logado = window.localStorage.getItem("usuario_logado");
         var access_token = window.localStorage.getItem("access_token");
         if (!usuario_logado) window.location.href = '/login';
@@ -23,6 +25,10 @@ export function AuthProvider({ children }) {
         }
         window.location.href = '/login';
     }
+
+    useEffect(() => {
+        handdleUsuarioLogado();
+    }, [usuario]);
 
     return (
         <AuthContext.Provider value={{ usuario, handdleLogout, handdleUsuarioLogado }}>

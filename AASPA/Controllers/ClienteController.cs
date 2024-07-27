@@ -38,11 +38,14 @@ namespace AASPA.Host.Controllers
 
         [HttpGet]
         [Route("/BuscarTodosClientes")]
-        public ActionResult Get([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual,int cadastroExterno = 0, string nome = "", string cpf = "",DateTime? dateInitAverbacao = null, DateTime? dateEndAverbacao = null)
+        public ActionResult Get([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit,
+            DateTime? dateEnd, int? paginaAtual, int cadastroExterno = 0, string nome = "",
+            string cpf = "", DateTime? dateInitAverbacao = null, DateTime? dateEndAverbacao = null
+            , string beneficio = null)
         {
             try
             {
-                var (Clientes, QtdPaginas, TotalClientes) = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd, paginaAtual, cadastroExterno, nome, cpf, dateInitAverbacao, dateEndAverbacao);
+                var (Clientes, QtdPaginas, TotalClientes) = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd, paginaAtual, cadastroExterno, nome, cpf, dateInitAverbacao, dateEndAverbacao, beneficio);
                 return Ok(new
                 {
                     Clientes,
@@ -58,11 +61,13 @@ namespace AASPA.Host.Controllers
 
         [HttpGet]
         [Route("/BuscarFiltroClientes")]
-        public ActionResult BuscarFiltroClientes([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual,int cadastroExterno = 0, string nome = "", string cpf = "")
+        public ActionResult BuscarFiltroClientes([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit,
+            DateTime? dateEnd, int? paginaAtual, int cadastroExterno = 0, string nome = "", string cpf = "", string beneficio = null
+            , DateTime? dateInitAverbacao = null, DateTime? dateEndAverbacao = null)
         {
             try
             {
-                var (Clientes, QtdPaginas, TotalClientes) = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd, paginaAtual, cadastroExterno, nome, cpf);
+                var (Clientes, QtdPaginas, TotalClientes) = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd, paginaAtual, cadastroExterno, nome, cpf, dateInitAverbacao, dateEndAverbacao, beneficio);
                 return Ok(new
                 {
                     Clientes = Clientes.OrderByDescending(x => x.Cliente.cliente_dataCadastro).ToList(),
@@ -78,7 +83,7 @@ namespace AASPA.Host.Controllers
 
         [HttpGet]
         [Route("/GetClientesIntegraall")]
-        public async Task<ActionResult> GetClientesIntegraall([FromQuery] string DataCadastroInicio,string DataCadastroFim)
+        public async Task<ActionResult> GetClientesIntegraall([FromQuery] string DataCadastroInicio, string DataCadastroFim)
         {
             try
             {
@@ -117,7 +122,7 @@ namespace AASPA.Host.Controllers
         [HttpGet]
         [Route("/DownloadClienteFiltro")]
         public IActionResult DownloadFiltro([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual, int cadastroExterno = 0, string nome = "", string cpf = "", DateTime? dateInitAverbacao = null, DateTime? dateEndAverbacao = null)
-            {
+        {
             try
             {
                 var clientes = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd, paginaAtual, cadastroExterno, nome, cpf, dateInitAverbacao, dateEndAverbacao);

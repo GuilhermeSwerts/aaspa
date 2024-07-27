@@ -42,7 +42,7 @@ function ModalVisualizarCliente({ Cliente }) {
                 className='btn btn-success button-container-item'
                 text={'Visualizar Dados Cliente'}
                 top={true}
-                textButton={<FaEye size={17} />}
+                textButton={<FaEye size={10} />}
             />
             <Modal isOpen={show} modalClassName='custom-modal'>
                 <ModalHeader>

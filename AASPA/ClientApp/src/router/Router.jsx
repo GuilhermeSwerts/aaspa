@@ -21,6 +21,7 @@ import RepasseFinanceiro from '../views/Gerenciamento/RepasseFinanceiro/RepasseF
 import Relatorio from '../views/Gerenciamento/Relatorio/Relatorio';
 import Captador from '../views/Gerenciamento/Captador/index';
 import RelatorioCarteira from '../views/Gerenciamento/RepasseCarteira/RelatorioCarteira';
+import Cclientes from '../views/CClientes/index';
 
 export default _ => {
     return (
@@ -28,6 +29,7 @@ export default _ => {
             <Route exact path='/' component={Clientes} />
             <Route exact path='/login' component={Login} />
             <Route exact path='/cliente' component={Cliente} />
+            <Route exact path='/ccliente' component={Cclientes} />
             <Route exact path='/beneficios' component={Beneficios} />
             <Route exact path='/pagamentos' component={Pagamentos} />
             <Route exact path='/historicopagamento' component={HistoricoPagamento} />

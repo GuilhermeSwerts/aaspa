@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Modal, ModalBody, ModalFooter, ModalHeader, Form, FormGroup, Label, Input, Button, Row, Col } from 'reactstrap';
 import { api } from '../../api/api';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { FaPlus } from 'react-icons/fa6';
-import { Alert,Pergunta } from '../../util/alertas';
+import { Alert, Pergunta } from '../../util/alertas';
+import PreVisualizarRemessa from './preVisualizarRemessa';
 
 function ModalNovaRemessa({ BuscarRemessas, DownloadRemessa }) {
     const [show, setShow] = useState(false);
@@ -23,16 +24,40 @@ function ModalNovaRemessa({ BuscarRemessas, DownloadRemessa }) {
         { valor: 12, nome: 'Dezembro' },
     ];
 
+    const getData = (isFim) => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = today.getDate();
+
+        let dayOfMonth;
+
+        if (day > 15) {
+            dayOfMonth = isFim
+                ? new Date(year, today.getMonth() + 1, 0).getDate()
+                : 16;
+        } else {
+            dayOfMonth = isFim
+                ? new Date(year, today.getMonth(), 0).getDate()
+                : 15;
+        }
+
+        return `${year}-${month}-${String(dayOfMonth).padStart(2, '0')}`;
+    };
+
+
     const anoAtual = new Date().getFullYear();
-    const mesAtual = new Date().getMonth() + 1;
+    const mesAtual = new Date().getDay() > 15 ? (new Date().getMonth() + 1) : new Date().getMonth() + 2;
 
     const [anoSelecionado, setAnoSelecionado] = useState(anoAtual);
     const [mesSelecionado, setMesSelecionado] = useState(mesAtual);
 
-    const [dateInit, setdateInit] = useState('');
-    const [dateFim, setDateFim] = useState('');
+    const [dateInit, setdateInit] = useState(getData(false));
+    const [dateFim, setDateFim] = useState(getData(true));
 
     const anos = Array.from({ length: 25 }, (_, i) => anoAtual - i);
+
+    const visualizarRef = useRef()
 
     const initState = () => {
         setAnoSelecionado(anoAtual);
@@ -53,9 +78,14 @@ function ModalNovaRemessa({ BuscarRemessas, DownloadRemessa }) {
         })
     }
 
+    const handdlePreVisualizar = () => {
+        visualizarRef.current.Show(dateInit, dateFim, anoSelecionado, mesSelecionado);
+    }
+
     return (
         <>
             <button className='btn btn-success' onClick={e => setShow(true)}>Gerar Remessa <FaPlus size={20} color='#fff' /></button>
+            <PreVisualizarRemessa ref={visualizarRef} />
             <Modal isOpen={show}>
                 <form onSubmit={e => { e.preventDefault(); handdleSubmit() }}>
                     <ModalHeader>
@@ -102,6 +132,7 @@ function ModalNovaRemessa({ BuscarRemessas, DownloadRemessa }) {
                     </ModalBody>
                     <ModalFooter>
                         <button type='button' onClick={() => { initState(); setShow(false) }} className='btn btn-danger'>Fechar</button>
+                        <button type='button' onClick={handdlePreVisualizar} className='btn btn-info'>Pré-Visualizar</button>
                         <button type='submit' className='btn btn-success'>Gerar</button>
                     </ModalFooter>
                 </form>

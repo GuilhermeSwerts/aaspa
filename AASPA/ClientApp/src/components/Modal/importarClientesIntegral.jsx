@@ -8,7 +8,7 @@ import { Alert } from '../../util/alertas';
 import { LuImport } from "react-icons/lu";
 import moment from 'moment';
 
-function ImportarCLientesIntegral() {
+function ImportarCLientesIntegral({BuscarTodosClientes}) {
     const [show, setShow] = useState(false);
 
     const initState = () => {
@@ -29,6 +29,7 @@ function ImportarCLientesIntegral() {
     const handdleSubmit = () => {
         api.get(`GetClientesIntegraall?DataCadastroInicio=${dataCadastroSelecionada}&DataCadastroFim=${dataCadastroFimSelecionada}`, res => {
             initState();
+            BuscarTodosClientes();
             Alert('Clientes Cadastrados com sucesso!');
             setShow(false);
         }, err => {
@@ -42,7 +43,7 @@ function ImportarCLientesIntegral() {
                 style={{ width: '100%' }}
                 type='button'
                 onClick={() => setShow(true)}
-                className='btn btn-primary'>Importar Clientes Integraall <LuImport size={17} /></button>
+                className='btn btn-primary'>Integraall <LuImport size={17} /></button>
             <Modal isOpen={show}>
                 <form onSubmit={e => { e.preventDefault(); handdleSubmit() }}>
                     <ModalHeader>

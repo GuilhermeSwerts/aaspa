@@ -41,7 +41,7 @@ function ModalLogBeneficios({ ClienteId, ClienteNome }) {
                 className='btn btn-success button-container-item'
                 text={'Log Beneficio'}
                 top={true}
-                textButton={<MdOutlineWorkHistory size={17} />}
+                textButton={<MdOutlineWorkHistory size={10} />}
             />
             <Modal isOpen={show}>
                 <ModalHeader>

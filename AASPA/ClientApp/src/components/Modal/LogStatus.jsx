@@ -42,7 +42,7 @@ function ModalLogStatus({ ClienteId, ClienteNome }) {
                 className='btn btn-success button-container-item'
                 text={'Log Status'}
                 top={true}
-                textButton={<MdOutlineHistoryToggleOff size={17} />}
+                textButton={<MdOutlineHistoryToggleOff size={10} />}
             />
             <Modal isOpen={show}>
                 <ModalHeader>

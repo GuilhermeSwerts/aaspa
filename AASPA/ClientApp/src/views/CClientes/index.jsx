@@ -14,11 +14,12 @@ import { TbZoomMoney } from 'react-icons/tb';
 import * as Enum from '../../util/enum';
 import ModalVisualizarCliente from '../../components/Modal/visualizarDadosCliente';
 import { Alert, Info, Pergunta } from '../../util/alertas';
+import ImportarCLientesIntegral from '../../components/Modal/importarClientesIntegral';
+import axios from 'axios';
 import { Collapse } from 'reactstrap'
-import Paginacao from '../../components/Paginacao/paginacao';
 
-export default () => {
-    const { usuario } = useContext(AuthContext);
+const Cclientes = () => {
+    const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
 
     const [statusCliente, setStatusCliente] = useState(0);
     const [statusRemessa, setStatusRemessa] = useState(0);
@@ -89,6 +90,7 @@ export default () => {
     }
 
     useEffect(() => {
+        handdleUsuarioLogado()
         BuscarTodosClientes();
     }, [])
 
@@ -102,7 +104,7 @@ export default () => {
     }
 
     const DownloadClienteFiltro = () => {
-        window.open(`${api.ambiente}/DownloadClienteFiltro?statusCliente=${statusCliente}&statusRemessa=${statusCliente}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${paginaAtual}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}&dateInitAverbacao=${dateInitAverbacao}&dateEndAverbacao=${dateEndAverbacao}`)
+        window.open(`https://adm.aaspa.org.br/DownloadClienteFiltro?statusCliente=${statusCliente}&statusRemessa=${statusCliente}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${paginaAtual}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}&dateInitAverbacao=${dateInitAverbacao}&dateEndAverbacao=${dateEndAverbacao}`)
     }
 
     const AlterarPagina = async (pagina, isProxima) => {
@@ -137,12 +139,15 @@ export default () => {
 
 
     return (
-        <NavBar pagina_atual={'CLIENTES'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
+        <NavBar pagina_atual={'CARGA CLIENTES'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
             <div className="row">
                 <div className="col-md-2">
                     <button style={{ width: '100%' }} className='btn btn-info' onClick={e => setShowFiltro(!showFiltro)}>{showFiltro ? 'Esconder' : 'Mostrar'} Filtro<FaFilter /></button>
                 </div>
-                <div className="col-md-8"></div>
+                <div className="col-md-2">
+                    <ImportarCLientesIntegral BuscarTodosClientes={BuscarTodosClientes} />
+                </div>
+                <div className="col-md-6"></div>
                 <div className="col-md-2" style={{ display: 'flex', justifyContent: 'end' }}>
                     <button type='button' onClick={() => window.location.href = '/cliente'} className='btn btn-primary'><FaPlus /></button>
                 </div>
@@ -150,61 +155,83 @@ export default () => {
             <br />
             <hr />
             <Collapse isOpen={showFiltro}>
-                <div className="row">
-                    <div className="col-md-2">
-                        <span>Tipo de Filtro</span>
-                        <select className='form-control' onChange={e => setFiltroNome(e.target.value == 1)}>
-                            <option value={1}>NOME</option>
-                            <option value={2}>CPF</option>
-                        </select>
-                    </div>
-                    <div className="col-md-6">
-                        <span>{!filtroNome ? 'Pesquisar pelo CPF' : 'Pesquisar pelo nome'} </span>
-                        <input type="text"
-                            onChange={onChangeFiltro}
-                            maxLength={!filtroNome ? 14 : 255}
-                            className='form-control'
-                            value={!filtroNome ? cpf : nome}
-                            placeholder={!filtroNome ? 'CPF do cliente' : 'Nome do cliente'}
+                <>
+                    <div className='row'>
+                        <div className="col-md-2">
+                            <span>Tipo de Filtro</span>
+                            <select className='form-control' onChange={e => setFiltroNome(e.target.value == 1)}>
+                                <option value={1}>NOME</option>
+                                <option value={2}>CPF</option>
+                            </select>
+                        </div>
+                        {<div className="col-md-6">
+                            <span>{!filtroNome ? 'Pesquisar pelo CPF' : 'Pesquisar pelo nome'} </span>
+                            <input type="text"
+                                onChange={onChangeFiltro}
+                                maxLength={!filtroNome ? 14 : 255}
+                                className='form-control'
+                                value={!filtroNome ? cpf : nome}
+                                placeholder={!filtroNome ? 'CPF do cliente' : 'Nome do cliente'}
 
-                        />
+                            />
+                        </div>}
+                        <div className="col-md-4">
+                            <span>FOI GERADO REMESSA:</span>
+                            <select className='form-control' onChange={e => { setStatusRemessa(e.target.value); BuscarTodosClientes(statusCliente, e.target.value) }}>
+                                <option value={0}>TODOS</option>
+                                <option value={1}>SIM</option>
+                                <option value={2}>NÃO</option>
+                            </select>
+                        </div>
                     </div>
-                    <div className="col-md-2">
-                        <span>Status:</span>
-                        <select className='form-control' onChange={e => { setStatusCliente(e.target.value); BuscarTodosClientes(e.target.value, statusRemessa) }}>
-                            <option value={0}>TODOS</option>
-                            <option value={1}>ATIVOS</option>
-                            <option value={2}>INATIVOS</option>
-                            <option value={3}>EXCLUIDOS</option>
-                        </select>
+                    <div className="row">
+                        <div className="col-md-2">
+                            <span>Status:</span>
+                            <select className='form-control' onChange={e => { setStatusCliente(e.target.value); BuscarTodosClientes(e.target.value, statusRemessa) }}>
+                                <option value={0}>TODOS</option>
+                                <option value={1}>ATIVOS</option>
+                                <option value={2}>INATIVOS</option>
+                                <option value={3}>EXCLUIDOS</option>
+                            </select>
+                        </div>
+                        <div className="col-md-2">
+                            <span>Data De Cadastro De:</span>
+                            <input type="date" value={dateInit} onChange={e => setDateInit(e.target.value)} name="dateInit" id="dateInit" className='form-control' />
+                        </div>
+                        <div className="col-md-2">
+                            <span>Até:</span>
+                            <input type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)} name="dateEnd" id="dateEnd" className='form-control' />
+                        </div>
+                        <div className="col-md-2">
+                            <span>Cadastro Externo:</span>
+                            <select className='form-control' value={cadastroExterno} onChange={e => setcadastroExterno(e.target.value)}>
+                                <option value={0}>TODOS</option>
+                                <option value={1}>SIM</option>
+                                <option value={2}>NÃO</option>
+                            </select>
+                        </div>
+                        <div className="col-md-2">
+                            <span>Data Da Averbação De:</span>
+                            <input type="date" value={dateInitAverbacao} onChange={e => setDateInitAverbacao(e.target.value)} name="dateInitAverbacao" id="dateInitAverbacao" className='form-control' />
+                        </div>
+                        <div className="col-md-2">
+                            <span>Até:</span>
+                            <input type="date" value={dateEndAverbacao} onChange={e => setDateEndAverbacao(e.target.value)} name="dateEndAverbacao" id="dateEndAverbacao" className='form-control' />
+                        </div>
+                        <div className="col-md-2">
+                            <span>N° Benefício</span>
+                            <input placeholder='N° Benefício' type="text" value={beneficio} onChange={e => setBeneficio(e.target.value)} name="beneficio" id="beneficio" className='form-control' />
+                        </div>
+                        <div className="col-md-8" />
+                        <div className="col-md-1" style={{ marginTop: '1.5rem' }}>
+                            <button style={{ width: '100%' }} onClick={() => BuscarTodosClientes(statusCliente, statusRemessa, 1)} className='btn btn-primary'><FaSearch size={17} /></button>
+                        </div>
+                        <div className="col-md-1" style={{ marginTop: '1.5rem' }}>
+                            <button style={{ width: '100%' }} onClick={DownloadClienteFiltro} className='btn btn-primary'><FaDownload size={17} /></button>
+                        </div>
                     </div>
-                    <div className="col-md-2">
-                        <span>Data De Cadastro De:</span>
-                        <input type="date" value={dateInit} onChange={e => setDateInit(e.target.value)} name="dateInit" id="dateInit" className='form-control' />
-                    </div>
-                    <div className="col-md-2">
-                        <span>Até:</span>
-                        <input type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)} name="dateEnd" id="dateEnd" className='form-control' />
-                    </div>
-                    <div className="col-md-2">
-                        <span>Data Da Averbação De:</span>
-                        <input type="date" value={dateInitAverbacao} onChange={e => setDateInitAverbacao(e.target.value)} name="dateInitAverbacao" id="dateInitAverbacao" className='form-control' />
-                    </div>
-                    <div className="col-md-2">
-                        <span>Até:</span>
-                        <input type="date" value={dateEndAverbacao} onChange={e => setDateEndAverbacao(e.target.value)} name="dateEndAverbacao" id="dateEndAverbacao" className='form-control' />
-                    </div>
-                    <div className="col-md-2">
-                        <span>N° Benefício</span>
-                        <input placeholder='N° Benefício' type="text" value={beneficio} onChange={e => setBeneficio(e.target.value)} name="beneficio" id="beneficio" className='form-control' />
-                    </div>
-                    <div className="col-md-1" style={{ marginTop: '1.5rem' }}>
-                        <button style={{ width: '100%' }} onClick={() => BuscarTodosClientes(statusCliente, statusRemessa, 1)} className='btn btn-primary'><FaSearch size={17} /></button>
-                    </div>
-                    <div className="col-md-1" style={{ marginTop: '1.5rem' }}>
-                        <button style={{ width: '100%' }} onClick={DownloadClienteFiltro} className='btn btn-primary'><FaDownload size={17} /></button>
-                    </div>
-                </div>
+                    <br />
+                </>
             </Collapse>
 
             <span>Total Clientes: {totalClientes}</span>
@@ -217,8 +244,11 @@ export default () => {
                         <th>Nome</th>
                         <th>Telefone(Celular)</th>
                         <th>Data Averbação</th>
-                        <th>Data Cadastro</th>
                         <th>Status Atual</th>
+                        <th>Captador</th>
+                        <th>Beneficios Ativos</th>
+                        <th>Remessa</th>
+                        <th>Cadastro Externo</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
@@ -231,8 +261,15 @@ export default () => {
                                 <td>{cliente.cliente.cliente_nome}</td>
                                 <td>{Mascara.telefone(cliente.cliente.cliente_telefoneCelular)}</td>
                                 <td>{Mascara.data(cliente.cliente.cliente_DataAverbacao)}</td>
-                                <td>{Mascara.data(cliente.cliente.cliente_dataCadastro)}</td>
                                 <td>{cliente.statusAtual.status_nome}</td>
+                                <td>{cliente.captador.captador_nome}</td>
+                                <td><select className='form-control-sm'>
+                                    {cliente.beneficios.map(beneficio => (
+                                        <option value={beneficio.beneficio_id}>{beneficio.beneficio_nome_beneficio}</option>
+                                    ))}
+                                </select></td>
+                                <td>{cliente.cliente.cliente_remessa_id > 0 ? cliente.cliente.cliente_remessa_id : '-'}</td>
+                                <td>{cliente.cliente.clientes_cadastro_externo == true ? 'SIM' : 'NÃO'}</td>
                                 {cliente.statusAtual.status_id !== Enum.EStatus.Deletado
                                     && cliente.statusAtual.status_id !== Enum.EStatus.ExcluidoAguardandoEnvio
                                     && cliente.statusAtual.status_id !== Enum.EStatus.Inativo
@@ -309,7 +346,10 @@ export default () => {
                 <button onClick={() => { AlterarPagina(5, true) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>+5</button>
                 <button onClick={() => { AlterarPagina(10, true) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>+10</button>
             </div>
+
+
         </NavBar >
     );
 }
 
+export default Cclientes;

@@ -17,12 +17,12 @@ body {
     margin: 0;
     height: 100vh;
     padding: 0 24px;
-    background-color: var(--color-primary);
-    background-image: url("../../assets/background.svg");
+    /* background-color: var(--color-primary); */
+    /* background-image: url("../../assets/background.svg"); */
     /* background-repeat: no-repeat; */
-    background-size: cover;
+    /* background-size: cover; */
     font-family: "Euclid Circular A";
-    animation: rotate 6s infinite alternate linear;
+    /* animation: rotate 6s infinite alternate linear; */
 }
 
 /* body::after {

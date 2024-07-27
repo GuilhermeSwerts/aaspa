@@ -6,6 +6,11 @@
 
 body {
     overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    font-family: 'Jost', sans-serif;
+    background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
 }
 
 :root {
@@ -50,4 +55,25 @@ button {
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
     background: #555;
+}
+
+.previsualizar-container
+{
+    background: #fff;
+    width: 100%;
+    min-height: 100vh;
+    height: auto;
+    position: fixed;
+    top: 0;
+    z-index: 9999;
+    left: 0;
+    padding: 2rem;
+}
+.previsualizar-close-button{
+    text-align: end;
+    transition: 0.5s;
+    cursor: pointer;
+}
+.previsualizar-close-button:hover{
+    opacity: 0.7;
 }
