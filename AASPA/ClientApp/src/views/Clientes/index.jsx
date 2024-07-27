@@ -15,7 +15,6 @@ import * as Enum from '../../util/enum';
 import ModalVisualizarCliente from '../../components/Modal/visualizarDadosCliente';
 import { Alert, Info, Pergunta } from '../../util/alertas';
 import { Collapse } from 'reactstrap'
-import Paginacao from '../../components/Paginacao/paginacao';
 
 export default () => {
     const { usuario } = useContext(AuthContext);

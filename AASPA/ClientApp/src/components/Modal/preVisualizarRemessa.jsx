@@ -4,6 +4,8 @@ import { Mascara } from '../../util/mascara';
 import { TbZoomMoney } from 'react-icons/tb';
 import { RiChatHistoryLine } from 'react-icons/ri';
 import { FaDownload, FaUserEdit } from 'react-icons/fa';
+import { Alert } from '../../util/alertas';
+
 
 class PreVisualizarRemessa extends Component {
     constructor(props) {

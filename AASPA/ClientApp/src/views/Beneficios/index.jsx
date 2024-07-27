@@ -7,7 +7,7 @@ import ModalVincularBeneficios from '../../components/Modal/ModalVincularBenefic
 import ModalLogBeneficios from '../../components/Modal/ModalLogBeneficios';
 import * as Enum from '../../util/enum';
 import { FaSearch } from 'react-icons/fa';
-import { Alert } from '../../util/alertas';
+import { Alert, Pergunta } from '../../util/alertas';
 
 function Beneficios() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
