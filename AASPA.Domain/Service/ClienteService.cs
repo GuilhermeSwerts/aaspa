@@ -219,7 +219,7 @@ namespace AASPA.Domain.Service
                     _mysql.log_status.Add(new LogStatusDb
                     {
                         log_status_antigo_id = 1,
-                        log_status_novo_id = novoCliente.Cliente.StatusIntegral == 0? 1 : novoCliente.Cliente.StatusIntegral == 1? 1 : 4,
+                        log_status_novo_id = novoCliente.Cliente.StatusIntegral == 0? 1 : novoCliente.Cliente.StatusIntegral == 11? 1 : 4,
                         log_status_cliente_id = cliente.cliente_id,
                         log_status_dt_cadastro = DateTime.Now
                     });
@@ -424,14 +424,13 @@ namespace AASPA.Domain.Service
 
                     foreach (var id in statusId)
                     {
-                        string requestUri = $"https://dev.integraall.com/api/Pessoa/ListarPessoasPorFiltro?StatusId={id}&DataCadastroInicio={DataCadastroInicio}&DataCadastroFim={DataCadastroFim}";
+                        string requestUri = $"https://integraall.com/api/Pessoa/ListarPessoasPorFiltro?StatusId={id}&DataCadastroInicio={DataCadastroInicio}&DataCadastroFim={DataCadastroFim}";
                         var requestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
                         requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
                         var response = await client.SendAsync(requestMessage);
 
                         if (response.IsSuccessStatusCode)
                         {
-                            client.Dispose();
                             string responseBody = await response.Content.ReadAsStringAsync();
                             var data = JsonConvert.DeserializeObject<List<ClienteIntegraallResponse>>(responseBody);
 
@@ -461,7 +460,7 @@ namespace AASPA.Domain.Service
                                     DataNasc = item.DataNascimento,
                                     MatriculaBeneficio = item.Matricula,
                                     DataAverbacao = item.dataSolicitacaoAtivacao,
-                                    StatusIntegral = item.StatusIntegral
+                                    StatusIntegral = item.StatusId
                                 };
 
                                 var clientes = new ClienteRequest()
