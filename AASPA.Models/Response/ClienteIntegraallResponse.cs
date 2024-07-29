@@ -56,5 +56,6 @@ namespace AASPA.Models.Response
         public string LinkKompleto { get; set; }
         public string PropostaHistoricos { get; set; }
         public DateTime? dataSolicitacaoAtivacao { get; set; }
+        public int StatusIntegral { get; set; }
     }
 }

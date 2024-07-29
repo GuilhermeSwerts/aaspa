@@ -39,6 +39,7 @@ namespace AASPA.Models.Requests
         public int EstadoCivil { get; set; }
         public int? Sexo { get; set; }
         public DateTime? DataAverbacao { get; set; }
+        public int StatusIntegral { get; set; }
     }
 
     public class NovoCaptador 
