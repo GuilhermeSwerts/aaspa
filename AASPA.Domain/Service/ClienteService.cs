@@ -135,6 +135,7 @@ namespace AASPA.Domain.Service
             using var tran = _mysql.Database.BeginTransaction();
             try
             {
+                var cliente = new ClienteDb();
                 string cpf = novoCliente.Cliente.Cpf.Replace(".", "").Replace("-", "").PadLeft(11, '0');
                 var clienteCadastrado = _mysql.clientes.FirstOrDefault(x => x.cliente_cpf == cpf);
                 if (clienteCadastrado != null)
@@ -168,6 +169,7 @@ namespace AASPA.Domain.Service
                         clienteCadastrado.cliente_sexo = novoCliente.Cliente.Sexo;
                         clienteCadastrado.clientes_cadastro_externo = cadastroExterno;
                         clienteCadastrado.cliente_DataAverbacao = novoCliente.Cliente.DataAverbacao;
+                        clienteCadastrado.cliente_StatusIntegral = novoCliente.Cliente.StatusIntegral;
 
                         _mysql.clientes.Update(clienteCadastrado);
                         _mysql.SaveChanges();
@@ -175,7 +177,7 @@ namespace AASPA.Domain.Service
                 }
                 else
                 {
-                    var cliente = new ClienteDb
+                    cliente = new ClienteDb
                     {
                         cliente_cpf = cpf.PadLeft(11, '0'),
                         cliente_nome = novoCliente.Cliente.Nome ?? "",
@@ -202,8 +204,9 @@ namespace AASPA.Domain.Service
                         cliente_estado_civil = novoCliente.Cliente.EstadoCivil,
                         cliente_sexo = novoCliente.Cliente.Sexo,
                         clientes_cadastro_externo = cadastroExterno,
-                        cliente_DataAverbacao = novoCliente.Cliente.DataAverbacao
-                };
+                        cliente_DataAverbacao = novoCliente.Cliente.DataAverbacao,
+                        cliente_StatusIntegral = novoCliente.Cliente.StatusIntegral
+                    };
 
                     if (novoCliente.Cliente.DataCad != default(DateTime))
                     {
@@ -216,7 +219,7 @@ namespace AASPA.Domain.Service
                     _mysql.log_status.Add(new LogStatusDb
                     {
                         log_status_antigo_id = 1,
-                        log_status_novo_id = 1,
+                        log_status_novo_id = novoCliente.Cliente.StatusIntegral == 0? 1 : novoCliente.Cliente.StatusIntegral == 1? 1 : 4,
                         log_status_cliente_id = cliente.cliente_id,
                         log_status_dt_cadastro = DateTime.Now
                     });
@@ -417,53 +420,58 @@ namespace AASPA.Domain.Service
                     string token = await GerarToken();
 
                     var captadores = await GetCaptador(token);
+                    List<int> statusId = new List<int> { 11,12,15};
 
-                    string requestUri = $"https://dev.integraall.com/api/Pessoa/ListarPessoasPorFiltro?StatusId=11&DataCadastroInicio={DataCadastroInicio}&DataCadastroFim={DataCadastroFim}";
-                    var requestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
-                    requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
-                    var response = await client.SendAsync(requestMessage);
-
-                    if (response.IsSuccessStatusCode)
+                    foreach (var id in statusId)
                     {
-                        client.Dispose();
-                        string responseBody = await response.Content.ReadAsStringAsync();
-                        var data = JsonConvert.DeserializeObject<List<ClienteIntegraallResponse>>(responseBody);
+                        string requestUri = $"https://dev.integraall.com/api/Pessoa/ListarPessoasPorFiltro?StatusId={id}&DataCadastroInicio={DataCadastroInicio}&DataCadastroFim={DataCadastroFim}";
+                        var requestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
+                        requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
+                        var response = await client.SendAsync(requestMessage);
 
-                        foreach (var item in data)
+                        if (response.IsSuccessStatusCode)
                         {
-                            var cliente = new NovoCliente()
-                            {
-                                Id = item.Id,
-                                Nome = item.NomeCliente,
-                                Cpf = item.Cpf,
-                                EstadoCivil = ConverterTextoParaInt(item.EstadoCivil),
-                                Sexo = item.Sexo.ToLower() == "masculino" ? 1 : 2,
-                                NrDocto = item.DocIdentidade,
-                                NomeMae = item.NomeMae,
-                                NomePai = item.NomePai,
-                                Email = item.EmailPessoal,
-                                TelefoneCelular = item.TelefonePessoal,
-                                TelefoneFixo = item.TelefoneCorporativo,
-                                Logradouro = item.Logradouro,
-                                Bairro = item.Bairro,
-                                Cep = item.Cep,
-                                Localidade = item.Cidade,
-                                Uf = item.Uf,
-                                Complemento = item.Complemento,
-                                Numero = item.EndNumero,
-                                DataCad = item.DataCadastro,
-                                DataNasc = item.DataNascimento,
-                                MatriculaBeneficio = item.Matricula,
-                                DataAverbacao = item.dataSolicitacaoAtivacao
-                            };
+                            client.Dispose();
+                            string responseBody = await response.Content.ReadAsStringAsync();
+                            var data = JsonConvert.DeserializeObject<List<ClienteIntegraallResponse>>(responseBody);
 
-                            var clientes = new ClienteRequest()
+                            foreach (var item in data)
                             {
-                                Cliente = cliente,
-                                Captador = ObterCaptador(item.RevendedorId, captadores)
-                            };
-                            clientesIntegral.Add(clientes);
-                        }
+                                var cliente = new NovoCliente()
+                                {
+                                    Id = item.Id,
+                                    Nome = item.NomeCliente,
+                                    Cpf = item.Cpf,
+                                    EstadoCivil = ConverterTextoParaInt(item.EstadoCivil),
+                                    Sexo = item.Sexo.ToLower() == "masculino" ? 1 : 2,
+                                    NrDocto = item.DocIdentidade,
+                                    NomeMae = item.NomeMae,
+                                    NomePai = item.NomePai,
+                                    Email = item.EmailPessoal,
+                                    TelefoneCelular = item.TelefonePessoal,
+                                    TelefoneFixo = item.TelefoneCorporativo,
+                                    Logradouro = item.Logradouro,
+                                    Bairro = item.Bairro,
+                                    Cep = item.Cep,
+                                    Localidade = item.Cidade,
+                                    Uf = item.Uf,
+                                    Complemento = item.Complemento,
+                                    Numero = item.EndNumero,
+                                    DataCad = item.DataCadastro,
+                                    DataNasc = item.DataNascimento,
+                                    MatriculaBeneficio = item.Matricula,
+                                    DataAverbacao = item.dataSolicitacaoAtivacao,
+                                    StatusIntegral = item.StatusIntegral
+                                };
+
+                                var clientes = new ClienteRequest()
+                                {
+                                    Cliente = cliente,
+                                    Captador = ObterCaptador(item.RevendedorId, captadores)
+                                };
+                                clientesIntegral.Add(clientes);
+                            }
+                        } 
                     }
                 }
                 return clientesIntegral;
