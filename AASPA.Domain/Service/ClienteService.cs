@@ -333,7 +333,7 @@ namespace AASPA.Domain.Service
             {
                 clientes = clientes.Where(x => x.Cliente.cliente_remessa_id == null || x.Cliente.cliente_remessa_id == 0).ToList();
             }
-            if (statusIntegraall >= 11 )
+            if (statusIntegraall > 0)
             {
                 clientes = clientes.Where(x => x.Cliente.cliente_StatusIntegral == statusIntegraall).ToList();
             }
