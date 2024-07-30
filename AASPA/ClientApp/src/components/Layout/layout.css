@@ -124,7 +124,11 @@
 
 .link a {
     color: #000;
-    font-size: 10px;
+    font-size: 15px;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    flex-direction: row-reverse;
 }
 
 .link-active a {
@@ -133,8 +137,8 @@
 }
 
 .link:hover .nav-tooltip {
-    visibility: visible;
-    opacity: 1;
+    /* visibility: visible;
+    opacity: 1; */
 }
 
 .nav-tooltip {
@@ -145,7 +149,6 @@
     border-radius: 3px;
     white-space: nowrap;
     visibility: hidden;
-    opacity: 1;
     transition: opacity 0.3s;
     z-index: 1000;
 
@@ -164,7 +167,7 @@
     border-radius: 20px 20px 0px 0px;
 }
 
-.table tr.selecao{
+.table tr.selecao {
     font-size: 10px !important;
 }
 
@@ -172,4 +175,20 @@
     background-color: #0f0c29 !important;
     color: #fff;
     cursor: pointer;
+}
+
+.transparent-dropdown-menu {
+    cursor: pointer;
+    transition: .5s;
+}
+
+.transparent-dropdown-menu:hover {
+    opacity: 0.7;
+}
+
+.header-nav .dropdown .transparent-dropdown-menu{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
 }
