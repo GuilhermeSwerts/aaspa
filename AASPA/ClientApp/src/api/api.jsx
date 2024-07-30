@@ -6,7 +6,8 @@ export default class Api {
         this.urlBase = urlBase;
 
         this.access_token = window.localStorage.getItem("access_token");
-        this.ambiente = urlBase.includes("adm") ? "http://adm.aaspa.org.br" : urlBase.includes("hml") ? "http://hmlaaspa.aaspa.org.br" : "https://localhost:44326" 
+        let  url = window.location.host;
+        this.ambiente = url.includes("adm") ? "http://adm.aaspa.org.br" : url.includes("hml") ? "http://hmlaaspa.aaspa.org.br" : "https://localhost:44326" 
         
         this.api = axios.create({
             baseURL: urlBase,

@@ -278,23 +278,23 @@ namespace AASPA.Domain.Service
             }
         }
 
-        public (List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) BuscarTodosClientes(int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual, int? statusIntegraall, int cadastroExterno = 0, string nome = "", string cpf = "", DateTime? dateInitAverbacao = null, DateTime? dateEndAverbacao = null, string beneficio = null)
+        public (List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) BuscarTodosClientes(ConsultaParametros request)
         {
-            statusCliente = statusCliente ?? 0;
-            statusRemessa = statusRemessa ?? 0;
-            statusIntegraall = statusIntegraall ?? 0;
+            request.StatusCliente = request.StatusCliente ?? 0;
+            request.StatusRemessa = request.StatusRemessa ?? 0;
+            request.StatusIntegraall = request.StatusIntegraall ?? 0;
 
             var clientes = (from cli in _mysql.clientes
                             join vin in _mysql.vinculo_cliente_captador on cli.cliente_id equals vin.vinculo_cliente_id
                             join cpt in _mysql.captadores on vin.vinculo_captador_id equals cpt.captador_id
                             where
-                                   (dateInit == null || cli.cliente_dataCadastro >= dateInit)
-                                && (dateEnd == null || cli.cliente_dataCadastro < dateEnd.Value.AddDays(1))
-                                && (dateInitAverbacao == null || cli.cliente_DataAverbacao >= dateInitAverbacao)
-                                && (dateEndAverbacao == null || cli.cliente_DataAverbacao < dateEndAverbacao.Value.AddDays(1))
-                                && (string.IsNullOrEmpty(nome) || cli.cliente_nome.ToUpper().Contains(nome))
-                                && (string.IsNullOrEmpty(cpf) || cli.cliente_cpf.ToUpper().Contains(cpf))
-                                && (string.IsNullOrEmpty(beneficio) || cli.cliente_matriculaBeneficio.Contains(beneficio))
+                                   (request.DateInit == null || cli.cliente_dataCadastro >= request.DateInit)
+                                && (request.DateEnd == null || cli.cliente_dataCadastro < request.DateEnd.Value.AddDays(1))
+                                && (request.DateInitAverbacao == null || cli.cliente_DataAverbacao >= request.DateInitAverbacao)
+                                && (request.DateEndAverbacao == null || cli.cliente_DataAverbacao < request.DateEndAverbacao.Value.AddDays(1))
+                                && (string.IsNullOrEmpty(request.Nome) || cli.cliente_nome.ToUpper().Contains(request.Nome))
+                                && (string.IsNullOrEmpty(request.Cpf) || cli.cliente_cpf.ToUpper().Contains(request.Cpf))
+                                && (string.IsNullOrEmpty(request.Beneficio) || cli.cliente_matriculaBeneficio.Contains(request.Beneficio))
                             select new BuscarClienteByIdResponse
                             {
                                 Captador = cpt,
@@ -304,38 +304,39 @@ namespace AASPA.Domain.Service
                             .ToList()
                             .OrderByDescending(x => x.Cliente.cliente_dataCadastro).ToList();
 
-            if(cadastroExterno == 1)
+            if(request.CadastroExterno == 1)
             {
                 clientes = clientes.Where(x => x.Cliente.clientes_cadastro_externo).ToList();
             }
 
-            if (cadastroExterno == 2)
+            if (request.CadastroExterno == 2)
             {
                 clientes = clientes.Where(x => !x.Cliente.clientes_cadastro_externo).ToList();
             }
 
-            if (statusCliente == 1)
+            if (request.StatusCliente == 1)
             {
                 clientes = clientes.Where(x => x.Cliente.cliente_situacao).ToList();
             }
 
-            if (statusCliente == 3)
+            if (request.StatusCliente == 3)
             {
                 clientes = clientes.Where(x => !x.Cliente.cliente_situacao).ToList();
             }
 
-            if (statusRemessa == 1)
+            if (request.StatusRemessa == 1)
             {
                 clientes = clientes.Where(x => x.Cliente.cliente_remessa_id != null && x.Cliente.cliente_remessa_id > 0).ToList();
             }
 
-            if (statusRemessa == 2)
+            if (request.StatusRemessa == 2)
             {
                 clientes = clientes.Where(x => x.Cliente.cliente_remessa_id == null || x.Cliente.cliente_remessa_id == 0).ToList();
             }
-            if (statusIntegraall > 0)
+
+            if (request.StatusIntegraall > 0)
             {
-                clientes = clientes.Where(x => x.Cliente.cliente_StatusIntegral == statusIntegraall).ToList();
+                clientes = clientes.Where(x => x.Cliente.cliente_StatusIntegral == request.StatusIntegraall).ToList();
             }
 
             foreach (var cliente in clientes)
@@ -368,22 +369,22 @@ namespace AASPA.Domain.Service
                 }
             }
 
-            if (statusCliente == 1)
+            if (request.StatusCliente == 1)
             {
                 clientes = clientes.Where(x => x.Cliente.cliente_situacao && x.StatusAtual != null && (x.StatusAtual.status_id == (int)EStatus.Ativo || x.StatusAtual.status_id == (int)EStatus.AtivoAguardandoAverbacao)).ToList();
             }
 
-            if (statusCliente == 2)
+            if (request.StatusCliente == 2)
             {
                 clientes = clientes.Where(x => x.Cliente.cliente_situacao && x.StatusAtual != null && x.StatusAtual.status_id == (int)EStatus.Inativo).ToList();
             }
 
             var todosClientes = clientes.ToList().Distinct().ToList();
             int totalClientes = todosClientes.Count();
-            if (paginaAtual == null)
+            if (request.PaginaAtual == null)
                 return (todosClientes.OrderByDescending(x=> x.Cliente.cliente_dataCadastro).ToList(), 0, totalClientes);
 
-            return CalcularPagina(todosClientes, paginaAtual, totalClientes);
+            return CalcularPagina(todosClientes, request.PaginaAtual, totalClientes);
         }
 
         private (List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) CalcularPagina(List<BuscarClienteByIdResponse> todosClientes, int? paginaAtual, int totalClientes)

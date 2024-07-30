@@ -115,7 +115,7 @@ const Cclientes = () => {
     }
 
     const DownloadClienteFiltro = () => {
-        window.open(`https://adm.aaspa.org.br/DownloadClienteFiltro?statusCliente=${statusCliente}&statusRemessa=${statusCliente}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${paginaAtual}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}&dateInitAverbacao=${dateInitAverbacao}&dateEndAverbacao=${dateEndAverbacao}&statusIntegraall=${statusIntegraall}`)
+        window.open(`${api.ambiente}/DownloadClienteFiltro?statusCliente=${statusCliente}&statusRemessa=${statusCliente}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${paginaAtual}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}&dateInitAverbacao=${dateInitAverbacao}&dateEndAverbacao=${dateEndAverbacao}&statusIntegraall=${statusIntegraall}`)
     }
 
     const AlterarPagina = async (pagina, isProxima) => {
@@ -236,11 +236,11 @@ const Cclientes = () => {
                         </div>
                         <div className="col-md-2">
                             <span>Status Integraall</span>
-                            <select className='form-control' value={statusIntegraall} onChange={e => { setStatusIntegraall(e.target.value)}}>
+                            <select className='form-control' value={statusIntegraall} onChange={e => { setStatusIntegraall(e.target.value) }}>
                                 <option value={0}>Todos</option>
-                                <option value={11}>11</option>
-                                <option value={12}>12</option>
-                                <option value={15}>15</option>
+                                <option value={11}>Aguardando Averbação</option>
+                                <option value={12}>Enviado Averbação</option>
+                                <option value={15}>Averbado</option>
                             </select>
                         </div>
                         <div className="col-md-8" />
