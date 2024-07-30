@@ -429,7 +429,7 @@ namespace AASPA.Domain.Service
 
                     foreach (var id in statusId)
                     {
-                        string requestUri = $"https://integraall.com/api/Pessoa/ListarPessoasPorFiltro?StatusId={id}&DataCadastroInicio={DataCadastroInicio}&DataCadastroFim={DataCadastroFim}";
+                        string requestUri = $"https://dev.integraall.com/api/Pessoa/ListarPessoasPorFiltro?StatusId={id}&DataCadastroInicio={DataCadastroInicio}&DataCadastroFim={DataCadastroFim}";
                         var requestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
                         requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
                         var response = await client.SendAsync(requestMessage);

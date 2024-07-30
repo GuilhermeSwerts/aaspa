@@ -236,7 +236,7 @@ const Cclientes = () => {
                         </div>
                         <div className="col-md-2">
                             <span>Status Integraall</span>
-                            <select className='form-control' onChange={e => { setStatusIntegraall(e.target.value); BuscarTodosClientes(e.target.value); }}>
+                            <select className='form-control' value={statusIntegraall} onChange={e => { setStatusIntegraall(e.target.value); BuscarTodosClientes(e.target.value); }}>
                                 <option value={0}>Todos</option>
                                 <option value={11}>11</option>
                                 <option value={12}>12</option>
