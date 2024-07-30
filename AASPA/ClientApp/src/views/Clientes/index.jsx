@@ -21,6 +21,7 @@ export default () => {
 
     const [statusCliente, setStatusCliente] = useState(0);
     const [statusRemessa, setStatusRemessa] = useState(0);
+    const [statusIntegraall, setStatusIntegraall] = useState(0);
 
     function get1DiaDoMes() {
         const today = new Date();
@@ -70,7 +71,7 @@ export default () => {
             sRemessa = statusRemessa;
         }
 
-        api.get(`BuscarTodosClientes?statusCliente=${sCliente}&statusRemessa=${sRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${pPagina}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}&dateInitAverbacao=${dateInitAverbacao}&dateEndAverbacao=${dateEndAverbacao}&beneficio=${beneficio}`, res => {
+        api.get(`BuscarTodosClientes?statusCliente=${sCliente}&statusRemessa=${sRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${pPagina}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}&dateInitAverbacao=${dateInitAverbacao}&dateEndAverbacao=${dateEndAverbacao}&beneficio=${beneficio}&statusIntegraall=${statusIntegraall}`, res => {
             setClientes([]);
             setClientesFiltro([]);
 
@@ -111,7 +112,7 @@ export default () => {
     }
 
     const DownloadClienteFiltro = () => {
-        window.open(`${api.ambiente}/DownloadClienteFiltro?statusCliente=${statusCliente}&statusRemessa=${statusCliente}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${paginaAtual}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}&dateInitAverbacao=${dateInitAverbacao}&dateEndAverbacao=${dateEndAverbacao}`)
+        window.open(`${api.ambiente}/DownloadClienteFiltro?statusCliente=${statusCliente}&statusRemessa=${statusCliente}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${paginaAtual}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}&dateInitAverbacao=${dateInitAverbacao}&dateEndAverbacao=${dateEndAverbacao}&statusIntegraall=${statusIntegraall}`)
     }
 
     const AlterarPagina = async (pagina, isProxima) => {
@@ -204,6 +205,19 @@ export default () => {
                         <span>Até:</span>
                         <input type="date" value={dateEndAverbacao} onChange={e => setDateEndAverbacao(e.target.value)} name="dateEndAverbacao" id="dateEndAverbacao" className='form-control' />
                     </div>
+                    <div className="col-md-2">
+                        <span>N° Benefício</span>
+                        <input placeholder='N° Benefício' type="text" value={beneficio} onChange={e => setBeneficio(e.target.value)} name="beneficio" id="beneficio" className='form-control' />
+                    </div>
+                    <div className="col-md-2">
+                        <span>Status Integraall</span>
+                        <select className='form-control' onChange={e => { setStatusIntegraall(e.target.value); BuscarTodosClientes(e.target.value); }}>
+                            <option value={0}>Todos</option>
+                            <option value={11}>11</option>
+                            <option value={12}>12</option>
+                            <option value={15}>15</option>
+                        </select>
+                    </div>
                     <div className="col-md-10" />
                     <div className="col-md-1" style={{ marginTop: '1.5rem' }}>
                         <button style={{ width: '100%' }} onClick={() => BuscarTodosClientes(statusCliente, statusRemessa, 1)} className='btn btn-primary'><FaSearch size={17} /></button>
@@ -226,6 +240,7 @@ export default () => {
                         <th>Data Averbação</th>
                         <th>Data Cadastro</th>
                         <th>Status Atual</th>
+                        <th>Status Integraall</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
@@ -240,6 +255,7 @@ export default () => {
                                 <td>{Mascara.data(cliente.cliente.cliente_DataAverbacao)}</td>
                                 <td>{Mascara.data(cliente.cliente.cliente_dataCadastro)}</td>
                                 <td>{cliente.statusAtual.status_nome}</td>
+                                <td>{cliente.cliente.cliente_StatusIntegral}</td>
                                 {cliente.statusAtual.status_id !== Enum.EStatus.Deletado
                                     && cliente.statusAtual.status_id !== Enum.EStatus.ExcluidoAguardandoEnvio
                                     && cliente.statusAtual.status_id !== Enum.EStatus.Inativo

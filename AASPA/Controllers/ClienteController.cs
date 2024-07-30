@@ -39,13 +39,13 @@ namespace AASPA.Host.Controllers
         [HttpGet]
         [Route("/BuscarTodosClientes")]
         public ActionResult Get([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit,
-            DateTime? dateEnd, int? paginaAtual, int cadastroExterno = 0, string nome = "",
+            DateTime? dateEnd, int? paginaAtual, int? statusIntegraall, int cadastroExterno = 0, string nome = "",
             string cpf = "", DateTime? dateInitAverbacao = null, DateTime? dateEndAverbacao = null
             , string beneficio = null)
         {
             try
             {
-                var (Clientes, QtdPaginas, TotalClientes) = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd, paginaAtual, cadastroExterno, nome, cpf, dateInitAverbacao, dateEndAverbacao, beneficio);
+                var (Clientes, QtdPaginas, TotalClientes) = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd, paginaAtual, statusIntegraall, cadastroExterno, nome, cpf, dateInitAverbacao, dateEndAverbacao, beneficio);
                 return Ok(new
                 {
                     Clientes,
@@ -62,12 +62,12 @@ namespace AASPA.Host.Controllers
         [HttpGet]
         [Route("/BuscarFiltroClientes")]
         public ActionResult BuscarFiltroClientes([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit,
-            DateTime? dateEnd, int? paginaAtual, int cadastroExterno = 0, string nome = "", string cpf = "", string beneficio = null
+            DateTime? dateEnd, int? paginaAtual, int? statusIntegraall, int cadastroExterno = 0, string nome = "", string cpf = "", string beneficio = null
             , DateTime? dateInitAverbacao = null, DateTime? dateEndAverbacao = null)
         {
             try
             {
-                var (Clientes, QtdPaginas, TotalClientes) = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd, paginaAtual, cadastroExterno, nome, cpf, dateInitAverbacao, dateEndAverbacao, beneficio);
+                var (Clientes, QtdPaginas, TotalClientes) = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd, paginaAtual, statusIntegraall, cadastroExterno, nome, cpf, dateInitAverbacao, dateEndAverbacao, beneficio);
                 return Ok(new
                 {
                     Clientes = Clientes.OrderByDescending(x => x.Cliente.cliente_dataCadastro).ToList(),
@@ -121,11 +121,11 @@ namespace AASPA.Host.Controllers
         [AllowAnonymous]
         [HttpGet]
         [Route("/DownloadClienteFiltro")]
-        public IActionResult DownloadFiltro([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual, int cadastroExterno = 0, string nome = "", string cpf = "", DateTime? dateInitAverbacao = null, DateTime? dateEndAverbacao = null)
+        public IActionResult DownloadFiltro([FromQuery] int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual, int? statusIntegraall, int cadastroExterno = 0, string nome = "", string cpf = "", DateTime? dateInitAverbacao = null, DateTime? dateEndAverbacao = null)
         {
             try
             {
-                var clientes = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd, paginaAtual, cadastroExterno, nome, cpf, dateInitAverbacao, dateEndAverbacao);
+                var clientes = _service.BuscarTodosClientes(statusCliente, statusRemessa, dateInit, dateEnd, paginaAtual, statusIntegraall, cadastroExterno, nome, cpf, dateInitAverbacao, dateEndAverbacao);
                 byte[] base64 = _service.DownloadFiltro(clientes);
                 return File(base64, "application/csv;charset=utf-8", "FiltroClientes.csv");
             }

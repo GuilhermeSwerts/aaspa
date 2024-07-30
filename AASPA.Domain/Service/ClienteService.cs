@@ -219,7 +219,7 @@ namespace AASPA.Domain.Service
                     _mysql.log_status.Add(new LogStatusDb
                     {
                         log_status_antigo_id = 1,
-                        log_status_novo_id = novoCliente.Cliente.StatusIntegral == 0? 1 : novoCliente.Cliente.StatusIntegral == 1? 1 : 4,
+                        log_status_novo_id = novoCliente.Cliente.StatusIntegral == 0? 1 : novoCliente.Cliente.StatusIntegral == 11? 1 : 4,
                         log_status_cliente_id = cliente.cliente_id,
                         log_status_dt_cadastro = DateTime.Now
                     });
@@ -278,10 +278,11 @@ namespace AASPA.Domain.Service
             }
         }
 
-        public (List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) BuscarTodosClientes(int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual, int cadastroExterno = 0, string nome = "", string cpf = "", DateTime? dateInitAverbacao = null, DateTime? dateEndAverbacao = null, string beneficio = null)
+        public (List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) BuscarTodosClientes(int? statusCliente, int? statusRemessa, DateTime? dateInit, DateTime? dateEnd, int? paginaAtual, int? statusIntegraall, int cadastroExterno = 0, string nome = "", string cpf = "", DateTime? dateInitAverbacao = null, DateTime? dateEndAverbacao = null, string beneficio = null)
         {
             statusCliente = statusCliente ?? 0;
             statusRemessa = statusRemessa ?? 0;
+            statusIntegraall = statusIntegraall ?? 0;
 
             var clientes = (from cli in _mysql.clientes
                             join vin in _mysql.vinculo_cliente_captador on cli.cliente_id equals vin.vinculo_cliente_id
@@ -331,6 +332,10 @@ namespace AASPA.Domain.Service
             if (statusRemessa == 2)
             {
                 clientes = clientes.Where(x => x.Cliente.cliente_remessa_id == null || x.Cliente.cliente_remessa_id == 0).ToList();
+            }
+            if (statusIntegraall >= 11 )
+            {
+                clientes = clientes.Where(x => x.Cliente.cliente_StatusIntegral == statusIntegraall).ToList();
             }
 
             foreach (var cliente in clientes)
@@ -399,11 +404,11 @@ namespace AASPA.Domain.Service
 
         public byte[] DownloadFiltro((List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) clientesData)
         {
-            string texto = "#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO\n";
+            string texto = "#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO;STATUS_INTEGRAALL\n";
             for (int i = 0; i < clientesData.Clientes.Count; i++)
             {
                 var cliente = clientesData.Clientes[i];
-                texto += $"{cliente.Cliente.cliente_id};{cliente.Cliente.cliente_cpf};{cliente.Cliente.cliente_nome};{cliente.Cliente.cliente_cep};{cliente.Cliente.cliente_logradouro};{cliente.Cliente.cliente_bairro};{cliente.Cliente.cliente_localidade};{cliente.Cliente.cliente_uf};{cliente.Cliente.cliente_numero};{cliente.Cliente.cliente_complemento};{cliente.Cliente.cliente_dataNasc};{cliente.Cliente.cliente_dataCadastro};{cliente.Cliente.cliente_nrDocto};{cliente.Cliente.cliente_empregador};{cliente.Cliente.cliente_matriculaBeneficio};{cliente.Cliente.cliente_nomeMae};{cliente.Cliente.cliente_nomePai};{cliente.Cliente.cliente_telefoneFixo};{cliente.Cliente.cliente_telefoneCelular};{cliente.Cliente.cliente_possuiWhatsapp};{cliente.Cliente.cliente_funcaoAASPA};{cliente.Cliente.cliente_email};{cliente.Cliente.cliente_situacao};{cliente.Cliente.cliente_estado_civil};{cliente.Cliente.cliente_sexo};{cliente.Cliente.cliente_remessa_id};{cliente.Captador.captador_nome};{cliente.Captador.captador_cpf_cnpj};{cliente.Captador.captador_descricao};{cliente.Cliente.cliente_DataAverbacao}";
+                texto += $"{cliente.Cliente.cliente_id};{cliente.Cliente.cliente_cpf};{cliente.Cliente.cliente_nome};{cliente.Cliente.cliente_cep};{cliente.Cliente.cliente_logradouro};{cliente.Cliente.cliente_bairro};{cliente.Cliente.cliente_localidade};{cliente.Cliente.cliente_uf};{cliente.Cliente.cliente_numero};{cliente.Cliente.cliente_complemento};{cliente.Cliente.cliente_dataNasc};{cliente.Cliente.cliente_dataCadastro};{cliente.Cliente.cliente_nrDocto};{cliente.Cliente.cliente_empregador};{cliente.Cliente.cliente_matriculaBeneficio};{cliente.Cliente.cliente_nomeMae};{cliente.Cliente.cliente_nomePai};{cliente.Cliente.cliente_telefoneFixo};{cliente.Cliente.cliente_telefoneCelular};{cliente.Cliente.cliente_possuiWhatsapp};{cliente.Cliente.cliente_funcaoAASPA};{cliente.Cliente.cliente_email};{cliente.Cliente.cliente_situacao};{cliente.Cliente.cliente_estado_civil};{cliente.Cliente.cliente_sexo};{cliente.Cliente.cliente_remessa_id};{cliente.Captador.captador_nome};{cliente.Captador.captador_cpf_cnpj};{cliente.Captador.captador_descricao};{cliente.Cliente.cliente_DataAverbacao};{cliente.Cliente.cliente_StatusIntegral}";
                 texto += "\n";
             }
 
@@ -424,14 +429,13 @@ namespace AASPA.Domain.Service
 
                     foreach (var id in statusId)
                     {
-                        string requestUri = $"https://dev.integraall.com/api/Pessoa/ListarPessoasPorFiltro?StatusId={id}&DataCadastroInicio={DataCadastroInicio}&DataCadastroFim={DataCadastroFim}";
+                        string requestUri = $"https://integraall.com/api/Pessoa/ListarPessoasPorFiltro?StatusId={id}&DataCadastroInicio={DataCadastroInicio}&DataCadastroFim={DataCadastroFim}";
                         var requestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
                         requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
                         var response = await client.SendAsync(requestMessage);
 
                         if (response.IsSuccessStatusCode)
                         {
-                            client.Dispose();
                             string responseBody = await response.Content.ReadAsStringAsync();
                             var data = JsonConvert.DeserializeObject<List<ClienteIntegraallResponse>>(responseBody);
 
@@ -461,7 +465,7 @@ namespace AASPA.Domain.Service
                                     DataNasc = item.DataNascimento,
                                     MatriculaBeneficio = item.Matricula,
                                     DataAverbacao = item.dataSolicitacaoAtivacao,
-                                    StatusIntegral = item.StatusIntegral
+                                    StatusIntegral = item.StatusId
                                 };
 
                                 var clientes = new ClienteRequest()
