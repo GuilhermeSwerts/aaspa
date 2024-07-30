@@ -12,8 +12,8 @@ export function AuthProvider({ children }) {
     }
 
     const handdleUsuarioLogado = () => {
-        if(usuario) return;
-        
+        if (usuario) return;
+
         var usuario_logado = window.localStorage.getItem("usuario_logado");
         var access_token = window.localStorage.getItem("access_token");
         if (!usuario_logado) window.location.href = '/login';
@@ -27,7 +27,9 @@ export function AuthProvider({ children }) {
     }
 
     useEffect(() => {
-        handdleUsuarioLogado();
+        if (window.location.pathname !== '/login')
+            handdleUsuarioLogado();
+        
     }, [usuario]);
 
     return (

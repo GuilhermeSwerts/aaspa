@@ -45,15 +45,15 @@ const Cclientes = () => {
 
     const [beneficio, setBeneficio] = useState('');
 
-    const [dateInit, setDateInit] = useState(get1DiaDoMes());
-    const [dateEnd, setDateEnd] = useState(getDataDeHoje());
+    const [dateInit, setDateInit] = useState('');
+    const [dateEnd, setDateEnd] = useState('');
 
-    const [dateInitAverbacao, setDateInitAverbacao] = useState('');
-    const [dateEndAverbacao, setDateEndAverbacao] = useState('');
+    const [dateInitAverbacao, setDateInitAverbacao] = useState(get1DiaDoMes());
+    const [dateEndAverbacao, setDateEndAverbacao] = useState(getDataDeHoje());
 
     const [clientes, setClientes] = useState([]);
     const [clientesFiltro, setClientesFiltro] = useState([]);
-    const [filtroNome, setFiltroNome] = useState(true);
+    const [filtroNome, setFiltroNome] = useState(1);
 
     const [paginaAtual, setPaginaAtual] = useState(1);
     const [qtdPaginas, setQtdPaginas] = useState(0);
@@ -97,10 +97,20 @@ const Cclientes = () => {
 
     const onChangeFiltro = ({ target }) => {
         const { value } = target;
-        if (filtroNome) {
-            setNome(value);
-        } else {
-            setCpf(value);
+        const tipoFiltro = typeof (filtroNome) == 'string' ? parseInt(filtroNome) : filtroNome;
+
+        switch (tipoFiltro) {
+            case 1:
+                setNome(value)
+                break;
+            case 2:
+                setCpf(value)
+                break;
+            case 3:
+                setBeneficio(value);
+                break;
+            default:
+                break;
         }
     }
 
@@ -160,19 +170,20 @@ const Cclientes = () => {
                     <div className='row'>
                         <div className="col-md-2">
                             <span>Tipo de Filtro</span>
-                            <select className='form-control' onChange={e => setFiltroNome(e.target.value == 1)}>
+                            <select className='form-control' onChange={e => setFiltroNome(parseInt(e.target.value))}>
                                 <option value={1}>NOME</option>
                                 <option value={2}>CPF</option>
+                                <option value={3}>BENEFÍCIO</option>
                             </select>
                         </div>
                         {<div className="col-md-6">
-                            <span>{!filtroNome ? 'Pesquisar pelo CPF' : 'Pesquisar pelo nome'} </span>
+                            <span>{filtroNome == 1 ? 'Pesquisar pelo nome' : filtroNome == 2 ? 'Pesquisar pelo CPF' : 'Pesquisar N° Benefício'} </span>
                             <input type="text"
                                 onChange={onChangeFiltro}
-                                maxLength={!filtroNome ? 14 : 255}
+                                maxLength={filtroNome == 1 ? 255 : filtroNome == 2 ? 14 : 10}
                                 className='form-control'
-                                value={!filtroNome ? cpf : nome}
-                                placeholder={!filtroNome ? 'CPF do cliente' : 'Nome do cliente'}
+                                value={filtroNome === 1 ? nome : filtroNome === 2 ? Mascara.cpf(cpf) : beneficio}
+                                placeholder={filtroNome == 1 ? 'Nome do cliente' : filtroNome == 2 ? 'CPF do cliente' : 'Pesquisar N° Benefício'}
 
                             />
                         </div>}
