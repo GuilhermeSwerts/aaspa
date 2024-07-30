@@ -32,7 +32,8 @@ function ModalVisualizarCliente({ Cliente }) {
         cliente_situacao,
         cliente_sexo,
         cliente_estado_civil,
-        cliente_remessa_id
+        cliente_remessa_id,
+        cliente_StatusIntegral
     } = Cliente;
 
     return (
@@ -174,9 +175,13 @@ function ModalVisualizarCliente({ Cliente }) {
                         </Col>
                     </Row>
                     <Row>
-                        <Col md={4}>
+                        <Col md={6}>
                             <label>Email:</label>
                             <input className='form-control' type="text" disabled value={cliente_email} />
+                        </Col>
+                        <Col md={2}>
+                            <label>Status Integraall</label>
+                            <input className='form-control' type="text" disabled value={cliente_StatusIntegral} />
                         </Col>
                     </Row>
                 </ModalBody>
