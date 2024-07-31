@@ -293,7 +293,7 @@ namespace AASPA.Domain.Service
                                 && (request.DateInitAverbacao == null || cli.cliente_DataAverbacao >= request.DateInitAverbacao)
                                 && (request.DateEndAverbacao == null || cli.cliente_DataAverbacao < request.DateEndAverbacao.Value.AddDays(1))
                                 && (string.IsNullOrEmpty(request.Nome) || cli.cliente_nome.ToUpper().Contains(request.Nome))
-                                && (string.IsNullOrEmpty(request.Cpf) || cli.cliente_cpf.ToUpper().Contains(request.Cpf))
+                                && (string.IsNullOrEmpty(request.Cpf) || cli.cliente_cpf.ToUpper().Contains(request.Cpf.Replace(".","").Replace("-", "")))
                                 && (string.IsNullOrEmpty(request.Beneficio) || cli.cliente_matriculaBeneficio.Contains(request.Beneficio))
                             select new BuscarClienteByIdResponse
                             {

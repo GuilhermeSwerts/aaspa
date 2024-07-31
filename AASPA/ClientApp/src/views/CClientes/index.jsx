@@ -101,13 +101,19 @@ const Cclientes = () => {
 
         switch (tipoFiltro) {
             case 1:
-                setNome(value)
+                setNome(value);
+                setCpf('');
+                setBeneficio('');
                 break;
             case 2:
                 setCpf(value)
+                setNome('');
+                setBeneficio('');
                 break;
             case 3:
                 setBeneficio(value);
+                setNome('');
+                setCpf('');
                 break;
             default:
                 break;
