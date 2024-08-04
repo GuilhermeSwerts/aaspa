@@ -36,7 +36,10 @@ namespace AASPA.Models.Response
         public int VendedorUsuarioId { get; set; }
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
-        public int CodEmpresa { get; set; }
+        
+        // Variavel não esta sendo ultilizada, porem ta vindo como string na api Integraall
+        //public int CodEmpresa { get; set; } 
+        
         public DateTime DataCadastro { get; set; }
         public DateTime DataNascimento { get; set; }
         public string Matricula { get; set; }
