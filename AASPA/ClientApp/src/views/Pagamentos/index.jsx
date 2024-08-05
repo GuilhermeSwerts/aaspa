@@ -9,6 +9,7 @@ import NovoPagamento from '../../components/Modal/NovoPagamento';
 import * as Enum from '../../util/enum';
 import { FaSearch } from 'react-icons/fa';
 import { Alert } from '../../util/alertas';
+import { Paginacao } from '../../components/Paginacao/Paginacao';
 
 function Pagamentos() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext)
@@ -62,6 +63,13 @@ function Pagamentos() {
             setClientesFiltro(clientes);
     }
 
+    //**paginação**
+    const [limit, setLimit] = useState(8);
+    const [offset, setOffset] = useState(0);
+    const endIndex = offset + limit;
+    const currentData = clientes.slice(offset, endIndex);
+
+
     return (
         <NavBar pagina_atual='PAGAMENTOS' usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome} >
             <div className='row'>
@@ -109,7 +117,7 @@ function Pagamentos() {
                     </tr>
                 </thead>
                 <tbody>
-                    {clientesFiltro.map(cliente => {
+                    {currentData.map(cliente => {
 
                         if (cliente.statusAtual.status_id != Enum.EStatus.Deletado)
                             return (
@@ -135,6 +143,13 @@ function Pagamentos() {
                     {clientes.length == 0 && <span>Nenhum cliente foi encontrado...</span>}
                 </tbody>
             </table>
+            <Paginacao
+                limit={limit}
+                setLimit={setLimit}
+                offset={offset}
+                total={clientes.length}
+                setOffset={setOffset}
+            />
         </NavBar>
     );
 }
