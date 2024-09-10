@@ -15,5 +15,8 @@ namespace AASPA.Models.Requests
         public DateTime HistoricoContatosOcorrenciaDtOcorrencia { get; set; }
         public string HistoricoContatosOcorrenciaDescricao { get; set; }
         public string HistoricoContatosOcorrenciaSituacaoOcorrencia { get; set; }
+        public string? HistoricoContatosOcorrenciaBanco { get; set; }
+        public string? HistoricoContatosOcorrenciaAgencia { get; set; }
+        public string? HistoricoContatosOcorrenciaConta { get; set; }
     }
 }
