@@ -17,6 +17,7 @@ import { Alert, Info, Pergunta } from '../../util/alertas';
 import ImportarCLientesIntegral from '../../components/Modal/importarClientesIntegral';
 import axios from 'axios';
 import { Collapse } from 'reactstrap'
+import { Paginacao } from '../../components/Paginacao/Paginacao';
 
 const Cclientes = () => {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -62,6 +63,13 @@ const Cclientes = () => {
     const [nome, setNome] = useState('');
     const [cpf, setCpf] = useState('');
 
+    //**paginação**
+    const [limit, setLimit] = useState(8);
+    const [offset, setOffset] = useState(0);
+    const endIndex = offset + limit;
+    const currentData = clientes.slice(offset, endIndex);
+
+
     const BuscarTodosClientes = (sCliente, sRemessa, pPagina) => {
         if (!pPagina) {
             pPagina = paginaAtual;
@@ -73,7 +81,7 @@ const Cclientes = () => {
             sRemessa = statusRemessa;
         }
 
-        api.get(`BuscarTodosClientes?statusCliente=${sCliente}&statusRemessa=${sRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${pPagina}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}&dateInitAverbacao=${dateInitAverbacao}&dateEndAverbacao=${dateEndAverbacao}&beneficio=${beneficio}&statusIntegraall=${statusIntegraall}`, res => {
+        api.get(`BuscarTodosClientes?statusCliente=${sCliente}&statusRemessa=${sRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}&dateInitAverbacao=${dateInitAverbacao}&dateEndAverbacao=${dateEndAverbacao}&beneficio=${beneficio}&statusIntegraall=${statusIntegraall}`, res => {
             setClientes([]);
             setClientesFiltro([]);
 
@@ -123,37 +131,6 @@ const Cclientes = () => {
     const DownloadClienteFiltro = () => {
         window.open(`${api.ambiente}/DownloadClienteFiltro?statusCliente=${statusCliente}&statusRemessa=${statusCliente}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${paginaAtual}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}&dateInitAverbacao=${dateInitAverbacao}&dateEndAverbacao=${dateEndAverbacao}&statusIntegraall=${statusIntegraall}`)
     }
-
-    const AlterarPagina = async (pagina, isProxima) => {
-        let buscar = false;
-
-        if (isProxima && (paginaAtual + pagina) > qtdPaginas) {
-            if (await Pergunta("Numero da página digitada maior que quantidade de paginas\nDeseja buscar pelo numero maximo?")) {
-                setPaginaAtual(qtdPaginas);
-                buscar = true;
-                BuscarTodosClientes(statusCliente, statusRemessa, qtdPaginas)
-            } else {
-                return;
-            }
-        } else if (!isProxima && (paginaAtual - pagina) <= 0) {
-            if (await Pergunta("Numero da página digitada menor que 1\nDeseja buscar pelo numero minimo?")) {
-                setPaginaAtual(1);
-                buscar = true;
-                BuscarTodosClientes(statusCliente, statusRemessa, 1)
-            } else {
-                return;
-            }
-        } else {
-            if (isProxima) {
-                setPaginaAtual(paginaAtual + pagina);
-                BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual + pagina)
-            } else {
-                setPaginaAtual(paginaAtual - pagina);
-                BuscarTodosClientes(statusCliente, statusRemessa, paginaAtual - pagina)
-            }
-        }
-    }
-
 
     return (
         <NavBar pagina_atual={'CARGA CLIENTES'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
@@ -280,7 +257,7 @@ const Cclientes = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {clientesFiltro.map(cliente => {
+                    {currentData.map(cliente => {
                         return (
                             <tr className='selecao'>
                                 <td>{cliente.cliente.cliente_id}</td>
@@ -364,15 +341,13 @@ const Cclientes = () => {
                     {clientes.length == 0 && <span>Nenhum cliente foi encontrado...</span>}
                 </tbody>
             </table>
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, color: '#000' }}>
-                <button onClick={() => { AlterarPagina(10, false) }} disabled={paginaAtual === 1} className='btn btn-primary'>-10</button>
-                <button onClick={() => { AlterarPagina(5, false) }} disabled={paginaAtual === 1} className='btn btn-primary'>-5</button>
-                <button onClick={() => { AlterarPagina(1, false) }} disabled={paginaAtual === 1} className='btn btn-primary'>Anterior</button>
-                <span>{paginaAtual} de {qtdPaginas}</span>
-                <button onClick={() => { AlterarPagina(1, true) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>Próxima</button>
-                <button onClick={() => { AlterarPagina(5, true) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>+5</button>
-                <button onClick={() => { AlterarPagina(10, true) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>+10</button>
-            </div>
+            <Paginacao
+                limit={limit}
+                setLimit={setLimit}
+                offset={offset}
+                total={totalClientes}
+                setOffset={setOffset}
+            />
 
 
         </NavBar >

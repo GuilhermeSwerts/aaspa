@@ -8,6 +8,7 @@ import ModalLogBeneficios from '../../components/Modal/ModalLogBeneficios';
 import * as Enum from '../../util/enum';
 import { FaSearch } from 'react-icons/fa';
 import { Alert, Pergunta } from '../../util/alertas';
+import { Paginacao } from '../../components/Paginacao/Paginacao';
 
 function Beneficios() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -17,6 +18,13 @@ function Beneficios() {
 
     const [qtdPaginas, setQtdPaginas] = useState(0);
     const [paginaAtual, setPaginaAtual] = useState(1);
+
+    //**paginação**
+    const [totalClientes, setTotalClientes] = useState(0);
+    const [limit, setLimit] = useState(8);
+    const [offset, setOffset] = useState(0);
+    const endIndex = offset + limit;
+    const currentData = clientes.slice(offset, endIndex);
 
     function get1DiaDoMes() {
         const today = new Date();
@@ -45,9 +53,10 @@ function Beneficios() {
         api.get(`BuscarTodosClientes?dateInit=${dateInit}&dateEnd=${dateEnd}&&paginaAtual=${ppagina}`, res => {
             setClientes([]);
             setClientesFiltro([]);
+
             setClientes(res.data.clientes);
             setClientesFiltro(res.data.clientes);
-
+            setTotalClientes(res.data.clientes.length)
             setQtdPaginas(res.data.qtdPaginas);
 
             if (res.data.qtdPaginas < paginaAtual)
@@ -152,7 +161,7 @@ function Beneficios() {
                     </tr>
                 </thead>
                 <tbody>
-                    {clientesFiltro.map(cliente => (
+                    {currentData.map(cliente => (
                         <tr>
                             <td>{Mascara.cpf(cliente.cliente.cliente_cpf)}</td>
                             <td>{cliente.cliente.cliente_nome}</td>
@@ -175,15 +184,13 @@ function Beneficios() {
                     {clientes.length == 0 && <span>Nenhum cliente foi encontrado...</span>}
                 </tbody>
             </table>
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, color: '#000' }}>
-                <button onClick={() => { AlterarPagina(10, false) }} disabled={paginaAtual === 1} className='btn btn-primary'>-10</button>
-                <button onClick={() => { AlterarPagina(5, false) }} disabled={paginaAtual === 1} className='btn btn-primary'>-5</button>
-                <button onClick={() => { AlterarPagina(1, false) }} disabled={paginaAtual === 1} className='btn btn-primary'>Anterior</button>
-                <span>{paginaAtual} de {qtdPaginas}</span>
-                <button onClick={() => { AlterarPagina(1, true) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>Próxima</button>
-                <button onClick={() => { AlterarPagina(5, true) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>+5</button>
-                <button onClick={() => { AlterarPagina(10, true) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>+10</button>
-            </div>
+            <Paginacao
+                limit={limit}
+                setLimit={setLimit}
+                offset={offset}
+                total={totalClientes}
+                setOffset={setOffset}
+            />
         </NavBar>
     );
 }

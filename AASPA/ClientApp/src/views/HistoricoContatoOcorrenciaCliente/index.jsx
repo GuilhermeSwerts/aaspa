@@ -12,6 +12,7 @@ import ModalEditarContatoOcorrencia from '../../components/Modal/editarContatoOc
 import axios from 'axios';
 import * as Enum from '../../util/enum';
 import { Alert, Pergunta } from '../../util/alertas';
+import { Paginacao } from '../../components/Paginacao/Paginacao';
 
 function HistoricoOcorrenciaCliente(props) {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -21,8 +22,11 @@ function HistoricoOcorrenciaCliente(props) {
         cliente: { cliente_nome: '', cliente_cpf: '', cliente_id: 0 }
     });
     const descRef = useRef();
-    const [qtdPaginas, setQtdPaginas] = useState(0);
-    const [paginaAtual, setPaginaAtual] = useState(1);
+    //**paginação**
+    const [limit, setLimit] = useState(8);
+    const [offset, setOffset] = useState(0);
+    const endIndex = offset + limit;
+    const currentData = historicoOcorrenciaCliente.slice(offset, endIndex);
 
     const ExcluirOcorrencia = async (id) => {
         if (await Pergunta("Deseja realmente excluir essa ocorrência?")) {
@@ -129,7 +133,7 @@ function HistoricoOcorrenciaCliente(props) {
                     <th>Ações</th>
                 </thead>
                 <tbody>
-                    {historicoOcorrenciaCliente && historicoOcorrenciaCliente.length > 0 && historicoOcorrenciaCliente.map(historico => (
+                    {historicoOcorrenciaCliente && historicoOcorrenciaCliente.length > 0 && currentData.map(historico => (
                         <tr>
                             <td>{historico.origem}</td>
                             <td>{historico.dataHoraOcorrencia}</td>
@@ -155,15 +159,13 @@ function HistoricoOcorrenciaCliente(props) {
                     {historicoOcorrenciaCliente.length === 0 && <span>Nenhuma Contato/Ocorrencia Cadastrada</span>}
                 </tbody>
             </table>
-            {/* <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, color: '#000' }}>
-                <button onClick={() => { AlterarPagina(10, false) }} disabled={paginaAtual === 1} className='btn btn-primary'>-10</button>
-                <button onClick={() => { AlterarPagina(5, false) }} disabled={paginaAtual === 1} className='btn btn-primary'>-5</button>
-                <button onClick={() => { AlterarPagina(1, false) }} disabled={paginaAtual === 1} className='btn btn-primary'>Anterior</button>
-                <span>{paginaAtual} de {qtdPaginas}</span>
-                <button onClick={() => { AlterarPagina(1, true) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>Próxima</button>
-                <button onClick={() => { AlterarPagina(5, true) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>+5</button>
-                <button onClick={() => { AlterarPagina(10, true) }} disabled={paginaAtual >= qtdPaginas} className='btn btn-primary'>+10</button>
-            </div> */}
+            <Paginacao
+                limit={limit}
+                setLimit={setLimit}
+                offset={offset}
+                total={historicoOcorrenciaCliente.length}
+                setOffset={setOffset}
+            />
         </NavBar>
     );
 }
