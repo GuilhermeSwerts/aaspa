@@ -73,6 +73,7 @@ namespace AASPA.Domain.Service
                 contatoOcorrencia.historico_contatos_ocorrencia_banco = historicoContatos.HistoricoContatosOcorrenciaBanco;
                 contatoOcorrencia.historico_contatos_ocorrencia_agencia = historicoContatos.HistoricoContatosOcorrenciaAgencia;
                 contatoOcorrencia.historico_contatos_ocorrencia_conta = historicoContatos.HistoricoContatosOcorrenciaConta;
+                contatoOcorrencia.historico_contatos_ocorrencia_chave_pix = historicoContatos.HistoricoContatosOcorrenciaChavePix;
 
                 _mysql.SaveChanges();
                 tran.Commit();
@@ -100,7 +101,8 @@ namespace AASPA.Domain.Service
                     historico_contatos_ocorrencia_situacao_ocorrencia = historicoContatos.HistoricoContatosOcorrenciaSituacaoOcorrencia.ToUpper(),
                     historico_contatos_ocorrencia_banco = historicoContatos.HistoricoContatosOcorrenciaBanco,
                     historico_contatos_ocorrencia_agencia = historicoContatos.HistoricoContatosOcorrenciaAgencia,
-                    historico_contatos_ocorrencia_conta = historicoContatos.HistoricoContatosOcorrenciaConta
+                    historico_contatos_ocorrencia_conta = historicoContatos.HistoricoContatosOcorrenciaConta,
+                    historico_contatos_ocorrencia_chave_pix = historicoContatos.HistoricoContatosOcorrenciaChavePix
                 });
 
                 _mysql.SaveChanges();

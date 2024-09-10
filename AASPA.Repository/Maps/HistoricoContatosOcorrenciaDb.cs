@@ -21,5 +21,6 @@ namespace AASPA.Repository.Maps
         public string? historico_contatos_ocorrencia_banco { get; set; }
         public string? historico_contatos_ocorrencia_agencia { get; set; }
         public string? historico_contatos_ocorrencia_conta { get; set; }
+        public string? historico_contatos_ocorrencia_chave_pix { get; set; }
     }
 }
