@@ -108,7 +108,7 @@ function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
                             <DropdownItem>
                                 <div className={pagina_atual === "GERENCIAR ORIGEM" ? "link link-active" : "link"}>
                                     <a href="/gorigem">
-                                        <FaGear size={15} /> ORIGFEM
+                                        <FaGear size={15} /> ORIGEM
                                         <span className="nav-tooltip">GERENCIAR ORIGEM</span>
                                     </a>
                                 </div>
