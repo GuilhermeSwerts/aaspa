@@ -4,7 +4,7 @@ import { Collapse } from 'reactstrap';
 import { Mascara } from '../../util/mascara';
 import { Paginacao } from '../../components/Paginacao/Paginacao';
 import { AuthContext } from '../../context/AuthContext';
-import { FaFilter, FaSearch } from 'react-icons/fa';
+import { FaDownload, FaFilter, FaSearch } from 'react-icons/fa';
 import { api } from '../../api/api';
 import { Alert } from '../../util/alertas';
 import CrudAtendimento from './CrudAtendimento';
@@ -35,7 +35,7 @@ function Atendimento() {
 
         if (!pPagina) pPagina = paginaAtual;
 
-        api.get(`BuscarFiltroClientes?&cpf=${filtro.cpf}&&beneficio=${filtro.matricula}&paginaAtual=${pPagina}&QtdPorPagina=${limit}`, res => {
+        api.get(`BuscarFiltroClientes?&cpf=${filtro.cpf}&beneficio=${filtro.matricula}&paginaAtual=${pPagina}&QtdPorPagina=${limit}`, res => {
             setClientes([]);
             setClientes(res.data.clientes);
             setTotalClientes(res.data.totalClientes);
@@ -48,6 +48,10 @@ function Atendimento() {
         handdleUsuarioLogado();
         BuscarTodosClientes();
     }, [])
+
+    const DownloadFiltro = () => {
+        window.open(`${api.ambiente}/DownloadContatoFiltro?cpf=${filtro.cpf}&beneficio=${filtro.matricula}`)
+    }
 
     return (
         <NavBar pagina_atual='ATENDIMENTO' usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome} >
@@ -85,6 +89,10 @@ function Atendimento() {
                     </div>
                     <div className="col-md-1" style={{ marginTop: '1.5rem' }}>
                         <button style={{ width: '100%' }} onClick={e => { BuscarTodosClientes(1) }} className='btn btn-primary'><FaSearch size={17} /></button>
+                    </div>
+                    <div className="col-md-6"></div>
+                    <div className="col-md-1" style={{ marginTop: '1.5rem' }}>
+                        <button style={{ width: '100%' }} onClick={DownloadFiltro} className='btn btn-primary'>Extrair <FaDownload size={17} /></button>
                     </div>
                 </div>
             </Collapse>

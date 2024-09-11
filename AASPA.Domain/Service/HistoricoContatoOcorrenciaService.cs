@@ -39,7 +39,7 @@ namespace AASPA.Domain.Service
                         Banco = hit.historico_contatos_ocorrencia_banco,
                         Conta = hit.historico_contatos_ocorrencia_conta,
                         Pix = hit.historico_contatos_ocorrencia_chave_pix
-                    }).ToList().OrderByDescending(x=> x.DataHoraOcorrencia);
+                    }).ToList().OrderByDescending(x => x.DataHoraOcorrencia);
         }
 
         public object BuscarContatoOcorrenciaById(int historicoContatosOcorrenciaId)
@@ -237,11 +237,34 @@ namespace AASPA.Domain.Service
         }
         public byte[] DownloadContatoFiltro((List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) clientesData)
         {
-            string texto = "#;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO;STATUS_INTEGRAALL;MOTIVO_CONTATO;SITUACAO_OCORRENCIA;DATA_OCORRENCIA\n";
+            string texto = "#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO;STATUS_INTEGRAALL;MOTIVO_ATENDIMENTO;ORIGEM_ATENDIMENTO;DATA_ATENDIMENTO;DESCRICAO_ATENDIMENTO;DADOS_BANCARIOS_BANCO;DADOS_BANCARIOS_AGENCIA;DADOS_BANCARIOS_CONTA;DADOS_BANCARIOS_CHAVE_PIX\n";
             for (int i = 0; i < clientesData.Clientes.Count; i++)
             {
+                string na = "N/A";
                 var cliente = clientesData.Clientes[i];
-                texto += $"{cliente.Cliente.cliente_id};{cliente.Cliente.cliente_cpf};{cliente.Cliente.cliente_nome};{cliente.Cliente.cliente_cep};{cliente.Cliente.cliente_logradouro};{cliente.Cliente.cliente_bairro};{cliente.Cliente.cliente_localidade};{cliente.Cliente.cliente_uf};{cliente.Cliente.cliente_numero.Replace(";", "")};{cliente.Cliente.cliente_complemento};{cliente.Cliente.cliente_dataNasc};{cliente.Cliente.cliente_dataCadastro};{cliente.Cliente.cliente_nrDocto};{cliente.Cliente.cliente_empregador};{cliente.Cliente.cliente_matriculaBeneficio};{cliente.Cliente.cliente_nomeMae};{cliente.Cliente.cliente_nomePai};{cliente.Cliente.cliente_telefoneFixo};{cliente.Cliente.cliente_telefoneCelular};{cliente.Cliente.cliente_possuiWhatsapp};{cliente.Cliente.cliente_funcaoAASPA};{cliente.Cliente.cliente_email};{cliente.Cliente.cliente_situacao};{cliente.Cliente.cliente_estado_civil};{cliente.Cliente.cliente_sexo};{cliente.Cliente.cliente_remessa_id};{cliente.Captador.captador_nome};{cliente.Captador.captador_cpf_cnpj};{cliente.Captador.captador_descricao};{cliente.Cliente.cliente_DataAverbacao.Value.ToString("dd/MM/yyyy hh:mm:ss:")};{cliente.Cliente.cliente_StatusIntegral};{cliente.Motivo.motivo_contato_nome};{cliente.Historico.historico_contatos_ocorrencia_situacao_ocorrencia};{cliente.Historico.historico_contatos_ocorrencia_dt_ocorrencia}";
+
+                var dtAverbacao = cliente.Cliente.cliente_DataAverbacao.HasValue ? cliente.Cliente.cliente_DataAverbacao.Value.ToString("dd/MM/yyyy hh:mm:ss:") : "";
+
+                texto += $"{cliente.Cliente.cliente_id};{cliente.Cliente.cliente_cpf};{cliente.Cliente.cliente_nome};{cliente.Cliente.cliente_cep};{cliente.Cliente.cliente_logradouro};{cliente.Cliente.cliente_bairro};{cliente.Cliente.cliente_localidade};{cliente.Cliente.cliente_uf};{cliente.Cliente.cliente_numero.Replace(";", "")};{cliente.Cliente.cliente_complemento};{cliente.Cliente.cliente_dataNasc};{cliente.Cliente.cliente_dataCadastro};{cliente.Cliente.cliente_nrDocto};{cliente.Cliente.cliente_empregador};{cliente.Cliente.cliente_matriculaBeneficio};{cliente.Cliente.cliente_nomeMae};{cliente.Cliente.cliente_nomePai};{cliente.Cliente.cliente_telefoneFixo};{cliente.Cliente.cliente_telefoneCelular};{cliente.Cliente.cliente_possuiWhatsapp};{cliente.Cliente.cliente_funcaoAASPA};{cliente.Cliente.cliente_email};{cliente.Cliente.cliente_situacao};{cliente.Cliente.cliente_estado_civil};{cliente.Cliente.cliente_sexo};{cliente.Cliente.cliente_remessa_id ?? 0};{cliente.Captador.captador_nome};{cliente.Captador.captador_cpf_cnpj};{cliente.Captador.captador_descricao};{dtAverbacao};{cliente.Cliente.cliente_StatusIntegral}";
+
+                if (cliente.Motivo != null)
+                {
+                    texto += $";{cliente.Motivo.motivo_contato_nome}";
+                }
+                else texto += ";;";
+
+                if (cliente.Origem != null)
+                {
+                    texto += $";{cliente.Origem.origem_nome}";
+                }
+                else texto += ";;";
+
+                if (cliente.Historico != null)
+                {
+                    texto += $";{cliente.Historico.historico_contatos_ocorrencia_dt_ocorrencia};{cliente.Historico.historico_contatos_ocorrencia_descricao};{cliente.Historico.historico_contatos_ocorrencia_banco};{cliente.Historico.historico_contatos_ocorrencia_agencia};{cliente.Historico.historico_contatos_ocorrencia_conta};{cliente.Historico.historico_contatos_ocorrencia_chave_pix}";
+                }
+                else texto += ";;;;;;";
+
                 texto += "\n";
             }
 
