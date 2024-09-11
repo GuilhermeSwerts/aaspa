@@ -49,8 +49,8 @@ const Cclientes = () => {
     const [dateInit, setDateInit] = useState('');
     const [dateEnd, setDateEnd] = useState('');
 
-    const [dateInitAverbacao, setDateInitAverbacao] = useState(get1DiaDoMes());
-    const [dateEndAverbacao, setDateEndAverbacao] = useState(getDataDeHoje());
+    const [dateInitAverbacao, setDateInitAverbacao] = useState('');
+    const [dateEndAverbacao, setDateEndAverbacao] = useState('');
 
     const [clientes, setClientes] = useState([]);
     const [clientesFiltro, setClientesFiltro] = useState([]);

@@ -15,6 +15,7 @@ import { FaFileInvoiceDollar } from "react-icons/fa";
 import { IoMdMenu } from "react-icons/io";
 import { FaFile } from "react-icons/fa";
 import { IoStatsChartSharp } from 'react-icons/io5';
+import { BiSupport } from 'react-icons/bi';
 
 function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
     const { handdleLogout, usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -195,6 +196,13 @@ function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
                             </DropdownItem>
                         </DropdownMenu>
                     </Dropdown>
+                    <span>/</span>
+                    <div className={pagina_atual === "ATENDIMENTO" ? "link link-active" : "link"}>
+                        <a href='/atendimento' style={{flexDirection:'row'}}>
+                            <span className="nav-tooltip">ATENDIMENTO</span>
+                            <BiSupport size={20} /> ATENDIMENTO
+                        </a>
+                    </div>
                 </nav>
                 <div className="header-tools" style={{ display: toggle ? 'flex' : 'none' }}>
                     <div style={{ display: 'flex', justifyContent: "center", alignItems: 'center', gap: 20 }}>

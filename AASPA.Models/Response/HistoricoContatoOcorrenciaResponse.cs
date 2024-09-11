@@ -15,5 +15,9 @@ namespace AASPA.Models.Response
         public string DescricaoDaOcorrência { get; set; }
         public string MotivoDoContato { get; set; }
         public string SituacaoOcorrencia { get; set; }
+        public string Banco { get; set; }
+        public string Agencia { get; set; }
+        public string Conta { get; set; }
+        public string Pix { get; set; }
     }
 }

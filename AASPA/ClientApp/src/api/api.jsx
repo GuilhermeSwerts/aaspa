@@ -6,9 +6,9 @@ export default class Api {
         this.urlBase = urlBase;
 
         this.access_token = window.localStorage.getItem("access_token");
-        let  url = window.location.host;
-        this.ambiente = url.includes("adm") ? "https://adm.aaspa.org.br" : url.includes("hml") ? "https://hmlaaspa.aaspa.org.br" : "https://localhost:44326" 
-        
+        let url = window.location.host;
+        this.ambiente = url.includes("adm") ? "https://adm.aaspa.org.br" : url.includes("hml") ? "https://hmlaaspa.aaspa.org.br" : "https://localhost:44326"
+
         this.api = axios.create({
             baseURL: urlBase,
             headers: {
@@ -20,14 +20,18 @@ export default class Api {
     execute = (api, funcResult, funcError) => {
 
         if (window.Wait != undefined) window.Wait(true);
-        document.getElementById("loadingpanel").style.display = 'flex';
+
+        if (document.getElementById("loadingpanel"))
+            document.getElementById("loadingpanel").style.display = 'flex';
 
         api.then((response) => {
             if (funcResult != undefined)
                 funcResult(response);
             if (window.Wait != undefined)
                 window.Wait(false);
-            document.getElementById("loadingpanel").style.display = 'none';
+
+            if (document.getElementById("loadingpanel"))
+                document.getElementById("loadingpanel").style.display = 'none';
         })
             .catch(async (err) => {
                 console.log({ error: err });
@@ -42,7 +46,9 @@ export default class Api {
                     funcError(err);
                 if (window.Wait != undefined)
                     window.Wait(false);
-                document.getElementById("loadingpanel").style.display = 'none';
+                
+                if (document.getElementById("loadingpanel"))
+                    document.getElementById("loadingpanel").style.display = 'none';
             });
 
     }
@@ -87,4 +93,5 @@ export default class Api {
     }
 }
 
-export const api = new Api(document.getElementsByTagName('base')[0].getAttribute('href'));
+// export const api = new Api(document.getElementsByTagName('base')[0].getAttribute('href'));
+export const api = new Api('https://localhost:44326');

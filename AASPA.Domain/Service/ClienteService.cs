@@ -219,7 +219,7 @@ namespace AASPA.Domain.Service
                     _mysql.log_status.Add(new LogStatusDb
                     {
                         log_status_antigo_id = 1,
-                        log_status_novo_id = novoCliente.Cliente.StatusIntegral == 0? 1 : novoCliente.Cliente.StatusIntegral == 11? 1 : 4,
+                        log_status_novo_id = novoCliente.Cliente.StatusIntegral == 0 ? 1 : novoCliente.Cliente.StatusIntegral == 11 ? 1 : 4,
                         log_status_cliente_id = cliente.cliente_id,
                         log_status_dt_cadastro = DateTime.Now
                     });
@@ -293,7 +293,7 @@ namespace AASPA.Domain.Service
                                 && (request.DateInitAverbacao == null || cli.cliente_DataAverbacao >= request.DateInitAverbacao)
                                 && (request.DateEndAverbacao == null || cli.cliente_DataAverbacao < request.DateEndAverbacao.Value.AddDays(1))
                                 && (string.IsNullOrEmpty(request.Nome) || cli.cliente_nome.ToUpper().Contains(request.Nome))
-                                && (string.IsNullOrEmpty(request.Cpf) || cli.cliente_cpf.ToUpper().Contains(request.Cpf.Replace(".","").Replace("-", "")))
+                                && (string.IsNullOrEmpty(request.Cpf) || cli.cliente_cpf.ToUpper().Contains(request.Cpf.Replace(".", "").Replace("-", "")))
                                 && (string.IsNullOrEmpty(request.Beneficio) || cli.cliente_matriculaBeneficio.Contains(request.Beneficio))
                             select new BuscarClienteByIdResponse
                             {
@@ -304,7 +304,7 @@ namespace AASPA.Domain.Service
                             .ToList()
                             .OrderByDescending(x => x.Cliente.cliente_dataCadastro).ToList();
 
-            if(request.CadastroExterno == 1)
+            if (request.CadastroExterno == 1)
             {
                 clientes = clientes.Where(x => x.Cliente.clientes_cadastro_externo).ToList();
             }
@@ -382,25 +382,25 @@ namespace AASPA.Domain.Service
             var todosClientes = clientes.ToList().Distinct().ToList();
             int totalClientes = todosClientes.Count();
             if (request.PaginaAtual == null)
-                return (todosClientes.OrderByDescending(x=> x.Cliente.cliente_dataCadastro).ToList(), 0, totalClientes);
+                return (todosClientes.OrderByDescending(x => x.Cliente.cliente_dataCadastro).ToList(), 0, totalClientes);
 
-            return CalcularPagina(todosClientes, request.PaginaAtual, totalClientes);
+            return CalcularPagina(todosClientes, request.PaginaAtual, totalClientes, request.QtdPorPagina);
         }
 
-        private (List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) CalcularPagina(List<BuscarClienteByIdResponse> todosClientes, int? paginaAtual, int totalClientes)
+        private (List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) CalcularPagina(List<BuscarClienteByIdResponse> todosClientes, int? paginaAtual, int totalClientes, int? qtdPorPagina)
         {
-            int qtdPorPagina = 5;
+            var limit = qtdPorPagina != null ? (int)qtdPorPagina : 5;
             int pagina = paginaAtual ?? 1;
 
-            int indiceInicial = (pagina - 1) * qtdPorPagina;
+            int indiceInicial = (pagina - 1) * limit;
 
-            var qtd = (todosClientes.Count + qtdPorPagina - 1) / qtdPorPagina; ;
+            var qtd = (todosClientes.Count + limit - 1) / limit; ;
 
             var qtdPaginas = Math.Ceiling(Convert.ToDecimal(qtd));
 
             qtdPaginas = qtdPaginas > 0 ? qtdPaginas : 1;
 
-            return (todosClientes.Skip(indiceInicial).Take(qtdPorPagina).ToList().OrderByDescending(x => x.Cliente.cliente_dataCadastro).ToList(), Convert.ToInt32(qtdPaginas), totalClientes);
+            return (todosClientes.Skip(indiceInicial).Take(limit).ToList().OrderByDescending(x => x.Cliente.cliente_dataCadastro).ToList(), Convert.ToInt32(qtdPaginas), totalClientes);
         }
 
         public byte[] DownloadFiltro((List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) clientesData)
@@ -426,7 +426,7 @@ namespace AASPA.Domain.Service
                     string token = await GerarToken();
 
                     var captadores = await GetCaptador(token);
-                    List<int> statusId = new List<int> { 11,12,15};
+                    List<int> statusId = new List<int> { 11, 12, 15 };
 
                     foreach (var id in statusId)
                     {
@@ -476,7 +476,7 @@ namespace AASPA.Domain.Service
                                 };
                                 clientesIntegral.Add(clientes);
                             }
-                        } 
+                        }
                     }
                 }
                 return clientesIntegral;
@@ -556,7 +556,7 @@ namespace AASPA.Domain.Service
         {
             foreach (var cli in clientes)
             {
-                NovoCliente(cli, true,true);
+                NovoCliente(cli, true, true);
             }
         }
         private async Task<string> GerarToken()
