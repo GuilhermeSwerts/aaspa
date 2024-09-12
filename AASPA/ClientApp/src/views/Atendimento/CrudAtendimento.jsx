@@ -25,7 +25,7 @@ class CrudAtendimento extends Component {
         }
         this.AbrirCrud = (clientId) => {
 
-            api.get(`${api.urlBase}/BuscarClienteID/${clientId}`,
+            api.get(`${api.urlBase}BuscarClienteID/${clientId}`,
                 async (res) => {
                     this.setState({ clienteData: res.data });
                 },
@@ -37,7 +37,7 @@ class CrudAtendimento extends Component {
             );
 
             try {
-                api.get(`${api.urlBase}/BuscarTodosContatoOcorrencia/${clientId}`, res => {
+                api.get(`${api.urlBase}BuscarTodosContatoOcorrencia/${clientId}`, res => {
                     this.setState({ historicoOcorrenciaCliente: res.data });
                 })
             } catch (error) {
@@ -53,7 +53,7 @@ class CrudAtendimento extends Component {
 
     BuscarHistoricoOcorrenciaCliente = async (id) => {
         try {
-            api.get(`${api.urlBase}/BuscarTodosContatoOcorrencia/${id}`, res => {
+            api.get(`${api.urlBase}BuscarTodosContatoOcorrencia/${id}`, res => {
                 this.setState({ historicoOcorrenciaCliente: res.data });
             })
         } catch (error) {
