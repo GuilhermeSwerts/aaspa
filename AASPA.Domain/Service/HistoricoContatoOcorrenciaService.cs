@@ -38,6 +38,7 @@ namespace AASPA.Domain.Service
                         Agencia = hit.historico_contatos_ocorrencia_agencia,
                         Banco = hit.historico_contatos_ocorrencia_banco,
                         Conta = hit.historico_contatos_ocorrencia_conta,
+                        Digito = hit.historico_contatos_ocorrencia_digito,
                         Pix = hit.historico_contatos_ocorrencia_chave_pix
                     }).ToList().OrderByDescending(x => x.DataHoraOcorrencia);
         }
@@ -106,6 +107,7 @@ namespace AASPA.Domain.Service
                     historico_contatos_ocorrencia_banco = historicoContatos.HistoricoContatosOcorrenciaBanco,
                     historico_contatos_ocorrencia_agencia = historicoContatos.HistoricoContatosOcorrenciaAgencia,
                     historico_contatos_ocorrencia_conta = historicoContatos.HistoricoContatosOcorrenciaConta,
+                    historico_contatos_ocorrencia_digito = historicoContatos.HistoricoContatosOcorrenciaDigito,
                     historico_contatos_ocorrencia_chave_pix = historicoContatos.HistoricoContatosOcorrenciaPix
                 });
 
@@ -237,7 +239,7 @@ namespace AASPA.Domain.Service
         }
         public byte[] DownloadContatoFiltro((List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) clientesData)
         {
-            string texto = "#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO;STATUS_INTEGRAALL;MOTIVO_ATENDIMENTO;ORIGEM_ATENDIMENTO;DATA_ATENDIMENTO;DESCRICAO_ATENDIMENTO;DADOS_BANCARIOS_BANCO;DADOS_BANCARIOS_AGENCIA;DADOS_BANCARIOS_CONTA;DADOS_BANCARIOS_CHAVE_PIX\n";
+            string texto = "#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO;STATUS_INTEGRAALL;MOTIVO_ATENDIMENTO;ORIGEM_ATENDIMENTO;DATA_ATENDIMENTO;DESCRICAO_ATENDIMENTO;DADOS_BANCARIOS_BANCO;DADOS_BANCARIOS_AGENCIA;DADOS_BANCARIOS_CONTA;DADOS_BANCARIOS_DIGITO;DADOS_BANCARIOS_CHAVE_PIX\n";
             for (int i = 0; i < clientesData.Clientes.Count; i++)
             {
                 string na = "N/A";
@@ -261,7 +263,7 @@ namespace AASPA.Domain.Service
 
                 if (cliente.Historico != null)
                 {
-                    texto += $";{cliente.Historico.historico_contatos_ocorrencia_dt_ocorrencia};{cliente.Historico.historico_contatos_ocorrencia_descricao};{cliente.Historico.historico_contatos_ocorrencia_banco};{cliente.Historico.historico_contatos_ocorrencia_agencia};{cliente.Historico.historico_contatos_ocorrencia_conta};{cliente.Historico.historico_contatos_ocorrencia_chave_pix}";
+                    texto += $";{cliente.Historico.historico_contatos_ocorrencia_dt_ocorrencia};{cliente.Historico.historico_contatos_ocorrencia_descricao};{cliente.Historico.historico_contatos_ocorrencia_banco};{cliente.Historico.historico_contatos_ocorrencia_agencia};{cliente.Historico.historico_contatos_ocorrencia_conta};{cliente.Historico.historico_contatos_ocorrencia_digito};{cliente.Historico.historico_contatos_ocorrencia_chave_pix}";
                 }
                 else texto += ";;;;;;";
 

@@ -18,6 +18,7 @@ namespace AASPA.Models.Response
         public string Banco { get; set; }
         public string Agencia { get; set; }
         public string Conta { get; set; }
+        public string Digito { get; set; }
         public string Pix { get; set; }
     }
 }

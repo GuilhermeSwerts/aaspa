@@ -28,17 +28,27 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
     const [banco, setBanco] = useState("");
     const [agencia, setAgencia] = useState("");
     const [conta, setConta] = useState("");
+    const [digito, setDigito] = useState("");
     const [pix, setPIX] = useState("");
 
     const initState = () => {
         setDtOcorrencia(getDataDeHoje());
-        setOrigem(origens[0]);
-        setMotivo(motivos[0]);
+        if (origens && origens.length > 0) {
+            setOrigem(origens[0].origem_id);
+        } else {
+            setOrigem(origens[0]);
+        }
+        if (motivo && motivo.length > 0) {
+            setOrigem(motivos[0].motivo_contato_id);
+        } else {
+            setOrigem(motivos[0]);
+        }
         setSituacao("EM TRATAMENTO");
         setDesc("");
         setBanco("");
         setAgencia("");
         setConta("");
+        setDigito("");
         setPIX("")
     }
 
@@ -79,6 +89,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         formData.append("HistoricoContatosOcorrenciaBanco", banco)
         formData.append("HistoricoContatosOcorrenciaAgencia", agencia)
         formData.append("HistoricoContatosOcorrenciaConta", conta)
+        formData.append("HistoricoContatosOcorrenciaDigito", digito)
         formData.append("HistoricoContatosOcorrenciaPix", pix)
 
         api.post("NovoContatoOcorrencia", formData, res => {
@@ -146,7 +157,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                             </div>
                             <div className="col-md-3">
                                 <Label>Situação Da Ocorrência</Label>
-                                <select disabled name='HistoricoContatosOcorrenciaSituacaoOcorrencia' value={situacao} onChange={e => setSituacao(e.target.value)} required className='form-control'>
+                                <select name='HistoricoContatosOcorrenciaSituacaoOcorrencia' value={situacao} onChange={e => setSituacao(e.target.value)} required className='form-control'>
                                     <option value="ATENDIDA">ATENDIDA</option>
                                     <option value="EM TRATAMENTO">EM TRATAMENTO</option>
                                     <option value="CANCELADA">CANCELADA</option>
@@ -161,13 +172,17 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                                 <Label>Banco</Label>
                                 <input type="text" value={banco} onChange={e => setBanco(e.target.value)} className='form-control' />
                             </div>
-                            <div className="col-md-3">
+                            <div className="col-md-2">
                                 <Label>Agência</Label>
                                 <input maxLength={4} type="text" value={agencia} onChange={e => setAgencia(e.target.value)} className='form-control' />
                             </div>
                             <div className="col-md-3">
                                 <Label>Conta</Label>
-                                <input maxLength={15} type="text" value={conta} onChange={e => setConta(e.target.value)} placeholder='Conta com dígito' className='form-control' />
+                                <input maxLength={15} type="text" value={conta} onChange={e => setConta(e.target.value)} placeholder='Conta sem dígito' className='form-control' />
+                            </div>
+                            <div className="col-md-1">
+                                <Label>Dígito</Label>
+                                <input maxLength={15} type="text" value={digito} onChange={e => setDigito(e.target.value)} placeholder='Dígito' className='form-control' />
                             </div>
                             <div className="col-md-3">
                                 <Label>Chave PIX</Label>

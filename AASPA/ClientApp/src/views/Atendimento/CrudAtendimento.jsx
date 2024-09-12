@@ -129,6 +129,7 @@ class CrudAtendimento extends Component {
                         <th>Banco</th>
                         <th>Agência</th>
                         <th>Conta</th>
+                        <th>Dígito</th>
                         <th>Chave PIX</th>
                         <th>Descricao da Ocorrência </th>
                         <th>Ações</th>
@@ -143,6 +144,7 @@ class CrudAtendimento extends Component {
                                 <td>{historico.banco}</td>
                                 <td>{historico.agencia}</td>
                                 <td>{historico.conta}</td>
+                                <td>{historico.digito}</td>
                                 <td>{historico.pix}</td>
                                 <td><button style={{ marginLeft: "4rem" }} className='btn btn-success' type="button" onClick={() => AbrirDescricao(historico.descricaoDaOcorrência)}><FaEye color='#fff' size={20} /></button></td>
                                 <td style={{ display: 'flex', gap: 20 }}>
