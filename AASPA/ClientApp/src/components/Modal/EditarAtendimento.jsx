@@ -19,6 +19,7 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
     const [banco, setBanco] = useState("");
     const [agencia, setAgencia] = useState("");
     const [conta, setConta] = useState("");
+    const [digito, setDigito] = useState("");
     const [pix, setPIX] = useState("");
 
     const initState = () => {
@@ -30,6 +31,7 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         setBanco("");
         setAgencia("");
         setConta("");
+        setDigito("");
         setPIX("")
     }
 
@@ -64,6 +66,7 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         formData.append("HistoricoContatosOcorrenciaBanco", banco)
         formData.append("HistoricoContatosOcorrenciaAgencia", agencia)
         formData.append("HistoricoContatosOcorrenciaConta", conta)
+        formData.append("HistoricoContatosOcorrenciaDigito", digito)
         formData.append("HistoricoContatosOcorrenciaPix", pix)
 
         api.post("EditarContatoOcorrencia", formData, res => {
@@ -90,6 +93,7 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
             setBanco(res.data.historico_contatos_ocorrencia_banco);
             setAgencia(res.data.historico_contatos_ocorrencia_agencia);
             setConta(res.data.historico_contatos_ocorrencia_conta);
+            setDigito(res.data.historico_contatos_ocorrencia_digito);
             setPIX(res.data.historico_contatos_ocorrencia_chave_pix);
             setShow(true)
         }, err => {
@@ -164,13 +168,17 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                                 <Label>Banco</Label>
                                 <input type="text" value={banco} onChange={e => setBanco(e.target.value)} className='form-control' />
                             </div>
-                            <div className="col-md-3">
+                            <div className="col-md-2">
                                 <Label>Agência</Label>
                                 <input maxLength={4} type="text" value={agencia} onChange={e => setAgencia(e.target.value)} className='form-control' />
                             </div>
                             <div className="col-md-3">
                                 <Label>Conta</Label>
                                 <input maxLength={15} type="text" value={conta} onChange={e => setConta(e.target.value)} placeholder='Conta com dígito' className='form-control' />
+                            </div>
+                            <div className="col-md-1">
+                                <Label>Dígito</Label>
+                                <input maxLength={15} type="text" value={digito} onChange={e => setDigito(e.target.value)} placeholder='Dígito' className='form-control' />
                             </div>
                             <div className="col-md-3">
                                 <Label>Chave PIX</Label>
