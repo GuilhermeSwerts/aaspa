@@ -174,7 +174,7 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                             </div>
                             <div className="col-md-3">
                                 <Label>Conta</Label>
-                                <input maxLength={15} type="text" value={conta} onChange={e => setConta(e.target.value)} placeholder='Conta com dígito' className='form-control' />
+                                <input maxLength={15} type="text" value={conta} onChange={e => setConta(e.target.value)} placeholder='Conta sem dígito' className='form-control' />
                             </div>
                             <div className="col-md-1">
                                 <Label>Dígito</Label>
