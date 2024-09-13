@@ -78,6 +78,7 @@ namespace AASPA.Domain.Service
                 contatoOcorrencia.historico_contatos_ocorrencia_banco = historicoContatos.HistoricoContatosOcorrenciaBanco;
                 contatoOcorrencia.historico_contatos_ocorrencia_agencia = historicoContatos.HistoricoContatosOcorrenciaAgencia;
                 contatoOcorrencia.historico_contatos_ocorrencia_conta = historicoContatos.HistoricoContatosOcorrenciaConta;
+                contatoOcorrencia.historico_contatos_ocorrencia_digito = historicoContatos.HistoricoContatosOcorrenciaDigito;
                 contatoOcorrencia.historico_contatos_ocorrencia_chave_pix = historicoContatos.HistoricoContatosOcorrenciaPix;
 
                 _mysql.SaveChanges();
