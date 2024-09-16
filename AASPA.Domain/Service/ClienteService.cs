@@ -70,9 +70,9 @@ namespace AASPA.Domain.Service
                 };
 
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                throw new Exception(ex.Message);
             }
         }
 
@@ -287,6 +287,8 @@ namespace AASPA.Domain.Service
             var clientes = (from cli in _mysql.clientes
                             join vin in _mysql.vinculo_cliente_captador on cli.cliente_id equals vin.vinculo_cliente_id
                             join cpt in _mysql.captadores on vin.vinculo_captador_id equals cpt.captador_id
+                            join his in _mysql.historico_contatos_ocorrencia on cli.cliente_id equals his.historico_contatos_ocorrencia_cliente_id into hisGroup
+                            from his in hisGroup.DefaultIfEmpty()
                             where
                                    (request.DateInit == null || cli.cliente_dataCadastro >= request.DateInit)
                                 && (request.DateEnd == null || cli.cliente_dataCadastro < request.DateEnd.Value.AddDays(1))
@@ -299,6 +301,7 @@ namespace AASPA.Domain.Service
                             {
                                 Captador = cpt,
                                 Cliente = cli,
+                                Historico = his,
                             }).ToList()
                             .Distinct()
                             .ToList()
@@ -337,6 +340,26 @@ namespace AASPA.Domain.Service
             if (request.StatusIntegraall > 0)
             {
                 clientes = clientes.Where(x => x.Cliente.cliente_StatusIntegral == request.StatusIntegraall).ToList();
+            }
+            if (request.SituacaoOcorrencia != "TODOS" && request.SituacaoOcorrencia != null)
+            {
+                clientes = clientes
+                    .Where(x => x.Historico != null &&
+                                x.Historico.historico_contatos_ocorrencia_situacao_ocorrencia != null &&
+                                x.Historico.historico_contatos_ocorrencia_situacao_ocorrencia == request.SituacaoOcorrencia)
+                    .ToList();
+            }
+
+            if (request.DataInitAtendimento != null)
+            {
+                var dataInitAtendimento = request.DataInitAtendimento.Value.Date;
+                clientes = clientes.Where(x => x?.Historico?.historico_contatos_ocorrencia_dt_ocorrencia.Date >= dataInitAtendimento).ToList();
+            }
+
+            if (request.DataEndAtendimento != null)
+            {
+                var dataEndAtendimento = request.DataEndAtendimento.Value.Date;
+                clientes = clientes.Where(x => x?.Historico?.historico_contatos_ocorrencia_dt_ocorrencia.Date <= dataEndAtendimento).ToList();
             }
 
             foreach (var cliente in clientes)

@@ -13,9 +13,13 @@ function Atendimento() {
     const ref = useRef();
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext)
     const [showFiltro, setShowFiltro] = useState(true);
+    const [dateInit, setDateInit] = useState('');
+    const [dateEnd, setDateEnd] = useState('');
+    const [situacao, setSituacao] = useState('');
     const [filtro, setFiltro] = useState({
         cpf: '',
-        matricula: ''
+        matricula: '',
+        situacao: '',
     });
     const [clientes, setClientes] = useState([]);
     //**paginação**
@@ -35,7 +39,7 @@ function Atendimento() {
 
         if (!pPagina) pPagina = paginaAtual;
 
-        api.get(`BuscarFiltroClientes?&cpf=${filtro.cpf}&beneficio=${filtro.matricula}&paginaAtual=${pPagina}&QtdPorPagina=${limit}`, res => {
+        api.get(`BuscarFiltroClientes?&cpf=${filtro.cpf}&beneficio=${filtro.matricula}&dataInitAtendimento=${dateInit}&dataEndAtendimento=${dateEnd}&situacaoOcorrencia=${situacao}&paginaAtual=${pPagina}&QtdPorPagina=${limit}`, res => {
             setClientes([]);
             setClientes(res.data.clientes);
             setTotalClientes(res.data.totalClientes);
@@ -50,7 +54,9 @@ function Atendimento() {
     }, [])
 
     const DownloadFiltro = () => {
-        window.open(`${api.ambiente}/DownloadContatoFiltro?cpf=${filtro.cpf}&beneficio=${filtro.matricula}`)
+
+        console.log(api.ambiente);
+        window.open(`${api.ambiente}/DownloadContatoFiltro?cpf=${filtro.cpf}&beneficio=${filtro.matricula}&dataInitAtendimento=${dateInit}&dataEndAtendimento=${dateEnd}&situacaoOcorrencia=${situacao}`)
     }
 
     return (
@@ -87,10 +93,40 @@ function Atendimento() {
                             id="matricula"
                             className='form-control' />
                     </div>
+                    <div className="col-md-2">
+                        <span>Data Atendimento De:</span>
+                        <input
+                            type="date"
+                            value={dateInit}
+                            onChange={e => setDateInit(e.target.value)}
+                            name="dateInit"
+                            id="dateInit"
+                            className='form-control' />
+                    </div>
+                    <div className="col-md-2">
+                        <span>Até:</span>
+                        <input
+                            type="date"
+                            value={dateEnd}
+                            onChange={e => setDateEnd(e.target.value)}
+                            name="dateEnd"
+                            id="dateEnd"
+                            className='form-control' />
+                    </div>
+                    <div className="col-md-2">
+                        <span>Situação Ocorrencia</span>
+                        <select name='status' value={situacao} id="status" onChange={e => { setSituacao(e.target.value )}} required className='form-control'>
+                            <option value="TODOS">TODOS</option>
+                            <option value="ATENDIDA">ATENDIDA</option>
+                            <option value="EM TRATAMENTO">EM TRATAMENTO</option>
+                            <option value="CANCELADA">CANCELADA</option>
+                            <option value="FINALIZADO">FINALIZADO</option>
+                        </select>                       
+                    </div>
                     <div className="col-md-1" style={{ marginTop: '1.5rem' }}>
                         <button style={{ width: '100%' }} onClick={e => { BuscarTodosClientes(1) }} className='btn btn-primary'><FaSearch size={17} /></button>
                     </div>
-                    <div className="col-md-6"></div>
+                    <div className="col-md-1"></div>
                     <div className="col-md-1" style={{ marginTop: '1.5rem' }}>
                         <button style={{ width: '100%' }} onClick={DownloadFiltro} className='btn btn-primary'>Extrair <FaDownload size={17} /></button>
                     </div>

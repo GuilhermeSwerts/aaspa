@@ -191,6 +191,27 @@ namespace AASPA.Domain.Service
                 clientes = clientes.Where(x => x.Cliente.cliente_StatusIntegral == request.StatusIntegraall).ToList();
             }
 
+            if (request.SituacaoOcorrencia != "TODOS" && request.SituacaoOcorrencia != null)
+            {
+                clientes = clientes
+                    .Where(x => x.Historico != null &&
+                                x.Historico.historico_contatos_ocorrencia_situacao_ocorrencia != null &&
+                                x.Historico.historico_contatos_ocorrencia_situacao_ocorrencia == request.SituacaoOcorrencia)
+                    .ToList();
+            }
+
+            if (request.DataInitAtendimento != null)
+            {
+                var dataInitAtendimento = request.DataInitAtendimento.Value.Date;
+                clientes = clientes.Where(x => x?.Historico?.historico_contatos_ocorrencia_dt_ocorrencia.Date >= dataInitAtendimento).ToList();
+            }
+
+            if (request.DataEndAtendimento != null)
+            {
+                var dataEndAtendimento = request.DataEndAtendimento.Value.Date;
+                clientes = clientes.Where(x => x?.Historico?.historico_contatos_ocorrencia_dt_ocorrencia.Date <= dataEndAtendimento).ToList();
+            }
+
             foreach (var cliente in clientes)
             {
                 var ben = _mysql.log_beneficios.Where(x => x.log_beneficios_cliente_id == cliente.Cliente.cliente_id && x.log_beneficios_ativo).ToList();

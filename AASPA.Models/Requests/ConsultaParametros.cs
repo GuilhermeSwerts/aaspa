@@ -21,5 +21,8 @@ namespace AASPA.Models.Requests
         public DateTime? DateInitAverbacao { get; set; } = null;
         public DateTime? DateEndAverbacao { get; set; } = null;
         public string Beneficio { get; set; } = null;
+        public string SituacaoOcorrencia { get; set; }
+        public DateTime? DataInitAtendimento { get; set; }
+        public DateTime? DataEndAtendimento { get; set; }
     }
 }
