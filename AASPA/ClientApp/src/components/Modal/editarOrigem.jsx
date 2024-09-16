@@ -4,6 +4,7 @@ import { api } from '../../api/api';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { FaPencil, FaPlus } from 'react-icons/fa6';
 import { Alert } from '../../util/alertas';
+import { Size } from '../../util/size';
 
 function ModalEditarOrigem({ BuscarOrigem, OrigemId }) {
     const [show, setShow] = useState(false);
@@ -41,7 +42,7 @@ function ModalEditarOrigem({ BuscarOrigem, OrigemId }) {
                 className='btn btn-warning'
                 text={'Editar Origem'}
                 top={true}
-                textButton={<FaPencil color='#fff' size={17} />}
+                textButton={<FaPencil color='#fff' size={Size.IconeTabela} />}
             />
             <Modal isOpen={show}>
                 <form onSubmit={e => { e.preventDefault(); handdleSubmit() }}>

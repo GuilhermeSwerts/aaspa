@@ -1,26 +1,21 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import './layout.css';
-import Logo from '../../assets/Logo.png';
-import { Dropdown, DropdownToggle, DropdownItem, DropdownMenu, Collapse, Container } from 'reactstrap';
-import { FaChartArea, FaChartPie, FaFileDownload, FaFileImport, FaRegArrowAltCircleDown, FaRegArrowAltCircleUp } from "react-icons/fa";
-import { FaUsers } from "react-icons/fa";
-import { FaHandHoldingUsd } from "react-icons/fa";
-import { GiReceiveMoney } from "react-icons/gi";
-import { RiContactsBookUploadLine } from "react-icons/ri";
+import Logo from '../../assets/logo_original.png';
+import { IoMenu } from "react-icons/io5";
+import { IoMdCloseCircle } from "react-icons/io";
 import { IoMdExit } from "react-icons/io";
-import { FaGear, FaGears, FaUsersGear, FaUser, FaKey } from "react-icons/fa6";
-import { FaUserGear } from "react-icons/fa6";
-import { FaFileInvoiceDollar } from "react-icons/fa";
-import { IoMdMenu } from "react-icons/io";
-import { FaFile } from "react-icons/fa";
-import { IoStatsChartSharp } from 'react-icons/io5';
-import { BiSupport } from 'react-icons/bi';
-import { GiPayMoney } from "react-icons/gi";
-function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
+import { Size } from '../../util/size';
+import { PublicaRotas } from '../../router/Rotas';
+import { FaCubes } from 'react-icons/fa';
+
+function NavBar({ children, usuario_nome, usuario_tipo }) {
     const { handdleLogout, usuario, handdleUsuarioLogado } = useContext(AuthContext);
     const [toggle, setToggle] = useState(false);
     const [user, setUser] = useState({ sigla: '', nome: '' });
+    const rota_atual = window.location.pathname
+
+    const pagina_atual = PublicaRotas.find(x => x.path === rota_atual);
 
     useEffect(() => {
         if (usuario?.usuario_nome) {
@@ -31,185 +26,29 @@ function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
         }
     }, [usuario]);
 
-    const [showCategoria, setShowCategoria] = useState(false);
-    const [showGerenciamento, setShowGerenciamento] = useState(false);
-    const [showArquivo, setShowArquivo] = useState(false);
-    const [showRelatorio, setshowRelatorio] = useState(false);
-
-    const toggleCategoria = () => setShowCategoria((prevState) => !prevState);
-    const toggleGerenciamento = () => setShowGerenciamento((prevState) => !prevState);
-    const toggleArquivo = () => setShowArquivo((prevState) => !prevState);
-    const toggleRelatorio = () => setshowRelatorio((prevState) => !prevState);
+    const toggleMenu = () => {
+        document.querySelector('.container-nav').classList.toggle('open-nav')
+    }
 
     return (
         <section>
             <header className="header-container">
-                <nav className="header-nav">
-                    <Dropdown isOpen={showCategoria} toggle={toggleCategoria} direction={'down'}>
-                        <DropdownToggle className='transparent-dropdown-menu' data-toggle="dropdown"
-                            tag="span"><IoMdMenu /> Categorias</DropdownToggle>
-                        <DropdownMenu>
-                            <DropdownItem header>Telas</DropdownItem>
-                            <DropdownItem>
-                                <div className={pagina_atual === "CLIENTES" ? "link link-active" : "link"}>
-                                    <a href="/">
-                                        <FaUsers size={15} /> CLIENTES
-                                        <span className="nav-tooltip">CLIENTES</span>
-                                    </a>
-                                </div>
-                            </DropdownItem>
-                            <DropdownItem>
-                                <div className={pagina_atual === "CARGA CLIENTES" ? "link link-active" : "link"}>
-                                    <a href="/ccliente">
-                                        <FaUsers size={15} /> C. CLIENTES
-                                        <span className="nav-tooltip">CARGA CLIENTES</span>
-                                    </a>
-                                </div>
-                            </DropdownItem>
-                            <DropdownItem>
-                                <div className={pagina_atual === "CONTATOS/OCORRÊNCIA" ? "link link-active" : "link"}>
-                                    <a href="/hstcocontatoocorrencia">
-                                        <RiContactsBookUploadLine size={15} /> CONTATOS
-                                        <span className="nav-tooltip">CONTATOS/OCORRÊNCIA</span>
-                                    </a>
-                                </div>
-                            </DropdownItem>
-                            <DropdownItem>
-                                <div className={pagina_atual === "BENEFÍCIOS" ? "link link-active" : "link"}>
-                                    <a href="/beneficios">
-                                        <FaHandHoldingUsd size={15} /> BENEFÍCIOS
-                                        <span className="nav-tooltip">BENEFÍCIOS</span>
-                                    </a>
-                                </div>
-                            </DropdownItem>
-                            <DropdownItem>
-                                <div className={pagina_atual === "PAGAMENTOS" ? "link link-active" : "link"}>
-                                    <a href="/pagamentos">
-                                        <GiReceiveMoney size={15} /> PAGAMENTOS
-                                        <span className="nav-tooltip">PAGAMENTOS</span>
-                                    </a>
-                                </div>
-                            </DropdownItem>
-                        </DropdownMenu>
-                    </Dropdown>
-                    <span>/</span>
-                    <Dropdown isOpen={showGerenciamento} toggle={toggleGerenciamento} direction={'down'}>
-                        <DropdownToggle className='transparent-dropdown-menu' data-toggle="dropdown"
-                            tag="span"><FaGears />Gerenciamento</DropdownToggle>
-                        <DropdownMenu>
-                            <DropdownItem header>Telas</DropdownItem>
-                            <DropdownItem>
-                                <div className={pagina_atual === "GERENCIAR MOTIVO CONTATO" ? "link link-active" : "link"}>
-                                    <a href="/gmotivocontato">
-                                        <FaGears size={15} /> MOTIVO CONTATO
-                                        <span className="nav-tooltip">GERENCIAR MOTIVO CONTATO</span>
-                                    </a>
-                                </div>
-                            </DropdownItem>
-                            <DropdownItem>
-                                <div className={pagina_atual === "GERENCIAR ORIGEM" ? "link link-active" : "link"}>
-                                    <a href="/gorigem">
-                                        <FaGear size={15} /> ORIGEM
-                                        <span className="nav-tooltip">GERENCIAR ORIGEM</span>
-                                    </a>
-                                </div>
-                            </DropdownItem>
-                            <DropdownItem>
-                                <div className={pagina_atual === "GERENCIAR STATUS" ? "link link-active" : "link"}>
-                                    <a href="/gstatus">
-                                        <FaUserGear size={15} /> STATUS
-                                        <span className="nav-tooltip">GERENCIAR STATUS</span>
-                                    </a>
-                                </div>
-                            </DropdownItem>
-                            <DropdownItem>
-                                <div className={pagina_atual === "GERENCIAR BENEFICIOS" ? "link link-active" : "link"}>
-                                    <a href="/gbeneficio">
-                                        <FaGear size={15} /> BENEFICIOS
-                                        <span className="nav-tooltip">GERENCIAR BENEFICIOS</span>
-                                    </a>
-                                </div>
-                            </DropdownItem>
-                            <DropdownItem>
-                                <div className={pagina_atual === "GERENCIAR CAPTADOR" ? "link link-active" : "link"}>
-                                    <a href="/gcaptador">
-                                        <FaUsersGear size={15} /> CAPTADOR
-                                        <span className="nav-tooltip">GERENCIAR CAPTADOR</span>
-                                    </a>
-                                </div>
-                            </DropdownItem>
-                        </DropdownMenu>
-                    </Dropdown>
-                    <span>/</span>
-                    <Dropdown isOpen={showArquivo} toggle={toggleArquivo} direction={'down'}>
-                        <DropdownToggle className='transparent-dropdown-menu' data-toggle="dropdown"
-                            tag="span"><FaFile />Arquivos</DropdownToggle>
-                        <DropdownMenu>
-                            <DropdownItem header>Telas</DropdownItem>
-                            <DropdownItem>
-                                <div className={pagina_atual === "REMESSA" ? "link link-active" : "link"}>
-                                    <a href='/rremessa'>
-                                        <FaFileDownload size={15} /> REMESSA
-                                        <span className="nav-tooltip">REMESSA</span>
-                                    </a>
-                                </div>
-                            </DropdownItem>
-                            <DropdownItem>
-                                <div className={pagina_atual === "RETORNO" ? "link link-active" : "link"}>
-                                    <a href='/rretorno'>
-                                        <FaFileImport size={15} /> RETORNO
-                                        <span className="nav-tooltip">RETORNO</span>
-                                    </a>
-                                </div>
-                            </DropdownItem>
-                            <DropdownItem>
-                                <div className={pagina_atual === "REPASSE" ? "link link-active" : "link"}>
-                                    <a href='/rrepassefinanceiro'>
-                                        <FaFileInvoiceDollar size={15} /> REPASSE
-                                        <span className="nav-tooltip">REPASSE</span>
-                                    </a>
-                                </div>
-                            </DropdownItem>
-                        </DropdownMenu>
-                    </Dropdown>
-                    <span>/</span>
-                    <Dropdown isOpen={showRelatorio} toggle={toggleRelatorio} direction={'down'}>
-                        <DropdownToggle className='transparent-dropdown-menu' data-toggle="dropdown"
-                            tag="span"><IoStatsChartSharp />Relatórios</DropdownToggle>
-                        <DropdownMenu>
-                            <DropdownItem header>Telas</DropdownItem>
-                            <DropdownItem>
-                                <div className={pagina_atual === "AVERBAÇÃO" ? "link link-active" : "link"}>
-                                    <a href='/rrelatorio'>
-                                        <FaChartPie size={15} /> AVERBAÇÃO
-                                        <span className="nav-tooltip">AVERBAÇÃO</span>
-                                    </a>
-                                </div>
-                            </DropdownItem>
-                            <DropdownItem>
-                                <div className={pagina_atual === "CARTEIRA" ? "link link-active" : "link"}>
-                                    <a href='/relatoriocarteira'>
-                                        <FaChartArea size={15} /> CARTEIRA
-                                        <span className="nav-tooltip">CARTEIRA</span>
-                                    </a>
-                                </div>
-                            </DropdownItem>
-                        </DropdownMenu>
-                    </Dropdown>
-                    <span>/</span>
-                    <div className={pagina_atual === "ATENDIMENTO" ? "link link-active" : "link"}>
-                        <a href='/atendimento' style={{flexDirection:'row'}}>
-                            <span className="nav-tooltip">ATENDIMENTO</span>
-                            <BiSupport size={20} /> ATENDIMENTO
-                        </a>
+                <button className='btn-menu' onClick={toggleMenu}><IoMenu size={Size.IconeMenu} /></button>
+                <img style={{ width: '100px' }} src={Logo} alt="logo" />
+                <nav className="container-nav">
+                    <div className="flex-align-end" style={{ padding: '1rem' }}>
+                        <button className='btn-menu' onClick={toggleMenu}><IoMdCloseCircle size={Size.IconeMenu} /></button>
                     </div>
-                    <span>/</span>
-                    <div className={pagina_atual === "SOLICITAÇÃO REEMBOLSO" ? "link link-active" : "link"}>
-                        <a href='/reembolso' style={{flexDirection:'row'}}>
-                            <span className="nav-tooltip">ATENDIMENTO</span>
-                            <GiPayMoney size={20} /> SOLICITAÇÃO REEMBOLSO
-                        </a>
+                    <div style={{ width: '100%' }}>
+                        {PublicaRotas.map((rota, i) => (
+                            <div key={`${rota.path}-${i}`} className={rota_atual === rota.path ? "link link-active" : "link"}>
+                                <a href={rota.path}>
+                                    {rota.Icon && <rota.Icon size={Size.IconeMenu} />} {rota.nome}
+                                </a>
+                            </div>
+                        ))}
                     </div>
+
                 </nav>
                 <div className="header-tools" style={{ display: toggle ? 'flex' : 'none' }}>
                     <div style={{ display: 'flex', justifyContent: "center", alignItems: 'center', gap: 20 }}>
@@ -218,8 +57,6 @@ function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
                     </div>
                     <div style={{ borderBottom: '1px solid #c2c2c2', height: '1px', width: '100%' }}></div>
                     <div className='links'>
-                        {/* <a href="">Ver Perfil <FaUser /></a> */}
-                        {/* <a href="">Alterar Senha <FaKey /></a> */}
                         <a onClick={handdleLogout}>Sair <IoMdExit /></a>
                     </div>
                 </div>
@@ -227,8 +64,12 @@ function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
                     {user.sigla}
                 </div>
             </header >
-            <hr />
-            <div className="dashboard-container" style={{ padding: '1rem', borderRadius: '20px 20px 0 0 ' }}>
+            <div style={{ background: "#f2f2f2", padding: '2rem', width: '100%', minHeight: '100vh', height: "auto" }}>
+                <div className='header-simples'>
+                    <h5><FaCubes color='#fff' /> {pagina_atual && pagina_atual.nome}</h5>
+                    <button onClick={e => window.history.back()} style={{ color: '#fff' }} className='btn btn-link'>Voltar</button>
+                </div>
+                <br />
                 {children}
             </div>
         </section>

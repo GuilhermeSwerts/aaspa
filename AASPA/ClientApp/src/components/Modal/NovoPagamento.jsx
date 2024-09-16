@@ -5,6 +5,7 @@ import { MdOutlineAttachMoney } from 'react-icons/md';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { Mascara } from '../../util/mascara';
 import { Alert } from '../../util/alertas';
+import { Size } from '../../util/size';
 
 function ModalNovoPagamento({ ClienteId, ClienteNome, BuscarPagamentos = null }) {
     const [show, setShow] = useState(false);
@@ -51,7 +52,7 @@ function ModalNovoPagamento({ ClienteId, ClienteNome, BuscarPagamentos = null })
                 className='btn btn-success'
                 text={'Vincular Novo Pagamento'}
                 top={true}
-                textButton={<MdOutlineAttachMoney size={17} />}
+                textButton={<MdOutlineAttachMoney size={Size.IconeTabela} />}
             />
             <Modal isOpen={show}>
                 <form onSubmit={e => { e.preventDefault(); handdleSubmit() }}>

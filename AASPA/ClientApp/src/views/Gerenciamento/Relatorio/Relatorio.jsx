@@ -8,6 +8,7 @@ import { api } from '../../../api/api';
 import moment from 'moment';
 import { Mascara } from '../../../util/mascara';
 import { Alert, Info } from '../../../util/alertas';
+import { Size } from '../../../util/size';
 
 function Relatorio() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -254,7 +255,7 @@ function DetalheProducao({ detalhes, DownloadAverbacao }) {
                     className='btn btn-primary'
                     text={'Extrair Para Excel(.csv)'}
                     top={false}
-                    textButton={<FaDownload size={17} />}
+                    textButton={<FaDownload size={Size.IconeTabela} />}
                 />
             </div>
             <br />

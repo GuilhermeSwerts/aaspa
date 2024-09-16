@@ -4,6 +4,7 @@ import { Row, Col, Modal, ModalBody, ModalFooter, ModalHeader, Form, FormGroup, 
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { FaGear } from 'react-icons/fa6';
 import { Alert } from '../../util/alertas';
+import { Size } from '../../util/size';
 
 function ModalVincularBeneficios({ BuscarTodosClientes, ClienteId }) {
     const [selectedBeneficio, setSelectedBeneficio] = useState([]);
@@ -68,7 +69,7 @@ function ModalVincularBeneficios({ BuscarTodosClientes, ClienteId }) {
                 className='btn btn-success'
                 text={'Gerenciar Beneficios'}
                 top={true}
-                textButton={<FaGear color='#fff' size={17} />}
+                textButton={<FaGear color='#fff' size={Size.IconeTabela} />}
             />
             <Modal isOpen={show}>
                 <ModalHeader>

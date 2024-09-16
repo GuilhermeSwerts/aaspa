@@ -8,6 +8,7 @@ import { FaEye, FaPencil } from 'react-icons/fa6';
 import NovoCaptador from '../../../components/Modal/novoCaptador';
 import { FaPlus, FaTrash } from 'react-icons/fa';
 import { Alert, Pergunta } from '../../../util/alertas';
+import { Size } from '../../../util/size';
 
 function Captador() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -70,7 +71,7 @@ function Captador() {
                         placeholder='Nome do beneficio' />
                 </div>
                 <div style={{ marginTop: '22px' }} className="col-md-2">
-                    <button className='btn btn-primary' onClick={() => AbrirModalCaptador(0, '', '', '', false)}><FaPlus size={17}></FaPlus></button>
+                    <button className='btn btn-primary' onClick={() => AbrirModalCaptador(0, '', '', '', false)}><FaPlus size={Size.IconeTabela}></FaPlus></button>
                 </div>
             </div>
             <hr />

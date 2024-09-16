@@ -10,6 +10,7 @@ import { Mascara } from '../../util/mascara';
 import { CiBank } from "react-icons/ci";
 import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { FaDownload } from 'react-icons/fa6';
+import { Size } from '../../util/size';
 
 function SolicitacaoReembolso() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext)
@@ -151,7 +152,7 @@ function SolicitacaoReembolso() {
                 </thead>
                 <tbody>
                     {solicitacoes.map((x, rowIndex) => (
-                        <tr>
+                        <tr className="selecao">
                             <td>{x.idSolicitacao}</td>
                             <td>
                                 <OverlayTrigger
@@ -165,16 +166,7 @@ function SolicitacaoReembolso() {
                             </td>
                             <td>{Mascara.cpf(x.cpf)}</td>
                             <td>{x.nb}</td>
-                            <td>
-                                <OverlayTrigger
-                                    placement="top"
-                                    overlay={<Tooltip id={`tooltip-${rowIndex}`}>{x.telefone}</Tooltip>}
-                                >
-                                    <span>
-                                        {x.telefone.length > 10 ? `${x.telefone.substring(0, 10)}...` : x.telefone}
-                                    </span>
-                                </OverlayTrigger>
-                            </td>
+                            <td>{x.telefone}</td>
                             {/* <td>{ x.chavePix}</td> */}
                             {/* <td>{x.banco}</td> */}
                             {/* <td>{x.agencia}</td> */}
@@ -183,8 +175,8 @@ function SolicitacaoReembolso() {
                             <td>{x.situacao}</td>
                             <td>{x.dtSolicitacao}</td>
                             <td>{x.dtPagamento ? x.dtPagamento : "-"}</td>
-                            <td><button onClick={e => AbrirModalDadosBancarios(x.chavePix, x.banco, x.agencia, x.conta, x.cpf)} className='btn btn-success'><CiBank size={17} /></button></td>
-                            <td><button onClick={e => InformarPagamento(x.idSolicitacao, x.nome)} className='btn btn-success'><GiPayMoney size={17} /></button></td>
+                            <td><button onClick={e => AbrirModalDadosBancarios(x.chavePix, x.banco, x.agencia, x.conta, x.cpf)} className='btn btn-success'><CiBank size={Size.IconeTabela} /></button></td>
+                            <td><button onClick={e => InformarPagamento(x.idSolicitacao, x.nome)} className='btn btn-success'><GiPayMoney size={Size.IconeTabela} /></button></td>
                         </tr>
                     ))}
                     {solicitacoes.length === 0 && <tr><td colSpan={14}>Nenhum dado encontrado....</td></tr>}

@@ -93,5 +93,5 @@ export default class Api {
     }
 }
 
-// export const api = new Api(document.getElementsByTagName('base')[0].getAttribute('href'));
-export const api = new Api('https://localhost:44326');
+export const api = new Api(document.getElementsByTagName('base')[0].getAttribute('href'));
+// export const api = new Api('https://localhost:44326');

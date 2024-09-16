@@ -5,6 +5,7 @@ import { Mascara } from '../../util/mascara';
 import { FaPlus } from 'react-icons/fa6';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { Alert } from '../../util/alertas';
+import { Size } from '../../util/size';
 
 function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = null, isEdit = false }) {
     const [show, setShow] = useState(false);
@@ -114,7 +115,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                 className='btn btn-success'
                 text={'Novo Atendimento'}
                 top={false}
-                Icon={<FaPlus size={17} />}
+                Icon={<FaPlus size={Size.IconeTabela} />}
                 textButton={'Novo Atendimento'}
             />
             <Modal isOpen={show} style={{ maxWidth: '80%', margin: '0 auto' }}>

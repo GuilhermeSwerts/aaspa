@@ -5,6 +5,7 @@ import { FaEdit } from 'react-icons/fa';
 import { MdOutlineHistoryToggleOff } from 'react-icons/md';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { Alert } from '../../util/alertas';
+import { Size } from '../../util/size';
 function ModalLogStatus({ ClienteId, ClienteNome }) {
 
     const [show, setShow] = useState(false);
@@ -42,7 +43,7 @@ function ModalLogStatus({ ClienteId, ClienteNome }) {
                 className='btn btn-success button-container-item'
                 text={'Log Status'}
                 top={true}
-                textButton={<MdOutlineHistoryToggleOff size={10} />}
+                textButton={<MdOutlineHistoryToggleOff size={Size.IconeTabela} />}
             />
             <Modal isOpen={show}>
                 <ModalHeader>

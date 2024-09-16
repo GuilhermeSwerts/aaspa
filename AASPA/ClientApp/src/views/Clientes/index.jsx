@@ -16,6 +16,7 @@ import ModalVisualizarCliente from '../../components/Modal/visualizarDadosClient
 import { Alert, Info, Pergunta } from '../../util/alertas';
 import { Collapse } from 'reactstrap'
 import { Paginacao } from '../../components/Paginacao/Paginacao';
+import { Size } from '../../util/size';
 
 export default () => {
     const { usuario } = useContext(AuthContext);
@@ -233,10 +234,10 @@ export default () => {
                     </div>
                     <div className="col-md-10" />
                     <div className="col-md-1" style={{ marginTop: '1.5rem' }}>
-                        <button style={{ width: '100%' }} onClick={() => BuscarTodosClientes(statusCliente, statusRemessa, 1)} className='btn btn-primary'><FaSearch size={17} /></button>
+                        <button style={{ width: '100%' }} onClick={() => BuscarTodosClientes(statusCliente, statusRemessa, 1)} className='btn btn-primary'><FaSearch size={Size.IconeTabela} /></button>
                     </div>
                     <div className="col-md-1" style={{ marginTop: '1.5rem' }}>
-                        <button style={{ width: '100%' }} onClick={DownloadClienteFiltro} className='btn btn-primary'><FaDownload size={17} /></button>
+                        <button style={{ width: '100%' }} onClick={DownloadClienteFiltro} className='btn btn-primary'><FaDownload size={Size.IconeTabela} /></button>
                     </div>
                 </div>
             </Collapse>
@@ -279,7 +280,7 @@ export default () => {
                                             className='btn btn-success button-container-item'
                                             text={'Historico De Pagamentos'}
                                             top={true}
-                                            textButton={<TbZoomMoney size={10} />}
+                                            textButton={<TbZoomMoney size={Size.IconeTabela} />}
                                         />
                                         <ButtonTooltip
                                             backgroundColor={'#006600'}
@@ -287,7 +288,7 @@ export default () => {
                                             className='btn btn-success button-container-item'
                                             text={'Historico Contatos/Ocorrências'}
                                             top={true}
-                                            textButton={<RiChatHistoryLine size={10} />}
+                                            textButton={<RiChatHistoryLine size={Size.IconeTabela} />}
                                         />
                                         <ModalLogStatus ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />
                                         <ModalLogBeneficios ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />
@@ -298,7 +299,7 @@ export default () => {
                                             className='btn btn-warning button-container-item'
                                             text={'Editar Dados'}
                                             top={true}
-                                            textButton={<FaUserEdit color='#fff' size={10} />}
+                                            textButton={<FaUserEdit color='#fff' size={Size.IconeTabela} />}
                                         />
                                         <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />
                                     </td>}
@@ -309,7 +310,7 @@ export default () => {
                                         className='btn btn-warning button-container-item'
                                         text={'Editar Dados'}
                                         top={true}
-                                        textButton={<FaUserEdit color='#fff' size={10} />}
+                                        textButton={<FaUserEdit color='#fff' size={Size.IconeTabela} />}
                                     />
                                     <ModalVisualizarCliente Cliente={cliente.cliente} />
                                     <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />
@@ -321,7 +322,7 @@ export default () => {
                                         className='btn btn-warning'
                                         text={'Editar Dados'}
                                         top={true}
-                                        textButton={<FaUserEdit color='#fff' size={10} />}
+                                        textButton={<FaUserEdit color='#fff' size={Size.IconeTabela} />}
                                     />
                                     <ModalVisualizarCliente Cliente={cliente.cliente} />
                                     <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />

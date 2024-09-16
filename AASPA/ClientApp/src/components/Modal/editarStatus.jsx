@@ -38,7 +38,7 @@ function ModalEditarStatus({ BuscarTodosStatus, StatusId }) {
 
     return (
         <form>
-            <button type='button' onClick={() => { setShow(true) }} className='btn btn-warning'><FaEdit color='#fff' size={20} /></button>
+            <button type='button' onClick={() => { setShow(true) }} className='btn btn-primary'><FaEdit color='#fff' size={20} /></button>
             <Modal isOpen={show}>
                 <ModalHeader>
                     Editar Status

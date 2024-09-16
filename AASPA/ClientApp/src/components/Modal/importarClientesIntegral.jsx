@@ -7,6 +7,7 @@ import { Mascara } from '../../util/mascara';
 import { Alert } from '../../util/alertas';
 import { LuImport } from "react-icons/lu";
 import moment from 'moment';
+import { Size } from '../../util/size';
 
 function ImportarCLientesIntegral({BuscarTodosClientes}) {
     const [show, setShow] = useState(false);
@@ -43,7 +44,7 @@ function ImportarCLientesIntegral({BuscarTodosClientes}) {
                 style={{ width: '100%' }}
                 type='button'
                 onClick={() => setShow(true)}
-                className='btn btn-primary'>Integraall <LuImport size={17} /></button>
+                className='btn btn-primary'>Integraall <LuImport size={Size.IconeTabela} /></button>
             <Modal isOpen={show}>
                 <form onSubmit={e => { e.preventDefault(); handdleSubmit() }}>
                     <ModalHeader>

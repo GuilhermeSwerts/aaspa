@@ -10,11 +10,12 @@ body {
     padding: 0;
     min-height: 100vh;
     font-family: 'Jost', sans-serif;
-    background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+    background: #000755
 }
 
 :root {
     --bgColor--: #5161CE;
+    --cor-principal: #3d4195;
 }
 
 .custom-modal .modal-dialog {
@@ -34,7 +35,7 @@ body {
 }
 
 button {
-    opacity: 0.7 !important;
+    opacity: 0.8 !important;
 }
 
 /* width */
@@ -104,4 +105,24 @@ button {
 
 .styled-table tbody tr:hover {
     background-color: #f1f1f1;
+}
+
+.btn-info,
+.btn-success,
+.btn-warning,
+.btn-primary {
+    background-color: var(--cor-principal) !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+    opacity: 1;
+    transition: 0.5s;
+    cursor: pointer;
+    border: none;
+}
+
+.btn-info:hover,
+.btn-success:hover,
+.btn-warning:hover,
+.btn-primary:hover {
+    opacity: 0.5;
 }

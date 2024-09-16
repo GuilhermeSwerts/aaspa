@@ -6,6 +6,7 @@ import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { FiMoreHorizontal } from 'react-icons/fi';
 import * as Enum from '../../util/enum';
 import { Alert, Pergunta } from '../../util/alertas';
+import { Size } from '../../util/size';
 
 function ModalEditarStatusAtual({ BuscarTodosClientes, ClienteId, StatusId }) {
 
@@ -67,12 +68,11 @@ function ModalEditarStatusAtual({ BuscarTodosClientes, ClienteId, StatusId }) {
     return (
         <form>
             <ButtonTooltip
-                backgroundColor={'#00cc00'}
                 onClick={() => setShow(true)}
-                className='btn btn-danger button-container-item'
+                className='btn btn-warning button-container-item'
                 text={'Editar Status'}
                 top={true}
-                textButton={<FiMoreHorizontal size={10} />}
+                textButton={<FiMoreHorizontal size={Size.IconeTabela} />}
             />
             <Modal isOpen={show}>
                 <ModalHeader>

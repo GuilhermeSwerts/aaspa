@@ -8,6 +8,7 @@ import { FaDownload, FaFilter, FaSearch } from 'react-icons/fa';
 import { api } from '../../api/api';
 import { Alert } from '../../util/alertas';
 import CrudAtendimento from './CrudAtendimento';
+import { Size } from '../../util/size';
 
 function Atendimento() {
     const ref = useRef();
@@ -124,11 +125,11 @@ function Atendimento() {
                         </select>                       
                     </div>
                     <div className="col-md-1" style={{ marginTop: '1.5rem' }}>
-                        <button style={{ width: '100%' }} onClick={e => { BuscarTodosClientes(1) }} className='btn btn-primary'><FaSearch size={17} /></button>
+                        <button style={{ width: '100%' }} onClick={e => { BuscarTodosClientes(1) }} className='btn btn-primary'><FaSearch size={Size.IconeTabela} /></button>
                     </div>
                     <div className="col-md-1"></div>
                     <div className="col-md-1" style={{ marginTop: '1.5rem' }}>
-                        <button style={{ width: '100%' }} onClick={DownloadFiltro} className='btn btn-primary'>Extrair <FaDownload size={17} /></button>
+                        <button style={{ width: '100%' }} onClick={DownloadFiltro} className='btn btn-primary'>Extrair <FaDownload size={Size.IconeTabela} /></button>
                     </div>
                 </div>
             </Collapse>

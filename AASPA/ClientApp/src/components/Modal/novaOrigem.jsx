@@ -4,6 +4,7 @@ import { api } from '../../api/api';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { FaPlus } from 'react-icons/fa6';
 import { Alert } from '../../util/alertas';
+import { Size } from '../../util/size';
 
 function ModalNovaOrigem({ BuscarOrigem }) {
     const [show, setShow] = useState(false);
@@ -34,7 +35,7 @@ function ModalNovaOrigem({ BuscarOrigem }) {
                 className='btn btn-success'
                 text={'Adicionar Origem'}
                 top={true}
-                textButton={<FaPlus size={17} />}
+                textButton={<FaPlus size={Size.IconeTabela} />}
             />
             <Modal isOpen={show}>
                 <form onSubmit={e => { e.preventDefault(); handdleSubmit() }}>

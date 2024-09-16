@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Modal, ModalBody, ModalFooter, ModalHeader, Row, Col } from 'reactstrap';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { FaEye } from 'react-icons/fa';
+import { Size } from '../../util/size';
 
 function ModalVisualizarCliente({ Cliente }) {
     const [show, setShow] = useState(false);
@@ -43,7 +44,7 @@ function ModalVisualizarCliente({ Cliente }) {
                 className='btn btn-success button-container-item'
                 text={'Visualizar Dados Cliente'}
                 top={true}
-                textButton={<FaEye size={10} />}
+                textButton={<FaEye size={Size.IconeTabela} />}
             />
             <Modal isOpen={show} modalClassName='custom-modal'>
                 <ModalHeader>

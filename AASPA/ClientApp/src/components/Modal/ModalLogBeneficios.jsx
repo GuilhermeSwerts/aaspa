@@ -4,6 +4,7 @@ import { api } from '../../api/api';
 import { MdOutlineWorkHistory } from 'react-icons/md';
 import { ButtonTooltip } from '../../components/Inputs/ButtonTooltip';
 import { Alert } from '../../util/alertas';
+import { Size } from '../../util/size';
 
 function ModalLogBeneficios({ ClienteId, ClienteNome }) {
     const [show, setShow] = useState(false);
@@ -41,7 +42,7 @@ function ModalLogBeneficios({ ClienteId, ClienteNome }) {
                 className='btn btn-success button-container-item'
                 text={'Log Beneficio'}
                 top={true}
-                textButton={<MdOutlineWorkHistory size={10} />}
+                textButton={<MdOutlineWorkHistory size={Size.IconeTabela} />}
             />
             <Modal isOpen={show}>
                 <ModalHeader>

@@ -5,6 +5,7 @@ import { Mascara } from '../../util/mascara';
 import { FaPencil, FaPlus } from 'react-icons/fa6';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { Alert } from '../../util/alertas';
+import { Size } from '../../util/size';
 
 function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = null, HistoricoId }) {
     const [show, setShow] = useState(false);
@@ -108,7 +109,7 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                 className='btn btn-warning'
                 text={'Editar Atendimento'}
                 top={false}
-                textButton={<FaPencil size={17} />}
+                textButton={<FaPencil size={Size.IconeTabela} />}
             />
             <Modal isOpen={show} style={{ maxWidth: '80%', margin: '0 auto' }}>
                 <form onSubmit={e => { e.preventDefault(); handdleSubmit(e) }}>

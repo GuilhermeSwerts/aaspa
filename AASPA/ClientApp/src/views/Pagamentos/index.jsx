@@ -10,6 +10,7 @@ import * as Enum from '../../util/enum';
 import { FaSearch } from 'react-icons/fa';
 import { Alert } from '../../util/alertas';
 import { Paginacao } from '../../components/Paginacao/Paginacao';
+import { Size } from '../../util/size';
 
 function Pagamentos() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext)
@@ -102,7 +103,7 @@ function Pagamentos() {
                     <input type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)} name="dateEnd" id="dateEnd" className='form-control' />
                 </div>
                 <div className="col-md-2" style={{ marginTop: '20px' }}>
-                    <button style={{ width: '100%' }} onClick={BuscarTodosClientes} className='btn btn-primary'>BUSCAR <FaSearch size={17} /></button>
+                    <button style={{ width: '100%' }} onClick={BuscarTodosClientes} className='btn btn-primary'>BUSCAR <FaSearch size={Size.IconeTabela} /></button>
                 </div>
             </div>
             <br />
@@ -132,7 +133,7 @@ function Pagamentos() {
                                             className='btn btn-danger'
                                             text={'Historico De Pagamentos'}
                                             top={true}
-                                            textButton={<TbZoomMoney size={17} />}
+                                            textButton={<TbZoomMoney size={Size.IconeTabela} />}
                                         />
                                         {cliente.statusAtual.status_id !== Enum.EStatus.Deletado && cliente.statusAtual.status_id !== Enum.EStatus.Inativo
                                             && <NovoPagamento ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />}
