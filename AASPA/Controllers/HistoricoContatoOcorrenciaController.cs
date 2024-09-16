@@ -1,5 +1,6 @@
 ﻿using AASPA.Domain.Interface;
 using AASPA.Models.Requests;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AASPA.Controllers
@@ -7,10 +8,12 @@ namespace AASPA.Controllers
     public class HistoricoContatoOcorrenciaController : PrivateController
     {
         private readonly IHistoricoContatoOcorrencia _historicoContato;
+        private readonly ICliente _cliente;
 
-        public HistoricoContatoOcorrenciaController(IHistoricoContatoOcorrencia historicoContato)
+        public HistoricoContatoOcorrenciaController(IHistoricoContatoOcorrencia historicoContato, ICliente cliente)
         {
             this._historicoContato = historicoContato;
+            this._cliente = cliente;
         }
 
         [HttpGet]
@@ -81,6 +84,25 @@ namespace AASPA.Controllers
             {
                 _historicoContato.NovoContatoOcorrencia(historicoContatos);
                 return Ok();
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        [Route("/DownloadContatoFiltro")]
+        public IActionResult DownloadContatoFiltro([FromQuery] ConsultaParametros request)
+        {
+            try
+            {
+                request.PaginaAtual = null;
+
+                var clientes = _historicoContato.BuscarTodosClientes(request);
+                byte[] base64 = _historicoContato.DownloadContatoFiltro(clientes);
+                return File(base64, "application/csv;charset=utf-8", "FiltroClientes.csv");
             }
             catch (System.Exception ex)
             {

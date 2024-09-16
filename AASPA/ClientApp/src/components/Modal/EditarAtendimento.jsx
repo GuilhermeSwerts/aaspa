@@ -2,30 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { Row, Col, Modal, ModalBody, ModalFooter, ModalHeader, Form, FormGroup, Label, Input, Button } from 'reactstrap';
 import { api } from '../../api/api';
 import { Mascara } from '../../util/mascara';
-import { FaPlus } from 'react-icons/fa6';
+import { FaPencil, FaPlus } from 'react-icons/fa6';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { Alert } from '../../util/alertas';
 
-function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = null, isEdit = false }) {
+function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = null, HistoricoId }) {
     const [show, setShow] = useState(false);
     const [origens, setOrigens] = useState([]);
     const [motivos, setMotivos] = useState([]);
 
-    function getDataDeHoje() {
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0'); // Janeiro é 0!
-        const day = String(today.getDate()).padStart(2, '0');
-        const hours = String(today.getHours()).padStart(2, '0');
-        const minutes = String(today.getMinutes()).padStart(2, '0');
-
-        return `${year}-${month}-${day}T${hours}:${minutes}`;
-    }
-
-    const [dtOcorrencia, setDtOcorrencia] = useState(getDataDeHoje());
+    const [dtOcorrencia, setDtOcorrencia] = useState('');
     const [origem, setOrigem] = useState();
     const [motivo, setMotivo] = useState();
-    const [situacao, setSituacao] = useState("EM TRATAMENTO");
+    const [situacao, setSituacao] = useState("ATENDIDA");
     const [desc, setDesc] = useState("");
     const [banco, setBanco] = useState("");
     const [agencia, setAgencia] = useState("");
@@ -34,18 +23,10 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
     const [pix, setPIX] = useState("");
 
     const initState = () => {
-        setDtOcorrencia(getDataDeHoje());
-        if (origens && origens.length > 0) {
-            setOrigem(origens[0].origem_id);
-        } else {
-            setOrigem(origens[0]);
-        }
-        if (motivo && motivo.length > 0) {
-            setOrigem(motivos[0].motivo_contato_id);
-        } else {
-            setOrigem(motivos[0]);
-        }
-        setSituacao("EM TRATAMENTO");
+        setDtOcorrencia('');
+        setOrigem(origens[0]);
+        setMotivo(motivos[0]);
+        setSituacao("ATENDIDA");
         setDesc("");
         setBanco("");
         setAgencia("");
@@ -72,17 +53,10 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         })
     }
 
-    useEffect(() => {
-        BuscarMotivos();
-        BuscarOrigens();
-        setDtOcorrencia(getDataDeHoje());
-        initState();
-    }, [])
-
     const handdleSubmit = (e) => {
         const formData = new FormData();
 
-        formData.append("HistoricoContatosOcorrenciaId", 0)
+        formData.append("HistoricoContatosOcorrenciaId", HistoricoId)
         formData.append("HistoricoContatosOcorrenciaOrigemId", origem)
         formData.append("HistoricoContatosOcorrenciaClienteId", cliente.cliente_id)
         formData.append("HistoricoContatosOcorrenciaMotivoContatoId", motivo)
@@ -95,7 +69,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         formData.append("HistoricoContatosOcorrenciaDigito", digito)
         formData.append("HistoricoContatosOcorrenciaPix", pix)
 
-        api.post("NovoContatoOcorrencia", formData, res => {
+        api.post("EditarContatoOcorrencia", formData, res => {
             initState();
             if (BuscarHistoricoOcorrenciaCliente) {
                 BuscarHistoricoOcorrenciaCliente(cliente.cliente_id);
@@ -107,20 +81,39 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         })
     }
 
+    const handleOpenModal = () => {
+        BuscarMotivos();
+        BuscarOrigens();
+        api.get(`BuscarContatoOcorrenciaById/${HistoricoId}`, res => {
+            setDtOcorrencia(res.data.historico_contatos_ocorrencia_dt_ocorrencia);
+            setSituacao(res.data.historico_contatos_ocorrencia_situacao_ocorrencia);
+            setDesc(res.data.historico_contatos_ocorrencia_descricao);
+            setMotivo(res.data.historico_contatos_ocorrencia_motivo_contato_id);
+            setOrigem(res.data.historico_contatos_ocorrencia_origem_id);
+            setBanco(res.data.historico_contatos_ocorrencia_banco);
+            setAgencia(res.data.historico_contatos_ocorrencia_agencia);
+            setConta(res.data.historico_contatos_ocorrencia_conta);
+            setDigito(res.data.historico_contatos_ocorrencia_digito);
+            setPIX(res.data.historico_contatos_ocorrencia_chave_pix);
+            setShow(true)
+        }, err => {
+            Alert('houve um erro ao buscar o Contato/Ocorrencia do id:' + HistoricoId, false)
+        })
+    }
+
     return (
         <>
             <ButtonTooltip
-                onClick={() => setShow(true)}
-                className='btn btn-success'
-                text={'Novo Atendimento'}
+                onClick={handleOpenModal}
+                className='btn btn-warning'
+                text={'Editar Atendimento'}
                 top={false}
-                Icon={<FaPlus size={17} />}
-                textButton={'Novo Atendimento'}
+                textButton={<FaPencil size={17} />}
             />
             <Modal isOpen={show} style={{ maxWidth: '80%', margin: '0 auto' }}>
                 <form onSubmit={e => { e.preventDefault(); handdleSubmit(e) }}>
                     <ModalHeader>
-                        Novo Atendimento
+                        Editar Atendimento
                     </ModalHeader>
                     <ModalBody style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         <input type="hidden" value={cliente.cliente_id} />
@@ -210,4 +203,4 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
     );
 }
 
-export default ModalContatoOcorrencia;
+export default ModalEditarAtendimento;

@@ -22,24 +22,33 @@ namespace AASPA.Domain.Service
 
         public LoginResponse Login(string usuario, string senha)
         {
-            var usuarioDb = _mysql.usuarios.FirstOrDefault(x => x.usuario_username.ToUpper() == usuario.ToUpper())
-                ?? throw new Exception("Usuário não existe!");
-
-            if (Cripto.Decrypt(usuarioDb.usuario_senha) != senha)
-                throw new Exception("Senha incorreta!");
-
-            var token = Autenticacao.GenerateToken(usuarioDb, _mysql);
-
-            return new LoginResponse
+            try
             {
-                Token = token,
-                Usuario = new UsuarioResponse
+                var usuarioDb = _mysql.usuarios.FirstOrDefault(x => x.usuario_username.ToUpper() == usuario.ToUpper())
+                        ?? throw new Exception("Usuário não existe!");
+
+                if (Cripto.Decrypt(usuarioDb.usuario_senha) != senha)
+                    throw new Exception("Senha incorreta!");
+
+                var token = Autenticacao.GenerateToken(usuarioDb, _mysql);
+
+                Console.WriteLine($"Token gerado no login: {token.ToString()}");
+
+                return new LoginResponse
                 {
-                    Usuario_id = usuarioDb.usuario_id,
-                    Usuario_nome = usuarioDb.usuario_nome,
-                    Usuario_tipo = usuarioDb.usuario_tipo
-                }
-            };
+                    Token = token,
+                    Usuario = new UsuarioResponse
+                    {
+                        Usuario_id = usuarioDb.usuario_id,
+                        Usuario_nome = usuarioDb.usuario_nome,
+                        Usuario_tipo = usuarioDb.usuario_tipo
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Erro ao fazer login: {ex.Message}");
+            }
         }
     }
 }

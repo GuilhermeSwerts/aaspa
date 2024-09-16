@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './paginacao.css';
 
 export const Paginacao = ({
-    limit, setLimit, total, offset, setOffset
+    limit, setLimit, total, offset, setOffset, onChange = () => { }, setCurrentPage = () => { }
 }) => {
     const MAX_ITEMS = 9;
     const MAX_LEFT = (MAX_ITEMS - 1) / 2;
@@ -13,6 +13,8 @@ export const Paginacao = ({
 
     function onPageChange(page) {
         setOffset((page - 1) * limit)
+        setCurrentPage(page + 1)
+        onChange();
     }
 
     useEffect(() => {
@@ -52,7 +54,7 @@ export const Paginacao = ({
             <br />
             <div className="pagination">
                 <span>Quantidade de registros por página:</span>
-                <select value={limit} onChange={e => setLimit(Number(e.target.value))}>
+                <select value={limit} onChange={e => { setLimit(Number(e.target.value)); onChange() }}>
                     <option value={8}>8</option>
                     <option value={20}>20</option>
                     <option value={50}>50</option>

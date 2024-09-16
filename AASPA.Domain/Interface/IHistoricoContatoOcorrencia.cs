@@ -1,4 +1,5 @@
 ﻿using AASPA.Models.Requests;
+using AASPA.Models.Response;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,5 +15,7 @@ namespace AASPA.Domain.Interface
         void DeletarContatoOcorrencia(int contatoOcorrenciaId);
         void EditarContatoOcorrencia(HistoricoContatosOcorrenciaRequest historicoContatos);
         void NovoContatoOcorrencia(HistoricoContatosOcorrenciaRequest historicoContatos);
+        (List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) BuscarTodosClientes(ConsultaParametros request);
+        byte[] DownloadContatoFiltro((List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) clientes);
     }
 }

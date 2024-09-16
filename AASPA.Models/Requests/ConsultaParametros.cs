@@ -13,6 +13,7 @@ namespace AASPA.Models.Requests
         public DateTime? DateInit { get; set; }
         public DateTime? DateEnd { get; set; }
         public int? PaginaAtual { get; set; }
+        public int? QtdPorPagina { get; set; } = null;
         public int? StatusIntegraall { get; set; } = 0;
         public int CadastroExterno { get; set; } = 0;
         public string Nome { get; set; } = "";
@@ -20,5 +21,8 @@ namespace AASPA.Models.Requests
         public DateTime? DateInitAverbacao { get; set; } = null;
         public DateTime? DateEndAverbacao { get; set; } = null;
         public string Beneficio { get; set; } = null;
+        public string SituacaoOcorrencia { get; set; }
+        public DateTime? DataInitAtendimento { get; set; }
+        public DateTime? DataEndAtendimento { get; set; }
     }
 }

@@ -18,5 +18,10 @@ namespace AASPA.Repository.Maps
         public string historico_contatos_ocorrencia_descricao { get; set; }
         public string historico_contatos_ocorrencia_situacao_ocorrencia { get; set; }
         public DateTime historico_contatos_ocorrencia_dt_cadastro { get; set; } = DateTime.Now;
+        public string? historico_contatos_ocorrencia_banco { get; set; }
+        public string? historico_contatos_ocorrencia_agencia { get; set; }
+        public string? historico_contatos_ocorrencia_conta { get; set; }
+        public string? historico_contatos_ocorrencia_digito { get; set; }
+        public string? historico_contatos_ocorrencia_chave_pix { get; set; }
     }
 }

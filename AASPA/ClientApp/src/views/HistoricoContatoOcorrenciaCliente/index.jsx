@@ -81,36 +81,6 @@ function HistoricoOcorrenciaCliente(props) {
         descRef.current.AbrirModal(desc);
     };
 
-    // const AlterarPagina = async (pagina, isProxima) => {
-    //     let buscar = false;
-
-    //     if (isProxima && (paginaAtual + pagina) > qtdPaginas) {
-    //         if (await Pergunta("Numero da página digitada maior que quantidade de paginas\nDeseja buscar pelo numero maximo?")) {
-    //             setPaginaAtual(qtdPaginas);
-    //             buscar = true;
-    //             BuscarTodosClientes(qtdPaginas)
-    //         } else {
-    //             return;
-    //         }
-    //     } else if (!isProxima && (paginaAtual - pagina) <= 0) {
-    //         if (await Pergunta("Numero da página digitada menor que 1\nDeseja buscar pelo numero minimo?")) {
-    //             setPaginaAtual(1);
-    //             buscar = true;
-    //             BuscarTodosClientes(1)
-    //         } else {
-    //             return;
-    //         }
-    //     } else {
-    //         if (isProxima) {
-    //             setPaginaAtual(paginaAtual + pagina);
-    //             BuscarTodosClientes(paginaAtual + pagina)
-    //         } else {
-    //             setPaginaAtual(paginaAtual - pagina);
-    //             BuscarTodosClientes(paginaAtual - pagina)
-    //         }
-    //     }
-    // }
-
     return (
         <NavBar usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
             <DescricaoModal ref={descRef} />
