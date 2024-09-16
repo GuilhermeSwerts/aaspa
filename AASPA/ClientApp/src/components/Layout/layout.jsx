@@ -16,7 +16,7 @@ import { IoMdMenu } from "react-icons/io";
 import { FaFile } from "react-icons/fa";
 import { IoStatsChartSharp } from 'react-icons/io5';
 import { BiSupport } from 'react-icons/bi';
-
+import { GiPayMoney } from "react-icons/gi";
 function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
     const { handdleLogout, usuario, handdleUsuarioLogado } = useContext(AuthContext);
     const [toggle, setToggle] = useState(false);
@@ -201,6 +201,13 @@ function NavBar({ children, pagina_atual, usuario_nome, usuario_tipo }) {
                         <a href='/atendimento' style={{flexDirection:'row'}}>
                             <span className="nav-tooltip">ATENDIMENTO</span>
                             <BiSupport size={20} /> ATENDIMENTO
+                        </a>
+                    </div>
+                    <span>/</span>
+                    <div className={pagina_atual === "SOLICITAÇÃO REEMBOLSO" ? "link link-active" : "link"}>
+                        <a href='/reembolso' style={{flexDirection:'row'}}>
+                            <span className="nav-tooltip">ATENDIMENTO</span>
+                            <GiPayMoney size={20} /> SOLICITAÇÃO REEMBOLSO
                         </a>
                     </div>
                 </nav>

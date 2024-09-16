@@ -23,6 +23,7 @@ import Captador from '../views/Gerenciamento/Captador/index';
 import RelatorioCarteira from '../views/Gerenciamento/RepasseCarteira/RelatorioCarteira';
 import Cclientes from '../views/CClientes/index';
 import Atendimento from '../views/Atendimento/Atendimento';
+import SolicitacaoReembolso from '../views/SolicitacaoReembolso/SolicitacaoReembolso';
 
 export default _ => {
     return (
@@ -37,6 +38,7 @@ export default _ => {
             <Route exact path='/historicoocorrenciacliente' component={HistoricoOcorrenciaCliente} />
             <Route exact path='/hstcocontatoocorrencia' component={HistoricoContatoOcorrencia} />
             <Route exact path='/atendimento' component={Atendimento} />
+            <Route exact path='/reembolso' component={SolicitacaoReembolso} />
 
             <Route exact path='/teste' component={Teste} />
 

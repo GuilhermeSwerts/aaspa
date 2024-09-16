@@ -35,5 +35,8 @@ namespace AASPA.Repository
         public DbSet<RetornoFinanceiroDb> retorno_financeiro { get; set; }
         public DbSet<RegistroRetornoFinanceiroDb> registro_retorno_financeiro { get; set; }
         public DbSet<CodigoRetornoDb> codigo_retorno { get; set; }
+        public DbSet<SolicitacaoReembolsoDb> solicitacaoreembolso { get; set; }
+        public DbSet<ElegivelReembolsoDb> elegivelreembolso { get; set; }
+
     }
 }
