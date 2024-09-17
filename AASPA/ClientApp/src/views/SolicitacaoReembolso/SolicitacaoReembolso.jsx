@@ -94,7 +94,7 @@ function SolicitacaoReembolso() {
                         <label>Chave PIX:</label>
                         <textarea className='form-control' value={dadosBancarios.chavePix} disabled></textarea>
                     </>}
-                    {!dadosBancarios.chavePix || dadosBancarios.chavePix === '' && <>
+                    {(!dadosBancarios.chavePix || dadosBancarios.chavePix === '') && <>
                         <label>Cpf:</label>
                         <input type="text" className='form-control' value={dadosBancarios.cpf} disabled />
                         <br />
@@ -107,9 +107,7 @@ function SolicitacaoReembolso() {
                         <label>Conta:</label>
                         <input type="text" className='form-control' value={dadosBancarios.conta} disabled />
                         <br />
-                        <label>Banco:</label>
-                        <input type="text" className='form-control' value={dadosBancarios.banco} disabled />
-                        <label>Agencia:</label>
+                        <label>Dígito:</label>
                         <input type="text" className='form-control' value={dadosBancarios.digito} disabled />
                     </>}
                 </ModalBody>
