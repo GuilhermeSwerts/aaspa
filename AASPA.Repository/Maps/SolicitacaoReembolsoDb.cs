@@ -18,6 +18,7 @@ namespace AASPA.Repository.Maps
         public string banco { get; set; }
         public string agencia { get; set; }
         public string conta { get; set; }
+        public string digito { get; set; }
         public bool ativo { get; set; }
         public string protocolo { get; set; }
         public DateTime dtsolicitacao { get; set; }

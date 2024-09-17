@@ -23,7 +23,8 @@ function SolicitacaoReembolso() {
         banco: '',
         agencia: '',
         conta: '',
-        cpf: ''
+        cpf: '',
+        digito:''
     };
     const [dadosBancarios, setDadosBancarios] = useState(initStateDadosBancarios);
 
@@ -54,14 +55,15 @@ function SolicitacaoReembolso() {
         BuscarSolicitacoes();
     }, [])
 
-    const AbrirModalDadosBancarios = (chavePix, banco, agencia, conta, cpf) => {
+    const AbrirModalDadosBancarios = (chavePix, banco, agencia, conta, cpf, digito) => {
         setShow(true);
         setDadosBancarios({
             chavePix: chavePix,
             banco: banco,
             agencia: agencia,
             conta: conta,
-            cpf: cpf
+            cpf: cpf,
+            digito: digito
         })
     }
 
@@ -107,6 +109,8 @@ function SolicitacaoReembolso() {
                         <br />
                         <label>Banco:</label>
                         <input type="text" className='form-control' value={dadosBancarios.banco} disabled />
+                        <label>Agencia:</label>
+                        <input type="text" className='form-control' value={dadosBancarios.digito} disabled />
                     </>}
                 </ModalBody>
                 <ModalFooter>
@@ -175,7 +179,7 @@ function SolicitacaoReembolso() {
                             <td>{x.situacao}</td>
                             <td>{x.dtSolicitacao}</td>
                             <td>{x.dtPagamento ? x.dtPagamento : "-"}</td>
-                            <td><button onClick={e => AbrirModalDadosBancarios(x.chavePix, x.banco, x.agencia, x.conta, x.cpf)} className='btn btn-success'><CiBank size={Size.IconeTabela} /></button></td>
+                            <td><button onClick={e => AbrirModalDadosBancarios(x.chavePix, x.banco, x.agencia, x.conta, x.cpf,x.digito)} className='btn btn-success'><CiBank size={Size.IconeTabela} /></button></td>
                             <td><button onClick={e => InformarPagamento(x.idSolicitacao, x.nome)} className='btn btn-success'><GiPayMoney size={Size.IconeTabela} /></button></td>
                         </tr>
                     ))}

@@ -41,11 +41,11 @@ namespace AASPA.Domain.Service
         {
             var data = Get(dtInicio, dtFim);
 
-            string csv = "IdSolicitacao;Nome;Cpf;Nb;Telefone;ChavePix;Banco;Agencia;Conta;Protocolo;Situacao;DtSolicitacao;DtPagamento\n";
+            string csv = "IdSolicitacao;Nome;Cpf;Nb;Telefone;ChavePix;Banco;Agencia;Conta;Digito;Protocolo;Situacao;DtSolicitacao;DtPagamento\n";
 
             foreach (var item in data)
             {
-                csv += string.Join(";",item.IdSolicitacao, item.Nome, item.Cpf, item.Nb, item.Telefone, item.ChavePix, item.Banco, item.Agencia, item.Conta, item.Protocolo, item.Situacao, item.DtSolicitacao, item.DtPagamento);
+                csv += string.Join(";",item.IdSolicitacao, item.Nome, item.Cpf, item.Nb, item.Telefone, item.ChavePix, item.Banco, item.Agencia, item.Conta,item.Digito, item.Protocolo, item.Situacao, item.DtSolicitacao, item.DtPagamento);
                 csv += "\n";
             }
 
