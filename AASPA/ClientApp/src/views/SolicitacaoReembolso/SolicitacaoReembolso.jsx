@@ -42,9 +42,12 @@ function SolicitacaoReembolso() {
 
     const InformarPagamento = async (id, name) => {
         if (await Pergunta('Deseja realmente informar o pagamento do(a) ' + name))
-            api.get(`SolicitacaoReembolso?dtInicio=${dtInicio}&dtFim=${dtFim}`, res => {
-                Alert('Pagamento informado com sucesso!', true)
+            api.post(`SolicitacaoReembolso/${id}`, {}, res => {
+                BuscarSolicitacoes();
+                Alert('Pagamento informado com sucesso!', true);
             }, err => {
+                console.clear();
+                console.log(err);
                 Alert('Houve um erro ao informar o pagamento', false)
             })
     }

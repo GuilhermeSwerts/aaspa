@@ -1,7 +1,10 @@
 ﻿using AASPA.Domain.Interface;
 using AASPA.Domain.Util;
+using AASPA.Models.Requests;
 using AASPA.Models.Response;
 using AASPA.Repository;
+using AASPA.Repository.Maps;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -18,6 +21,39 @@ namespace AASPA.Domain.Service
         public UsuarioService(MysqlContexto mysql)
         {
             _mysql = mysql;
+        }
+
+        public void EditarUsuario(UsuarioRequest data)
+        {
+            var usuario = _mysql.usuarios.FirstOrDefault(x => x.usuario_id == data.Id)
+               ?? throw new Exception("Usuário não encontrado");
+
+            usuario.usuario_nome = data.Nome;
+            usuario.usuario_tipo = data.tipo;
+
+            _mysql.SaveChanges();
+        }
+
+        public void ExcluirUsuario(int usuarioId)
+        {
+            var usuario = _mysql.usuarios.FirstOrDefault(x => x.usuario_id == usuarioId)
+               ?? throw new Exception("Usuário não encontrado");
+
+            _mysql.usuarios.Remove(usuario);
+            _mysql.SaveChanges();
+        }
+
+        public object GetAll(UsuarioDb usuarioDb)
+        {
+            var usuariosMaster = _mysql.usuarios.FirstOrDefault(x => x.usuario_id == usuarioDb.usuario_id && x.usuario_tipo == 1)
+                ?? throw new Exception("Você não tem permissão para efetuar essa ação!");
+
+            return _mysql.usuarios.Where(x => x.usuario_id != usuarioDb.usuario_id).Select(x => new
+            {
+                Nome = x.usuario_nome,
+                TipoUsuario = x.usuario_tipo,
+                DataCadastro = x.usuario_dt_cadastro
+            }).ToList();
         }
 
         public LoginResponse Login(string usuario, string senha)
@@ -49,6 +85,16 @@ namespace AASPA.Domain.Service
             {
                 throw new Exception($"Erro ao fazer login: {ex.Message}");
             }
+        }
+
+        public void ResetaSenhaUsuario(int id)
+        {
+            var usuario = _mysql.usuarios.FirstOrDefault(x => x.usuario_id == id)
+            ?? throw new Exception("Usuário não encontrado");
+
+            usuario.usuario_senha = Cripto.Encrypt("P@drao123");
+
+            _mysql.SaveChanges();
         }
     }
 }

@@ -1,10 +1,15 @@
 ﻿using AASPA.Domain.Interface;
+using AASPA.Models.Requests;
 using AASPA.Models.Response;
+using AASPA.Repository.Maps;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace AASPA.Controllers
 {
-    public class UsuarioController : Controller
+    public class UsuarioController : PrivateController
     {
         private readonly IUsuario _usuarioService;
 
@@ -13,19 +18,80 @@ namespace AASPA.Controllers
             _usuarioService = usuarioService;
         }
 
+        [HttpPut]
+        [Route("/ExcluirUsuario/")]
+        public ActionResult delete([FromRoute] int usuarioId)
+        {
+            try
+            {
+                _usuarioService.ExcluirUsuario(usuarioId);
+                return Ok();
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("/BuscarTodosUsuarios")]
+        public ActionResult Get()
+        {
+            try
+            {
+                var usuarios = _usuarioService.GetAll(GetUser());
+                return Ok(usuarios);
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPut]
+        [Route("/Usuario/AtualizarUsuario")]
+        public async Task<IActionResult> Put([FromForm] UsuarioRequest data)
+        {
+            try
+            {
+                _usuarioService.EditarUsuario(data);
+                return Ok(true);
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPut]
+        [Route("/Usuario/ResetaSenha")]
+        public IActionResult ResetaSenhaUsuario([FromBody] int id)
+        {
+            try
+            {
+                _usuarioService.ResetaSenhaUsuario(id);
+                return Ok();
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [AllowAnonymous]
         [HttpGet()]
         [Route("/LoginUsuario")]
         public ActionResult Login([FromQuery] string usuario, string senha)
         {
-			try
-			{
+            try
+            {
                 LoginResponse res = _usuarioService.Login(usuario, senha);
                 return Ok(res);
-			}
-			catch (System.Exception ex)
-			{
+            }
+            catch (System.Exception ex)
+            {
                 return BadRequest(ex.Message);
-			}
+            }
         }
     }
 }
