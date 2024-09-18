@@ -22,12 +22,12 @@ namespace AASPA.Controllers
 
                 var userdata = User.Claims.First(x => x.Type.Contains("userdata"));
 
-                var role = User.Claims.First(x => x.Type.Contains("role"));
+                //var role = User.Claims.First(x => x.Type.Contains("role"));
 
                 if (userdata != null)
                 {
                     usuario.usuario_id = int.Parse(userdata.Value);
-                    usuario.usuario_tipo = int.Parse(role.Value);
+                    //usuario.usuario_tipo = int.Parse(role.Value);
                     return usuario;
                 }
             }

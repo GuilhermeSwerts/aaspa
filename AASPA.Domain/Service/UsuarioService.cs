@@ -30,6 +30,7 @@ namespace AASPA.Domain.Service
 
             usuario.usuario_nome = data.Nome;
             usuario.usuario_tipo = data.tipo;
+            usuario.usuario_username = data.Usuario;
 
             _mysql.SaveChanges();
         }
@@ -50,7 +51,9 @@ namespace AASPA.Domain.Service
 
             return _mysql.usuarios.Where(x => x.usuario_id != usuarioDb.usuario_id).Select(x => new
             {
+                UsuarioId = x.usuario_id,
                 Nome = x.usuario_nome,
+                Usuario = x.usuario_username,
                 TipoUsuario = x.usuario_tipo,
                 DataCadastro = x.usuario_dt_cadastro
             }).ToList();
@@ -87,6 +90,24 @@ namespace AASPA.Domain.Service
             }
         }
 
+        public void NovoUsuario(UsuarioRequest data)
+        {
+            var usuario = _mysql.usuarios.FirstOrDefault(x => x.usuario_username.ToUpper() == data.Usuario.ToUpper());
+
+            if (usuario != null) throw new Exception("Nome de usuário já em uso.");
+
+            _mysql.usuarios.Add(new UsuarioDb
+            {
+                usuario_dt_cadastro = DateTime.Now,
+                usuario_nome = data.Nome,
+                usuario_senha = Cripto.Encrypt("P@drao123"),
+                usuario_tipo = data.tipo,
+                usuario_username = data.Usuario
+            });
+
+            _mysql.SaveChanges();
+        }
+
         public void ResetaSenhaUsuario(int id)
         {
             var usuario = _mysql.usuarios.FirstOrDefault(x => x.usuario_id == id)
@@ -94,6 +115,18 @@ namespace AASPA.Domain.Service
 
             usuario.usuario_senha = Cripto.Encrypt("P@drao123");
 
+            _mysql.SaveChanges();
+        }
+
+        public void TrocaSenha(string senhaAtual, string senhaNova, UsuarioDb usuarioDb)
+        {
+            var usuario = _mysql.usuarios.FirstOrDefault(x => x.usuario_id == usuarioDb.usuario_id)
+            ?? throw new Exception("Usuário não encontrado");
+
+            if (Cripto.Decrypt(usuario.usuario_senha) != senhaAtual)
+                throw new Exception("Senha atual incorreta.");
+
+            usuario.usuario_senha = Cripto.Encrypt(senhaNova);
             _mysql.SaveChanges();
         }
     }

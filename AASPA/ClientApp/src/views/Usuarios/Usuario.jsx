@@ -3,16 +3,17 @@ import { FaKey, FaPlus, FaUserPen } from 'react-icons/fa6';
 import { api } from '../../api/api';
 import { FaUserTimes } from 'react-icons/fa';
 import { Alert, Pergunta } from '../../util/alertas';
+import { NavBar } from '../../components/Layout/layout';
 
 function Usuarios() {
-    const usuario = GetDataUser();
     const [usuarios, setUsuarios] = useState([]);
     const [usuariosFiltro, setUsuariosFiltro] = useState([]);
     const [filtroNome, setFiltroNome] = useState();
     const [editingIndex, setEditingIndex] = useState(null);
+    const [novoUsuario, setNovoUsuario] = useState(false);
 
     const BuscarTodosUsuarios = () => {
-        api.get("Usuario/BuscarTodosUsuarios", res => {
+        api.get("BuscarTodosUsuarios", res => {
             setUsuarios(res.data);
             setUsuariosFiltro(res.data);
         }, err => {
@@ -21,11 +22,11 @@ function Usuarios() {
     }
 
     useEffect(() => {
-        if (!usuario.IsMaster)
-            window.location.href = "/";
+        //if (!usuarios.IsMaster)
+        //    window.location.href = "/";
 
         BuscarTodosUsuarios();
-        BuscarTiposUsuario();
+        //BuscarTiposUsuario();
     }, [])
 
     const FiltroNome = e => {
@@ -49,29 +50,45 @@ function Usuarios() {
             Alert("Selecione um tipo de usuario", false, true);
             return;
         }
+        const usu = document.getElementById('usuario' + index);
+        if (!usu || usu.value === "") {
+            Alert("Digite um nome de usuário", false, true);
+            return;
+        }
 
         const form = {
             nome: nome.value,
             tipo: tipo.value,
+            usuario: usu.value,
             id: usuarios[index].usuarioId,
         }
 
         if (await Pergunta("Deseja realmente salvar as informações?")) {
-            var data = new FormData();
-            data.append("data", JSON.stringify(form));
-            api.put("Usuario/AtualizarUsuario", data, res => {
-                setEditingIndex(null);
-                BuscarTodosUsuarios();
-                Alert("Usuário atualizado com sucesso!")
-            }, err => {
-                Alert("Houve um erro ao atualizar o usuário.", false)
-            })
+            if (novoUsuario) {
+                api.post("Usuario", form, res => {
+                    setEditingIndex(null);
+                    setNovoUsuario(false);
+                    BuscarTodosUsuarios();
+                    Alert("Usuário cadastrado com sucesso!")
+                }, err => {
+                    Alert(err.data && err.data.response ? err.data.response : "Houve um ao cadastrar um novo usuário.", false)
+                })
+            } else {
+                api.put("Usuario/AtualizarUsuario", form, res => {
+                    setEditingIndex(null);
+                    setNovoUsuario(false);
+                    BuscarTodosUsuarios();
+                    Alert("Usuário atualizado com sucesso!")
+                }, err => {
+                    Alert("Houve um erro ao atualizar o usuário.", false)
+                })
+            }
         }
     };
 
     const AlterarStatusCliente = async (usuarioId, nome) => {
         if (await Pergunta(`Deseja realmente excluir o usuário de ${nome}?`)) {
-            api.put(`Usuario/ExcluirUsuario/${usuarioId}`, {}, res => {
+            api.put(`ExcluirUsuario/${usuarioId}`, {}, res => {
                 BuscarTodosUsuarios();
                 Alert(`Usuário de ${nome} foi excluido com sucesso!`)
             }, err => {
@@ -82,7 +99,7 @@ function Usuarios() {
 
     const ResetarSenhaUsuario = async (usuarioId, usuarioNome) => {
         if (await Pergunta("Deseja realmente resetar a senha de " + usuarioNome)) {
-            api.put('Usuario/ResetaSenha', { id: usuarioId }, res => {
+            api.put(`Usuario/ResetaSenha/${usuarioId}`, {}, res => {
                 Alert(`Senha de ${usuarioNome} resetada para P@drao123`);
             }, erro => {
                 Alert("Houve um erro ao resetar a senha do usuário.", false)
@@ -90,8 +107,30 @@ function Usuarios() {
         }
     }
 
+    const NovoUsuario = async () => {
+        let dataNow = ''
+        let dataHoje = new Date()
+        let mes = `${(dataHoje.getMonth() + 1)}`;
+        let dia = `${dataHoje.getDay()}`
+        dataNow = `${dataHoje.getFullYear()}-${mes.padStart(2, "0")}-${dia.padStart(2, "0")}T${dataHoje.getHours()}:${dataHoje.getMinutes()}:${dataHoje.getSeconds()}`
+        const form = {
+            usuarioId: 0,
+            nome: '',
+            tipoUsuario: 1,
+            usuario: '',
+            dataCadastro: dataNow
+        }
+
+        let copy = [...usuariosFiltro];
+        copy.push(form);
+        copy.reverse();
+        setUsuariosFiltro(copy);
+        setEditingIndex(0);
+        setNovoUsuario(true);
+    }
+
     return (
-        <section className='content'>
+        <NavBar>
             <div className="container-table">
                 <div style={{
                     padding: '1rem',
@@ -105,7 +144,7 @@ function Usuarios() {
                     <div style={{ display: 'flex', justifyContent: 'end', marginRight: 20 }}>
                         <button
                             className="btn btn-success"
-                            onClick={() => window.location.href = '/novousuario'}
+                            onClick={NovoUsuario}
                         >
                             Novo do usuário <FaPlus size={20} color='#fff' />
                         </button>
@@ -131,16 +170,16 @@ function Usuarios() {
                                 <tr>
                                     <th>#</th>
                                     <th>Nome</th>
+                                    <th>Nome Usuário</th>
                                     <th>Tipo Usuário</th>
                                     <th>Data Cadastro</th>
-                                    <th>Resetar Senha</th>
                                     <th>Editar</th>
+                                    <th>Resetar Senha</th>
                                     <th>Excluir</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {usuariosFiltro.map((usuario, i) => {
-
                                     const date = new Date(usuario.dataCadastro);
                                     const day = String(date.getDate()).padStart(2, '0');
                                     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -156,7 +195,10 @@ function Usuarios() {
                                             <td >{usuario.usuarioId}</td>
                                             <td >
                                                 {isEditing ? (
-                                                    <input required type="text" id={'nome' + i} className='form-control' defaultValue={usuario.nome} />
+                                                    <>
+                                                        <label>Nome:</label>
+                                                        <input required type="text" id={'nome' + i} className='form-control' defaultValue={usuario.nome} />
+                                                    </>
                                                 ) : (
                                                     usuario.nome
                                                 )}
@@ -164,8 +206,21 @@ function Usuarios() {
                                             <td >
                                                 {isEditing ? (
                                                     <>
-                                                        <small>1 para MASTER 2 para OPERADOR</small>
-                                                        <input required type="number" min={1} max={2} id={'tipo' + i} className='form-control' defaultValue={usuario.tipoUsuario} />
+                                                        <label>Nome Usuário:</label>
+                                                        <input required type="text" id={'usuario' + i} className='form-control' defaultValue={usuario.usuario} />
+                                                    </>
+                                                ) : (
+                                                    usuario.usuario
+                                                )}
+                                            </td>
+                                            <td >
+                                                {isEditing ? (
+                                                    <>
+                                                        <label>Tipo Usuário:</label>
+                                                        <select id={'tipo' + i} required className="form-control" defaultValue={usuario.tipoUsuario}>
+                                                            <option value={1}>MASTER</option>
+                                                            <option value={2}>OPERADOR</option>
+                                                        </select>
                                                     </>
                                                 ) : (
                                                     usuario.tipoUsuario === 1 ? "MASTER" : "OPERADOR"
@@ -178,14 +233,15 @@ function Usuarios() {
                                                 {isEditing ? (
                                                     <div style={{ display: 'flex', gap: 5 }}>
                                                         <button className='btn btn-primary' onClick={() => handleSaveClick(i)}>Salvar</button>
-                                                        <button className='btn btn-danger' onClick={() => setEditingIndex(null)}>Cancelar</button>
+                                                        <button className='btn btn-danger' onClick={() => { setEditingIndex(null); setUsuariosFiltro(usuariosFiltro.filter(x => x.usuarioId !== 0)); setNovoUsuario(false) }}>Cancelar</button>
                                                     </div>
                                                 ) : (
                                                     <button className='btn btn-warning' onClick={() => handleEditClick(i)}><FaUserPen color='#fff' /></button>
                                                 )}
                                             </td>
-                                            <td data-label="Resetar Senha"><button className='btn btn-success' onClick={() => ResetarSenhaUsuario(usuario.usuarioId, usuario.nome)}><FaKey /></button></td>
-                                            <td data-label="Excluir"><button className='btn btn-danger' onClick={() => AlterarStatusCliente(usuario.usuarioId, usuario.nome)}><FaUserTimes /></button></td>
+                                            {!isEditing && <td data-label="Resetar Senha"><button className='btn btn-success' onClick={() => ResetarSenhaUsuario(usuario.usuarioId, usuario.nome)}><FaKey /></button></td>}
+                                            {!isEditing && <td data-label="Excluir"><button className='btn btn-danger' onClick={() => AlterarStatusCliente(usuario.usuarioId, usuario.nome)}><FaUserTimes /></button></td>}
+                                            {isEditing && <td colSpan={2}></td>}
                                         </tr>
                                     );
                                 })}
@@ -199,7 +255,7 @@ function Usuarios() {
                     </div>
                 </div>
             </div>
-        </section>
+        </NavBar>
     );
 }
 

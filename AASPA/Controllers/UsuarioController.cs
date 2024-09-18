@@ -19,12 +19,43 @@ namespace AASPA.Controllers
         }
 
         [HttpPut]
-        [Route("/ExcluirUsuario/")]
+        [Route("/ExcluirUsuario/{usuarioId}")]
         public ActionResult delete([FromRoute] int usuarioId)
         {
             try
             {
                 _usuarioService.ExcluirUsuario(usuarioId);
+                return Ok();
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost]
+        [Route("/TrocaSenha")]
+        public ActionResult post([FromQuery] string senhaAtual,string senhaNova)
+        {
+            try
+            {
+                _usuarioService.TrocaSenha(senhaAtual, senhaNova,GetUser());
+                return Ok();
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+        [HttpPost]
+        [Route("/Usuario")]
+        public ActionResult post([FromBody] UsuarioRequest data)
+        {
+            try
+            {
+                _usuarioService.NovoUsuario(data);
                 return Ok();
             }
             catch (System.Exception ex)
@@ -50,7 +81,7 @@ namespace AASPA.Controllers
 
         [HttpPut]
         [Route("/Usuario/AtualizarUsuario")]
-        public async Task<IActionResult> Put([FromForm] UsuarioRequest data)
+        public async Task<IActionResult> Put([FromBody] UsuarioRequest data)
         {
             try
             {
@@ -64,8 +95,8 @@ namespace AASPA.Controllers
         }
 
         [HttpPut]
-        [Route("/Usuario/ResetaSenha")]
-        public IActionResult ResetaSenhaUsuario([FromBody] int id)
+        [Route("/Usuario/ResetaSenha/{id}")]
+        public IActionResult ResetaSenhaUsuario([FromRoute] int id)
         {
             try
             {

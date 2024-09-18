@@ -7,11 +7,14 @@ import { IoMdCloseCircle } from "react-icons/io";
 import { IoMdExit } from "react-icons/io";
 import { Size } from '../../util/size';
 import { PublicaRotas } from '../../router/Rotas';
-import { FaCubes } from 'react-icons/fa';
+import { FaCubes} from 'react-icons/fa';
+import { CgPassword } from "react-icons/cg";
+import ModalAlterarSenha from '../../components/Modal/ModalAlterarSenha';
 
 function NavBar({ children, usuario_nome, usuario_tipo }) {
     const { handdleLogout, usuario, handdleUsuarioLogado } = useContext(AuthContext);
     const [toggle, setToggle] = useState(false);
+    const [show, setShow] = useState(false);
     const [user, setUser] = useState({ sigla: '', nome: '' });
     const rota_atual = window.location.pathname
 
@@ -32,6 +35,7 @@ function NavBar({ children, usuario_nome, usuario_tipo }) {
 
     return (
         <section>
+            <ModalAlterarSenha setShow={setShow} show={show} />
             <header className="header-container">
                 <button className='btn-menu' onClick={toggleMenu}><IoMenu size={Size.IconeMenu} /></button>
                 <img style={{ width: '100px' }} src={Logo} alt="logo" />
@@ -57,6 +61,7 @@ function NavBar({ children, usuario_nome, usuario_tipo }) {
                     </div>
                     <div style={{ borderBottom: '1px solid #c2c2c2', height: '1px', width: '100%' }}></div>
                     <div className='links'>
+                        <a onClick={e => setShow(true)}>Troca Senha <CgPassword size={20} /></a>
                         <a onClick={handdleLogout}>Sair <IoMdExit /></a>
                     </div>
                 </div>

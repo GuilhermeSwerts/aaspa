@@ -15,6 +15,8 @@ namespace AASPA.Domain.Interface
         void ExcluirUsuario(int usuarioId);
         object GetAll(UsuarioDb usuarioDb);
         LoginResponse Login(string usuario, string senha);
+        void NovoUsuario(UsuarioRequest data);
         void ResetaSenhaUsuario(int id);
+        void TrocaSenha(string senhaAtual, string senhaNova, UsuarioDb usuarioDb);
     }
 }

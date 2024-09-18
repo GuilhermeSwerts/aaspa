@@ -20,9 +20,11 @@ import RelatorioCarteira from '../views/Gerenciamento/RepasseCarteira/RelatorioC
 import Cclientes from '../views/CClientes/index';
 import Atendimento from '../views/Atendimento/Atendimento';
 import SolicitacaoReembolso from '../views/SolicitacaoReembolso/SolicitacaoReembolso';
+import Usuarios from '../views/Usuarios/Usuario';
 import Login from '../views/Login';
 
 /*ICONES*/
+import { FaUsersGear } from "react-icons/fa6";
 import { FaChartArea, FaChartPie, FaFileDownload, FaFileImport } from "react-icons/fa";
 import { FaUsers } from "react-icons/fa";
 import { GiReceiveMoney } from "react-icons/gi";
@@ -56,6 +58,7 @@ export const PublicaRotas = [ /*PUBLICA PARA APARECER NO MENU*/
     { Icon: FaChartPie, nome: 'Relatório de Remessa', path: '/rrelatorio', component: Relatorio },
 
     /*GERENCIAMENTO*/
+    { Icon: FaUsersGear, nome: 'Gerenciar Usuários', path: '/gusuarios', component: Usuarios },
     { Icon: FaGears, nome: 'Gerenciar Captadores', path: '/gcaptador', component: Captador },
     { Icon: FaGears, nome: 'Gerenciar Origem', path: '/gorigem', component: Origem },
     { Icon: FaGears, nome: 'Gerenciar Motivo de Contato', path: '/gmotivocontato', component: MotivoContato },
