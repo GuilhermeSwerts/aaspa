@@ -1,5 +1,4 @@
 /*ROTAS*/
-import Clientes from '../views/Clientes';
 import Cliente from '../views/Cliente';
 import Status from '../views/Gerenciamento/Status';
 import GBeneficios from '../views/Gerenciamento/Beneficios';
@@ -25,7 +24,7 @@ import Login from '../views/Login';
 
 /*ICONES*/
 import { FaUsersGear } from "react-icons/fa6";
-import { FaChartArea, FaChartPie, FaFileDownload, FaFileImport } from "react-icons/fa";
+import { FaChartArea, FaChartPie, FaFileDownload, FaFileImport, FaHome } from "react-icons/fa";
 import { FaUsers } from "react-icons/fa";
 import { GiReceiveMoney } from "react-icons/gi";
 import { FaGears } from "react-icons/fa6";
@@ -35,14 +34,18 @@ import { GiPayMoney } from "react-icons/gi";
 import { MdHistory } from "react-icons/md";
 import { RiChatHistoryLine } from "react-icons/ri";
 import { GiTakeMyMoney } from "react-icons/gi";
+import Home from '../views/Home/home';
 
 export const PublicaRotas = [ /*PUBLICA PARA APARECER NO MENU*/
+    { Icon: FaHome, nome: 'Home', path: '/', component: Home },
+
     /*ADMINISTRAÇÃO*/
     { Icon: BiSupport, nome: 'Atendimento', path: '/atendimento', component: Atendimento },
     { Icon: GiTakeMyMoney, nome: 'Reembolso', path: '/reembolso', component: SolicitacaoReembolso },
-
-    { Icon: FaUsers, nome: 'Clientes (Busca Simplificada)', path: '/', component: Clientes },
-    { Icon: FaUsers, nome: 'Clientes (Busca Avançada)', path: '/ccliente', component: Cclientes },
+    
+    { Icon: FaUsers, nome: 'Clientes (Busca Simplificada)', path: '/clientes?BuscaSimples=true', component: Cclientes },
+    { Icon: FaUsers, nome: 'Clientes (Busca Avançada)', path: '/clientes', component: Cclientes },
+    
     { Icon: GiReceiveMoney, nome: 'Clientes Benefícios', path: '/beneficios', component: Beneficios },
     { Icon: GiPayMoney, nome: 'Clientes Pagamentos', path: '/pagamentos', component: Pagamentos },
     { Icon: MdHistory, nome: 'Clientes Histórico de Pagamentos', path: '/historicopagamento', component: HistoricoPagamento },

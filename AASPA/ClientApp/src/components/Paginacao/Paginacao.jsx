@@ -55,7 +55,7 @@ export const Paginacao = ({
             <div className="pagination">
                 <span>Quantidade de registros por página:</span>
                 <select value={limit} onChange={e => { setLimit(Number(e.target.value)); onChange() }}>
-                    <option value={8}>8</option>
+                    <option value={10}>10</option>
                     <option value={20}>20</option>
                     <option value={50}>50</option>
                     <option value={100}>100</option>
