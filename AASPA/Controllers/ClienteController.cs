@@ -120,10 +120,7 @@ namespace AASPA.Host.Controllers
         {
             try
             {
-                request.PaginaAtual = 1;
-
-                var clientes = _service.BuscarTodosClientes(request);
-                byte[] base64 = _service.DownloadFiltro(clientes);
+                byte[] base64 = _service.DownloadFiltro(request);
                 return File(base64, "application/csv;charset=utf-8", "FiltroClientes.csv");
             }
             catch (System.Exception ex)

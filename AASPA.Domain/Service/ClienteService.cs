@@ -301,7 +301,7 @@ namespace AASPA.Domain.Service
             return (Clientes, totalPaginas, TotalClientes);
         }
 
-        private (List<BuscarClienteByIdResponse> Clientes, int TotalClientes) GetClientesByFiltro(ConsultaParametros request, bool isCount = false)
+        private (List<BuscarClienteByIdResponse> Clientes, int TotalClientes) GetClientesByFiltro(ConsultaParametros request, bool isCount = false, bool isDownload = false)
         {
             int pageSize = request.QtdPorPagina ?? 10;
             int currentPage = request.PaginaAtual ?? 1;
@@ -311,39 +311,101 @@ namespace AASPA.Domain.Service
             int qtd = 0;
             using (MySqlConnection connection = new(_mysql.Database.GetConnectionString()))
             {
-                string coluns = isCount ? "count(*) as QTD" : "cli.*, cpt.*";
+                List<string> filtros = new List<string>();
+                var colunas = @"
+cli.cliente_id
+,cli.cliente_cpf
+,cli.cliente_nome
+,cli.cliente_cep
+,cli.cliente_logradouro
+,cli.cliente_bairro
+,cli.cliente_localidade
+,cli.cliente_uf
+,cli.cliente_numero
+,cli.cliente_complemento
+,cli.cliente_dataNasc
+,cli.cliente_dataCadastro
+,cli.cliente_nrDocto
+,cli.cliente_empregador
+,cli.cliente_matriculaBeneficio
+,cli.cliente_nomeMae
+,cli.cliente_nomePai
+,cli.cliente_telefoneFixo
+,cli.cliente_telefoneCelular
+,cli.cliente_possuiWhatsapp
+,cli.cliente_funcaoAASPA
+,cli.cliente_email
+,cli.cliente_situacao
+,cli.cliente_estado_civil
+,cli.cliente_sexo
+,cli.cliente_remessa_id
+,cli.clientes_cadastro_externo
+,cli.cliente_StatusIntegral
+,cpt.captador_id
+,cpt.captador_cpf_cnpj
+,cpt.captador_nome
+,cpt.captador_descricao
+,cpt.captador_e_cnpj
+,cpt.captador_situacao
+";
+
+                string coluns = isCount ? "count(*) as QTD" : colunas;
                 string query = @$"
                           SELECT {coluns}
                 FROM clientes cli
                 JOIN vinculo_cliente_captador vin ON cli.cliente_id = vinculo_cliente_id
-                JOIN captadores cpt ON vin.vinculo_captador_id = cpt.captador_id
-                WHERE 
-                (@DateInit IS NULL OR cli.cliente_dataCadastro >= @DateInit)
-                AND (@DateEnd IS NULL OR cli.cliente_dataCadastro < @DateEnd)
-                AND (@Nome IS NULL OR cli.cliente_nome LIKE CONCAT('%', @Nome, '%'))
-                AND (@Cpf IS NULL OR cli.cliente_cpf LIKE CONCAT('%', @Cpf, '%'))";
+                JOIN captadores cpt ON vin.vinculo_captador_id = cpt.captador_id";
+
+                if (request.DateInit.HasValue)
+                {
+                    filtros.Add("cli.cliente_dataCadastro >= @DateInit");
+                }
+
+                if (request.DateEnd.HasValue)
+                {
+                    filtros.Add("cli.cliente_dataCadastro < @DateEnd");
+                }
+
+                if (!string.IsNullOrEmpty(request.Nome))
+                {
+                    filtros.Add("cli.cliente_nome LIKE CONCAT('%', @Nome, '%')");
+                }
+
+                if (!string.IsNullOrEmpty(request.Cpf))
+                {
+                    filtros.Add("cli.cliente_cpf LIKE CONCAT('%', @Cpf, '%'))");
+                }
 
                 if (request.CadastroExterno > 0)
                 {
-                    query += " AND (@CadastroExterno IS NULL OR cli.clientes_cadastro_externo = @CadastroExterno)";
+                    filtros.Add("cli.clientes_cadastro_externo = @CadastroExterno");
                 }
 
                 if (request.StatusCliente > 0)
                 {
-                    query += " AND (@StatusCliente IS NULL OR cli.cliente_situacao = @StatusCliente)";
+                    filtros.Add("cli.cliente_situacao = @StatusCliente");
                 }
 
                 if (request.StatusRemessa > 0)
                 {
-                    query += " AND (@StatusRemessa IS NULL OR cli.cliente_remessa_id = @StatusRemessa)";
+                    filtros.Add("cli.cliente_remessa_id = @StatusRemessa");
                 }
 
                 if (request.StatusIntegraall > 0)
                 {
-                    query += " AND (@StatusIntegraall IS NULL OR cli.cliente_StatusIntegral = @StatusIntegraall)";
+                    filtros.Add("cli.cliente_StatusIntegral = @StatusIntegraall");
                 }
 
-                query += " ORDER BY cli.cliente_dataCadastro DESC";
+                if (filtros.Count > 0)
+                {
+                    query += " WHERE";
+                    foreach (var item in filtros)
+                    {
+                        query += $" AND {item}";
+                    }
+                }
+
+                filtros.Add(" ORDER BY cli.cliente_dataCadastro DESC");
 
                 if (request.PaginaAtual != null)
                 {
@@ -352,10 +414,12 @@ namespace AASPA.Domain.Service
 
 
                 MySqlCommand cmd = new MySqlCommand(query, connection);
+
                 cmd.Parameters.AddWithValue("@DateInit", request.DateInit ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@DateEnd", request.DateEnd.HasValue ? request.DateEnd.Value.AddDays(1) : (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@Nome", string.IsNullOrEmpty(request.Nome) ? (object)DBNull.Value : request.Nome);
                 cmd.Parameters.AddWithValue("@Cpf", string.IsNullOrEmpty(request.Cpf) ? (object)DBNull.Value : request.Cpf.Replace(".", "").Replace("-", ""));
+
                 if (request.CadastroExterno > 0)
                     cmd.Parameters.AddWithValue("@CadastroExterno", request.CadastroExterno);
                 if (request.CadastroExterno > 0)
@@ -369,13 +433,6 @@ namespace AASPA.Domain.Service
                     cmd.Parameters.AddWithValue("@PageSize", pageSize);
                     cmd.Parameters.AddWithValue("@Offset", offset);
                 }
-
-                //cmd.Parameters.AddWithValue("@SituacaoOcorrencia", string.IsNullOrEmpty(request.SituacaoOcorrencia) || request.SituacaoOcorrencia == "TODOS" ? (object)DBNull.Value : request.SituacaoOcorrencia);
-                //cmd.Parameters.AddWithValue("@DataInitAtendimento", request.DataInitAtendimento ?? (object)DBNull.Value);
-                //cmd.Parameters.AddWithValue("@DataEndAtendimento", request.DataEndAtendimento ?? (object)DBNull.Value);
-                //cmd.Parameters.AddWithValue("@StatusInativo", (int)EStatus.Inativo);
-
-
 
                 connection.Open();
                 using (MySqlDataReader reader = cmd.ExecuteReader())
@@ -430,7 +487,7 @@ namespace AASPA.Domain.Service
                                     captador_e_cnpj = reader.IsDBNull("captador_e_cnpj") ? false : reader.GetBoolean("captador_e_cnpj"),
                                     captador_situacao = reader.IsDBNull("captador_situacao") ? false : reader.GetBoolean("captador_situacao")
                                 },
-                                StatusAtual = BuscaStatusAtual(reader.GetInt32("cliente_id"))
+                                StatusAtual = BuscaStatusAtual(reader.GetInt32("cliente_id"), isDownload)
                             });
                         }
                     }
@@ -448,8 +505,10 @@ namespace AASPA.Domain.Service
 
         }
 
-        public StatusDb BuscaStatusAtual(int clienteId)
+        public StatusDb BuscaStatusAtual(int clienteId, bool isDownload)
         {
+            if (isDownload) return new StatusDb();
+
             var lgstatus = _mysql.log_status
                                  .Where(x => x.log_status_cliente_id == clienteId)
                                  .OrderByDescending(x => x.log_status_dt_cadastro);
@@ -461,20 +520,34 @@ namespace AASPA.Domain.Service
             return statusAtual ?? new StatusDb();
         }
 
-        public byte[] DownloadFiltro((List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) clientesData)
+        public byte[] DownloadFiltro(ConsultaParametros request)
         {
+            var (_, TotalClientes) = GetClientesByFiltro(request, true, true);
+
+            request.QtdPorPagina = 10000;
+            request.PaginaAtual = 1;
+
+            List<BuscarClienteByIdResponse> clientesData = new List<BuscarClienteByIdResponse>();
+
+            for (int i = 1; i < (TotalClientes / request.QtdPorPagina) + 1; i++)
+            {
+                request.PaginaAtual = i;
+                var (data, _) = GetClientesByFiltro(request, false, true);
+                clientesData.AddRange(data);
+            }
+
             var ultimoCliente = new BuscarClienteByIdResponse();
             try
             {
                 string texto = "#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO;STATUS_INTEGRAALL\n";
-                for (int i = 0; i < clientesData.Clientes.Count; i++)
+                for (int i = 0; i < clientesData.Count; i++)
                 {
-                    var cliente = clientesData.Clientes[i];
+                    var cliente = clientesData[i];
                     ultimoCliente = cliente;
                     var dataAve = cliente.Cliente.cliente_DataAverbacao.HasValue
                         ? cliente.Cliente.cliente_DataAverbacao.Value.ToString("dd/MM/yyyy hh:mm:ss")
                         : "";
-                    
+
                     var empregador = string.IsNullOrEmpty(cliente.Cliente.cliente_empregador) ? "" : cliente.Cliente.cliente_empregador;
                     var fixo = string.IsNullOrEmpty(cliente.Cliente.cliente_telefoneFixo) ? "" : cliente.Cliente.cliente_telefoneFixo;
                     var funcaoAaspa = string.IsNullOrEmpty(cliente.Cliente.cliente_funcaoAASPA) ? "" : cliente.Cliente.cliente_funcaoAASPA;

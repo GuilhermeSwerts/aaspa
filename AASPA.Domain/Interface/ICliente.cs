@@ -14,7 +14,7 @@ namespace AASPA.Domain.Interface
         void AtualizaCliente(ClienteRequest novoCliente);
         void NovoCliente(ClienteRequest novoCliente, bool isLis, bool cadastroExterno = false);
         (List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) BuscarTodosClientes(ConsultaParametros request);
-        byte[] DownloadFiltro((List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) clientes);
+        byte[] DownloadFiltro(ConsultaParametros request);
         Task<List<ClienteRequest>> GetClientesIntegraall(string datacadastro, string dataCadastroFim);
         void SalvarNovoCliente(List<ClienteRequest> clientes);
     }
