@@ -450,26 +450,78 @@ namespace AASPA.Domain.Service
 
         public StatusDb BuscaStatusAtual(int clienteId)
         {
-            var lgstatus = _mysql.log_status.Where(x => x.log_status_cliente_id == clienteId).OrderByDescending(x=> x.log_status_dt_cadastro);
-            var ultimoStatus = lgstatus.First() ?? new ();
+            var lgstatus = _mysql.log_status
+                                 .Where(x => x.log_status_cliente_id == clienteId)
+                                 .OrderByDescending(x => x.log_status_dt_cadastro);
+
+            var ultimoStatus = lgstatus.FirstOrDefault() ?? new LogStatusDb();
 
             var statusAtual = _mysql.status.FirstOrDefault(x => x.status_id == ultimoStatus.log_status_novo_id);
 
-            return statusAtual ?? new();
+            return statusAtual ?? new StatusDb();
         }
 
         public byte[] DownloadFiltro((List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) clientesData)
         {
-            string texto = "#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO;STATUS_INTEGRAALL\n";
-            for (int i = 0; i < clientesData.Clientes.Count; i++)
+            var ultimoCliente = new BuscarClienteByIdResponse();
+            try
             {
-                var cliente = clientesData.Clientes[i];
-                texto += $"{cliente.Cliente.cliente_id};{cliente.Cliente.cliente_cpf ?? ""};{cliente.Cliente.cliente_nome ?? ""};{cliente.Cliente.cliente_cep ?? ""};{cliente.Cliente.cliente_logradouro ?? ""};{cliente.Cliente.cliente_bairro ?? ""};{cliente.Cliente.cliente_localidade ?? ""};{cliente.Cliente.cliente_uf ?? ""};{cliente.Cliente.cliente_numero.Replace(";", "")};{cliente.Cliente.cliente_complemento ?? ""};{cliente.Cliente.cliente_dataNasc};{cliente.Cliente.cliente_dataCadastro};{cliente.Cliente.cliente_nrDocto ?? ""};{cliente.Cliente.cliente_empregador ?? ""};{cliente.Cliente.cliente_matriculaBeneficio ?? ""};{cliente.Cliente.cliente_nomeMae ?? ""};{cliente.Cliente.cliente_nomePai ?? ""};{cliente.Cliente.cliente_telefoneFixo ?? ""};{cliente.Cliente.cliente_telefoneCelular ?? ""};{cliente.Cliente.cliente_possuiWhatsapp};{cliente.Cliente.cliente_funcaoAASPA ?? ""};{cliente.Cliente.cliente_email ?? ""};{cliente.Cliente.cliente_situacao};{cliente.Cliente.cliente_estado_civil};{cliente.Cliente.cliente_sexo};{cliente.Cliente.cliente_remessa_id ?? 0};{cliente.Captador.captador_nome ?? ""};{cliente.Captador.captador_cpf_cnpj ?? ""};{cliente.Captador.captador_descricao ?? ""};{cliente.Cliente.cliente_DataAverbacao.Value.ToString("dd/MM/yyyy hh:mm:ss:")};{cliente.Cliente.cliente_StatusIntegral ?? 0}";
-                texto += "\n";
-            }
+                string texto = "#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO;STATUS_INTEGRAALL\n";
+                for (int i = 0; i < clientesData.Clientes.Count; i++)
+                {
+                    var cliente = clientesData.Clientes[i];
+                    ultimoCliente = cliente;
+                    var dataAve = cliente.Cliente.cliente_DataAverbacao.HasValue
+                        ? cliente.Cliente.cliente_DataAverbacao.Value.ToString("dd/MM/yyyy hh:mm:ss")
+                        : "";
+                    
+                    var empregador = string.IsNullOrEmpty(cliente.Cliente.cliente_empregador) ? "" : cliente.Cliente.cliente_empregador;
+                    var fixo = string.IsNullOrEmpty(cliente.Cliente.cliente_telefoneFixo) ? "" : cliente.Cliente.cliente_telefoneFixo;
+                    var funcaoAaspa = string.IsNullOrEmpty(cliente.Cliente.cliente_funcaoAASPA) ? "" : cliente.Cliente.cliente_funcaoAASPA;
 
-            byte[] fileBytes = Encoding.Latin1.GetBytes(texto);
-            return fileBytes;
+                    texto += $"{cliente.Cliente.cliente_id};" +
+                             $"{cliente.Cliente.cliente_cpf ?? ""};" +
+                             $"{cliente.Cliente.cliente_nome ?? ""};" +
+                             $"{cliente.Cliente.cliente_cep ?? ""};" +
+                             $"{cliente.Cliente.cliente_logradouro ?? ""};" +
+                             $"{cliente.Cliente.cliente_bairro ?? ""};" +
+                             $"{cliente.Cliente.cliente_localidade ?? ""};" +
+                             $"{cliente.Cliente.cliente_uf ?? ""};" +
+                             $"{cliente.Cliente.cliente_numero?.Replace(";", "") ?? ""};" +
+                             $"{cliente.Cliente.cliente_complemento ?? ""};" +
+                             $"{cliente.Cliente.cliente_dataNasc.ToString("dd/MM/yyyy") ?? ""};" +
+                             $"{cliente.Cliente.cliente_dataCadastro.ToString("dd/MM/yyyy") ?? ""};" +
+                             $"{cliente.Cliente.cliente_nrDocto ?? ""};" +
+                             $"{empregador};" +
+                             $"{cliente.Cliente.cliente_matriculaBeneficio ?? ""};" +
+                             $"{cliente.Cliente.cliente_nomeMae ?? ""};" +
+                             $"{cliente.Cliente.cliente_nomePai ?? ""};" +
+                             $"{fixo};" +
+                             $"{cliente.Cliente.cliente_telefoneCelular ?? ""};" +
+                             $"{cliente.Cliente.cliente_possuiWhatsapp};" +
+                             $"{funcaoAaspa};" +
+                             $"{cliente.Cliente.cliente_email ?? ""};" +
+                             $"{cliente.Cliente.cliente_situacao};" +
+                             $"{cliente.Cliente.cliente_estado_civil};" +
+                             $"{cliente.Cliente.cliente_sexo};" +
+                             $"{cliente.Cliente.cliente_remessa_id ?? 0};" +
+                             $"{cliente.Captador.captador_nome ?? ""};" +
+                             $"{cliente.Captador.captador_cpf_cnpj ?? ""};" +
+                             $"{cliente.Captador.captador_descricao ?? ""};" +
+                             $"{dataAve};" +
+                             $"{cliente.Cliente.cliente_StatusIntegral ?? 0}";
+
+                    texto += "\n";
+                }
+
+                byte[] fileBytes = Encoding.Latin1.GetBytes(texto);
+                return fileBytes;
+            }
+            catch (Exception)
+            {
+                var err = $"Erro no cliente: ID: {ultimoCliente.Cliente.cliente_id}, Nome: {ultimoCliente.Cliente.cliente_nome}";
+                throw new Exception(err);
+            }
         }
         public async Task<List<ClienteRequest>> GetClientesIntegraall(string DataCadastroInicio, string DataCadastroFim)
         {
