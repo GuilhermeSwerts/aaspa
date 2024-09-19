@@ -522,24 +522,24 @@ cli.cliente_id
 
         public byte[] DownloadFiltro(ConsultaParametros request)
         {
-            var (_, TotalClientes) = GetClientesByFiltro(request, true, true);
-
-            request.QtdPorPagina = 10000;
-            request.PaginaAtual = 1;
-
             List<BuscarClienteByIdResponse> clientesData = new List<BuscarClienteByIdResponse>();
 
-            for (int i = 1; i < (TotalClientes / request.QtdPorPagina) + 1; i++)
-            {
-                request.PaginaAtual = i;
-                var (data, _) = GetClientesByFiltro(request, false, true);
-                clientesData.AddRange(data);
-            }
+            var client = (from cli in _mysql.clientes
+                          join vin in _mysql.vinculo_cliente_captador on cli.cliente_id equals vin.vinculo_cliente_id
+                          join cap in _mysql.captadores on vin.vinculo_captador_id equals cap.captador_id
+                          select new BuscarClienteByIdResponse
+                          {
+                              Cliente = cli,
+                              Captador = cap,
+                          }).ToList();
+            clientesData.AddRange(client);
+
 
             var ultimoCliente = new BuscarClienteByIdResponse();
             try
             {
-                string texto = "#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO;STATUS_INTEGRAALL\n";
+                var builder = new StringBuilder();
+                builder.AppendLine("#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO;STATUS_INTEGRAALL");
                 for (int i = 0; i < clientesData.Count; i++)
                 {
                     var cliente = clientesData[i];
@@ -552,42 +552,40 @@ cli.cliente_id
                     var fixo = string.IsNullOrEmpty(cliente.Cliente.cliente_telefoneFixo) ? "" : cliente.Cliente.cliente_telefoneFixo;
                     var funcaoAaspa = string.IsNullOrEmpty(cliente.Cliente.cliente_funcaoAASPA) ? "" : cliente.Cliente.cliente_funcaoAASPA;
 
-                    texto += $"{cliente.Cliente.cliente_id};" +
-                             $"{cliente.Cliente.cliente_cpf ?? ""};" +
-                             $"{cliente.Cliente.cliente_nome ?? ""};" +
-                             $"{cliente.Cliente.cliente_cep ?? ""};" +
-                             $"{cliente.Cliente.cliente_logradouro ?? ""};" +
-                             $"{cliente.Cliente.cliente_bairro ?? ""};" +
-                             $"{cliente.Cliente.cliente_localidade ?? ""};" +
-                             $"{cliente.Cliente.cliente_uf ?? ""};" +
-                             $"{cliente.Cliente.cliente_numero?.Replace(";", "") ?? ""};" +
-                             $"{cliente.Cliente.cliente_complemento ?? ""};" +
-                             $"{cliente.Cliente.cliente_dataNasc.ToString("dd/MM/yyyy") ?? ""};" +
-                             $"{cliente.Cliente.cliente_dataCadastro.ToString("dd/MM/yyyy") ?? ""};" +
-                             $"{cliente.Cliente.cliente_nrDocto ?? ""};" +
-                             $"{empregador};" +
-                             $"{cliente.Cliente.cliente_matriculaBeneficio ?? ""};" +
-                             $"{cliente.Cliente.cliente_nomeMae ?? ""};" +
-                             $"{cliente.Cliente.cliente_nomePai ?? ""};" +
-                             $"{fixo};" +
-                             $"{cliente.Cliente.cliente_telefoneCelular ?? ""};" +
-                             $"{cliente.Cliente.cliente_possuiWhatsapp};" +
-                             $"{funcaoAaspa};" +
-                             $"{cliente.Cliente.cliente_email ?? ""};" +
-                             $"{cliente.Cliente.cliente_situacao};" +
-                             $"{cliente.Cliente.cliente_estado_civil};" +
-                             $"{cliente.Cliente.cliente_sexo};" +
-                             $"{cliente.Cliente.cliente_remessa_id ?? 0};" +
-                             $"{cliente.Captador.captador_nome ?? ""};" +
-                             $"{cliente.Captador.captador_cpf_cnpj ?? ""};" +
-                             $"{cliente.Captador.captador_descricao ?? ""};" +
-                             $"{dataAve};" +
-                             $"{cliente.Cliente.cliente_StatusIntegral ?? 0}";
-
-                    texto += "\n";
+                    builder.AppendLine($"{cliente.Cliente.cliente_id};" +
+                                 $"{cliente.Cliente.cliente_cpf ?? ""};" +
+                                 $"{cliente.Cliente.cliente_nome ?? ""};" +
+                                 $"{cliente.Cliente.cliente_cep ?? ""};" +
+                                 $"{cliente.Cliente.cliente_logradouro ?? ""};" +
+                                 $"{cliente.Cliente.cliente_bairro ?? ""};" +
+                                 $"{cliente.Cliente.cliente_localidade ?? ""};" +
+                                 $"{cliente.Cliente.cliente_uf ?? ""};" +
+                                 $"{cliente.Cliente.cliente_numero?.Replace(";", "") ?? ""};" +
+                                 $"{cliente.Cliente.cliente_complemento ?? ""};" +
+                                 $"{cliente.Cliente.cliente_dataNasc.ToString("dd/MM/yyyy") ?? ""};" +
+                                 $"{cliente.Cliente.cliente_dataCadastro.ToString("dd/MM/yyyy") ?? ""};" +
+                                 $"{cliente.Cliente.cliente_nrDocto ?? ""};" +
+                                 $"{empregador};" +
+                                 $"{cliente.Cliente.cliente_matriculaBeneficio ?? ""};" +
+                                 $"{cliente.Cliente.cliente_nomeMae ?? ""};" +
+                                 $"{cliente.Cliente.cliente_nomePai ?? ""};" +
+                                 $"{fixo};" +
+                                 $"{cliente.Cliente.cliente_telefoneCelular ?? ""};" +
+                                 $"{cliente.Cliente.cliente_possuiWhatsapp};" +
+                                 $"{funcaoAaspa};" +
+                                 $"{cliente.Cliente.cliente_email ?? ""};" +
+                                 $"{cliente.Cliente.cliente_situacao};" +
+                                 $"{cliente.Cliente.cliente_estado_civil};" +
+                                 $"{cliente.Cliente.cliente_sexo};" +
+                                 $"{cliente.Cliente.cliente_remessa_id ?? 0};" +
+                                 $"{cliente.Captador.captador_nome ?? ""};" +
+                                 $"{cliente.Captador.captador_cpf_cnpj ?? ""};" +
+                                 $"{cliente.Captador.captador_descricao ?? ""};" +
+                                 $"{dataAve};" +
+                                 $"{cliente.Cliente.cliente_StatusIntegral ?? 0}");
                 }
 
-                byte[] fileBytes = Encoding.Latin1.GetBytes(texto);
+                byte[] fileBytes = Encoding.Latin1.GetBytes(builder.ToString());
                 return fileBytes;
             }
             catch (Exception)
