@@ -374,12 +374,12 @@ cli.cliente_id
 
                 if (!string.IsNullOrEmpty(request.Cpf))
                 {
-                    filtros.Add("cli.cliente_cpf LIKE CONCAT('%', @Cpf, '%'))");
+                    filtros.Add("cli.cliente_cpf LIKE CONCAT('%', @Cpf, '%')");
                 }
 
                 if (!string.IsNullOrEmpty(request.Beneficio))
                 {
-                    filtros.Add("cli.cliente_matriculaBeneficio LIKE CONCAT('%', @Nb, '%'))");
+                    filtros.Add("cli.cliente_matriculaBeneficio LIKE CONCAT('%', @Nb, '%')");
                 }
 
                 if (request.CadastroExterno > 0)
@@ -413,21 +413,24 @@ cli.cliente_id
                     }
                 }
 
-                filtros.Add(" ORDER BY cli.cliente_dataCadastro DESC");
+                query +=" ORDER BY cli.cliente_dataCadastro DESC";
 
                 if (request.PaginaAtual != null)
                 {
-                    query = query + " LIMIT @PageSize OFFSET @Offset";
+                    query += " LIMIT @PageSize OFFSET @Offset";
                 }
 
 
                 MySqlCommand cmd = new MySqlCommand(query, connection);
 
-                cmd.Parameters.AddWithValue("@DateInit", request.DateInit ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@DateEnd", request.DateEnd.HasValue ? request.DateEnd.Value.AddDays(1) : (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@Nome", string.IsNullOrEmpty(request.Nome) ? (object)DBNull.Value : request.Nome);
-                cmd.Parameters.AddWithValue("@Cpf", string.IsNullOrEmpty(request.Cpf) ? (object)DBNull.Value : request.Cpf.Replace(".", "").Replace("-", ""));
-
+                if (request.DateInit.HasValue)
+                    cmd.Parameters.AddWithValue("@DateInit", request.DateInit);
+                if (request.DateEnd.HasValue)
+                    cmd.Parameters.AddWithValue("@DateEnd", request.DateEnd.Value.AddDays(1));
+                if (!string.IsNullOrEmpty(request.Nome))
+                    cmd.Parameters.AddWithValue("@Nome", request.Nome);
+                if (!string.IsNullOrEmpty(request.Cpf))
+                    cmd.Parameters.AddWithValue("@Cpf", request.Cpf.Replace(".", "").Replace("-", ""));
                 if (request.CadastroExterno > 0)
                     cmd.Parameters.AddWithValue("@CadastroExterno", request.CadastroExterno);
                 if (request.CadastroExterno > 0)
@@ -437,7 +440,7 @@ cli.cliente_id
                 if (request.StatusIntegraall > 0)
                     cmd.Parameters.AddWithValue("@StatusIntegraall", request.StatusIntegraall);
                 if (!string.IsNullOrEmpty(request.Beneficio))
-                    cmd.Parameters.AddWithValue("@Nb", request.Beneficio);
+                    cmd.Parameters.AddWithValue("@Nb", request.Beneficio.Replace(".", "").Replace("-", ""));
                 if (request.PaginaAtual != null)
                 {
                     cmd.Parameters.AddWithValue("@PageSize", pageSize);
@@ -460,7 +463,7 @@ cli.cliente_id
                                 Cliente = new ClienteDb
                                 {
                                     cliente_id = reader.GetInt32("cliente_id"),
-                                    cliente_cpf = reader.IsDBNull("cliente_cpf") ? null : reader.GetString("cliente_cpf"),
+                                    cliente_cpf = reader.IsDBNull("cliente_cpf") ? null : reader.GetString("cliente_cpf").PadLeft(11,'0'),
                                     cliente_nome = reader.IsDBNull("cliente_nome") ? null : reader.GetString("cliente_nome"),
                                     cliente_cep = reader.IsDBNull("cliente_cep") ? null : reader.GetString("cliente_cep"),
                                     cliente_logradouro = reader.IsDBNull("cliente_logradouro") ? null : reader.GetString("cliente_logradouro"),
@@ -473,7 +476,7 @@ cli.cliente_id
                                     cliente_dataCadastro = reader.GetDateTime("cliente_dataCadastro"),
                                     cliente_nrDocto = reader.IsDBNull("cliente_nrDocto") ? null : reader.GetString("cliente_nrDocto"),
                                     cliente_empregador = reader.IsDBNull("cliente_empregador") ? null : reader.GetString("cliente_empregador"),
-                                    cliente_matriculaBeneficio = reader.IsDBNull("cliente_matriculaBeneficio") ? null : reader.GetString("cliente_matriculaBeneficio"),
+                                    cliente_matriculaBeneficio = reader.IsDBNull("cliente_matriculaBeneficio") ? null : reader.GetString("cliente_matriculaBeneficio").PadLeft(10, '0'),
                                     cliente_nomeMae = reader.IsDBNull("cliente_nomeMae") ? null : reader.GetString("cliente_nomeMae"),
                                     cliente_nomePai = reader.IsDBNull("cliente_nomePai") ? null : reader.GetString("cliente_nomePai"),
                                     cliente_telefoneFixo = reader.IsDBNull("cliente_telefoneFixo") ? null : reader.GetString("cliente_telefoneFixo"),

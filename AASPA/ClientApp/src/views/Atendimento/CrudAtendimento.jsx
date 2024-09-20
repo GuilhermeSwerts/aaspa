@@ -25,7 +25,7 @@ class CrudAtendimento extends Component {
         }
         this.AbrirCrud = (clientId) => {
 
-            api.get(`${api.urlBase}BuscarClienteID/${clientId}`,
+            api.get(`${api.urlBase}/BuscarClienteID/${clientId}`,
                 async (res) => {
                     this.setState({ clienteData: res.data });
                 },
