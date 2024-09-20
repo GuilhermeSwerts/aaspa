@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using MySqlConnector;
 using Newtonsoft.Json;
+using NuGet.Packaging;
 using Paket;
 using System;
 using System.Collections.Generic;
@@ -376,6 +377,11 @@ cli.cliente_id
                     filtros.Add("cli.cliente_cpf LIKE CONCAT('%', @Cpf, '%'))");
                 }
 
+                if (!string.IsNullOrEmpty(request.Beneficio))
+                {
+                    filtros.Add("cli.cliente_matriculaBeneficio LIKE CONCAT('%', @Nb, '%'))");
+                }
+
                 if (request.CadastroExterno > 0)
                 {
                     filtros.Add("cli.clientes_cadastro_externo = @CadastroExterno");
@@ -399,9 +405,11 @@ cli.cliente_id
                 if (filtros.Count > 0)
                 {
                     query += " WHERE";
+                    bool first = true;
                     foreach (var item in filtros)
                     {
-                        query += $" AND {item}";
+                        query += first ? $" {item}" : $" AND {item}";
+                        first = false;
                     }
                 }
 
@@ -428,6 +436,8 @@ cli.cliente_id
                     cmd.Parameters.AddWithValue("@StatusRemessa", request.StatusRemessa);
                 if (request.StatusIntegraall > 0)
                     cmd.Parameters.AddWithValue("@StatusIntegraall", request.StatusIntegraall);
+                if (!string.IsNullOrEmpty(request.Beneficio))
+                    cmd.Parameters.AddWithValue("@Nb", request.Beneficio);
                 if (request.PaginaAtual != null)
                 {
                     cmd.Parameters.AddWithValue("@PageSize", pageSize);
@@ -524,16 +534,9 @@ cli.cliente_id
         {
             List<BuscarClienteByIdResponse> clientesData = new List<BuscarClienteByIdResponse>();
 
-            var client = (from cli in _mysql.clientes
-                          join vin in _mysql.vinculo_cliente_captador on cli.cliente_id equals vin.vinculo_cliente_id
-                          join cap in _mysql.captadores on vin.vinculo_captador_id equals cap.captador_id
-                          select new BuscarClienteByIdResponse
-                          {
-                              Cliente = cli,
-                              Captador = cap,
-                          }).ToList();
-            clientesData.AddRange(client);
+            var client = BuscarTodosClientes(request);
 
+            clientesData.AddRange(client.Clientes);
 
             var ultimoCliente = new BuscarClienteByIdResponse();
             try
