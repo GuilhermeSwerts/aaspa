@@ -356,7 +356,8 @@ cli.cliente_id
                           SELECT {coluns}
                 FROM clientes cli
                 JOIN vinculo_cliente_captador vin ON cli.cliente_id = vinculo_cliente_id
-                JOIN captadores cpt ON vin.vinculo_captador_id = cpt.captador_id";
+                JOIN captadores cpt ON vin.vinculo_captador_id = cpt.captador_id
+                LEFT JOIN historico_contatos_ocorrencia his ON cli.cliente_id = his.historico_contatos_ocorrencia_cliente_id";
 
                 if (request.DateInit.HasValue)
                 {
@@ -402,6 +403,18 @@ cli.cliente_id
                 {
                     filtros.Add("cli.cliente_StatusIntegral = @StatusIntegraall");
                 }
+                if (request.SituacaoOcorrencia != null)
+                {
+                    filtros.Add("his.historico_contatos_ocorrencia_situacao_ocorrencia = @SituacaoOcorrencia");
+                }
+                if (request.DataInitAtendimento.HasValue)
+                {
+                    filtros.Add("his.historico_contatos_ocorrencia_dt_ocorrencia >= @DataInitAtendimento");
+                }
+                if (request.DataEndAtendimento.HasValue)
+                {
+                    filtros.Add("his.historico_contatos_ocorrencia_dt_ocorrencia <= @DataEndAtendimento");
+                }
 
                 if (filtros.Count > 0)
                 {
@@ -442,6 +455,12 @@ cli.cliente_id
                     cmd.Parameters.AddWithValue("@StatusIntegraall", request.StatusIntegraall);
                 if (!string.IsNullOrEmpty(request.Beneficio))
                     cmd.Parameters.AddWithValue("@Nb", request.Beneficio.Replace(".", "").Replace("-", ""));
+                if(!string.IsNullOrEmpty(request.SituacaoOcorrencia))
+                    cmd.Parameters.AddWithValue("@SituacaoOcorrencia", request.SituacaoOcorrencia);
+                if (request.DataInitAtendimento.HasValue)
+                    cmd.Parameters.AddWithValue("@DataInitAtendimento", request.DataInitAtendimento);
+                if (request.DataEndAtendimento.HasValue)
+                    cmd.Parameters.AddWithValue("@DataEndAtendimento", request.DataEndAtendimento.Value.AddDays(1));
                 if (request.PaginaAtual != null)
                 {
                     cmd.Parameters.AddWithValue("@PageSize", pageSize);
@@ -595,7 +614,7 @@ cli.cliente_id
                                  $"{cliente.Captador.captador_cpf_cnpj ?? ""};" +
                                  $"{cliente.Captador.captador_descricao ?? ""};" +
                                  $"{dataAve};" +
-                                 $"{cliente.Cliente.cliente_StatusIntegral ?? 0}");
+                                 $"{StatusDescription(cliente.Cliente.cliente_StatusIntegral ?? 0)}");
                 }
 
                 byte[] fileBytes = Encoding.Latin1.GetBytes(builder.ToString());
@@ -606,6 +625,19 @@ cli.cliente_id
                 var err = $"Erro no cliente: ID: {ultimoCliente.Cliente.cliente_id}, Nome: {ultimoCliente.Cliente.cliente_nome}";
                 throw new Exception(err);
             }
+        }
+        public string StatusDescription(int StatusIntegral)
+        {
+            return StatusIntegral switch
+            {
+                11 => "Aguardando Averbação",
+                12 => "Enviado para Averbação",
+                13 => "Cancelado",
+                14 => "Cancelado/Não averbado",
+                15 => "Averbado",
+                16 => "Ativo/Pago",
+                _ => ""
+            };
         }
         public async Task<List<ClienteRequest>> GetClientesIntegraall(string DataCadastroInicio, string DataCadastroFim)
         {

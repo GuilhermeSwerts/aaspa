@@ -14,8 +14,8 @@ function Atendimento() {
     const ref = useRef();
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext)
     const [showFiltro, setShowFiltro] = useState(true);
-    const [dateInit, setDateInit] = useState('');
-    const [dateEnd, setDateEnd] = useState('');
+    const [dateInitAtendimento, setDateInitAtendimento] = useState('');
+    const [dateEndAtendimento, setDateEndAtendimento] = useState('');
     const [situacao, setSituacao] = useState('');
     const [filtro, setFiltro] = useState({
         cpf: '',
@@ -40,7 +40,7 @@ function Atendimento() {
 
         if (!pPagina) pPagina = paginaAtual;
 
-        api.get(`BuscarFiltroClientes?&cpf=${filtro.cpf}&beneficio=${filtro.matricula}&dataInitAtendimento=${dateInit}&dataEndAtendimento=${dateEnd}&situacaoOcorrencia=${situacao}&paginaAtual=${pPagina}&QtdPorPagina=${limit}`, res => {
+        api.get(`BuscarFiltroClientes?&cpf=${filtro.cpf}&beneficio=${filtro.matricula}&dataInitAtendimento=${dateInitAtendimento}&dataEndAtendimento=${dateEndAtendimento}&situacaoOcorrencia=${situacao}&paginaAtual=${pPagina}&QtdPorPagina=${limit}`, res => {
             setClientes([]);
             setClientes(res.data.clientes);
             setTotalClientes(res.data.totalClientes);
@@ -98,8 +98,8 @@ function Atendimento() {
                         <span>Data Atendimento De:</span>
                         <input
                             type="date"
-                            value={dateInit}
-                            onChange={e => setDateInit(e.target.value)}
+                            value={dateInitAtendimento}
+                            onChange={e => setDateInitAtendimento(e.target.value)}
                             name="dateInit"
                             id="dateInit"
                             className='form-control' />
@@ -108,8 +108,8 @@ function Atendimento() {
                         <span>Até:</span>
                         <input
                             type="date"
-                            value={dateEnd}
-                            onChange={e => setDateEnd(e.target.value)}
+                            value={dateEndAtendimento}
+                            onChange={e => setDateEndAtendimento(e.target.value)}
                             name="dateEnd"
                             id="dateEnd"
                             className='form-control' />
@@ -122,6 +122,7 @@ function Atendimento() {
                             <option value="EM TRATAMENTO">EM TRATAMENTO</option>
                             <option value="CANCELADA">CANCELADA</option>
                             <option value="FINALIZADO">FINALIZADO</option>
+                            <option value="REEMBOLSO AGENDADO">REEMBOLSO AGENDADO</option>
                         </select>                       
                     </div>
                     <div className="col-md-1" style={{ marginTop: '1.5rem' }}>

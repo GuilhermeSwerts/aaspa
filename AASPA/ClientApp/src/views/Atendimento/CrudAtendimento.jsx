@@ -37,7 +37,7 @@ class CrudAtendimento extends Component {
             );
 
             try {
-                api.get(`${api.urlBase}BuscarTodosContatoOcorrencia/${clientId}`, res => {
+                api.get(`${api.urlBase}/BuscarTodosContatoOcorrencia/${clientId}`, res => {
                     this.setState({ historicoOcorrenciaCliente: res.data });
                 })
             } catch (error) {

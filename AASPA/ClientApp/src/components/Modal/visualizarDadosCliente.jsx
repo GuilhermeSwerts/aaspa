@@ -3,8 +3,9 @@ import { Modal, ModalBody, ModalFooter, ModalHeader, Row, Col } from 'reactstrap
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { FaEye } from 'react-icons/fa';
 import { Size } from '../../util/size';
+import Captador from '../../views/Gerenciamento/Captador/index';
 
-function ModalVisualizarCliente({ Cliente }) {
+function ModalVisualizarCliente({ Cliente, Captador }) {
     const [show, setShow] = useState(false);
 
     const {
@@ -36,6 +37,10 @@ function ModalVisualizarCliente({ Cliente }) {
         cliente_remessa_id,
         cliente_StatusIntegral
     } = Cliente;
+
+    const {
+        captador_nome
+    } = Captador
 
     return (
         <>
@@ -183,6 +188,10 @@ function ModalVisualizarCliente({ Cliente }) {
                         <Col md={2}>
                             <label>Status Integraall</label>
                             <input className='form-control' type="text" disabled value={cliente_StatusIntegral} />
+                        </Col>
+                        <Col md={4}>
+                            <label>Captador</label>
+                            <input className='form-control' type="text" disabled value={captador_nome} />
                         </Col>
                     </Row>
                 </ModalBody>

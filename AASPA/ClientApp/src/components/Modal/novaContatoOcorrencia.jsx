@@ -166,6 +166,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                                     <option value="EM TRATAMENTO">EM TRATAMENTO</option>
                                     <option value="CANCELADA">CANCELADA</option>
                                     <option value="FINALIZADO">FINALIZADO</option>
+                                    <option value="REEMBOLSO AGENDADO">REEMBOLSO AGENDADO</option>
                                 </select>
                             </div>
                         </div>

@@ -302,6 +302,7 @@ const Cclientes = () => {
                         <th>Telefone(Celular)</th>
                         <th>Data Averbação</th>
                         <th>Data Cadastro</th>
+                        <th>Captador</th>
                         <th>Status Atual</th>
                         <th>Status Integraall</th>
                         <th>Ações</th>
@@ -315,7 +316,7 @@ const Cclientes = () => {
                                     <td>{cliente.cliente.cliente_id}</td>
                                     <td>{Mascara.cpf(cliente.cliente.cliente_cpf)}</td>
                                     <td>{cliente.cliente.cliente_nome}</td>
-                                    <td>{cliente.cliente.cliente_StatusIntegral}</td>
+                                    <td>{cliente.cliente.cliente_StatusIntegral == 11 ? "Aguardando Averbação" : cliente.cliente.cliente_StatusIntegral == 12 ? "Enviado para Averbação" : cliente.cliente.cliente_StatusIntegral == 13 ? "Cancelado" : cliente.cliente.cliente_StatusIntegral == 14 ? "Cancelado/Não averbado" : cliente.cliente.cliente_StatusIntegral == 15 ? "Averbado" : cliente.cliente.cliente_StatusIntegral == 16 ? "Ativo/Pago" : ""}</td>
                                     <td>{Mascara.data(cliente.cliente.cliente_DataAverbacao)}</td>
                                     <td>{cliente.statusAtual.status_nome}</td> {/*{cliente.statusAtual && }*/}
                                     <td>{cliente.captador.captador_nome}</td>
@@ -340,7 +341,7 @@ const Cclientes = () => {
                                         />
                                         <ModalLogStatus ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />
                                         <ModalLogBeneficios ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />
-                                        <ModalVisualizarCliente Cliente={cliente.cliente} />
+                                        <ModalVisualizarCliente Cliente={cliente.cliente} Captador={cliente.captador} />
                                         <ButtonTooltip
                                             backgroundColor={'#00b300'}
                                             onClick={() => window.location.href = `/cliente?clienteId=${cliente.cliente.cliente_id}`}
@@ -359,9 +360,9 @@ const Cclientes = () => {
                                     <td>{Mascara.telefone(cliente.cliente.cliente_telefoneCelular)}</td>
                                     <td>{Mascara.data(cliente.cliente.cliente_DataAverbacao)}</td>
                                     <td>{Mascara.data(cliente.cliente.cliente_dataCadastro)}</td>
+                                    <td>{cliente.captador.captador_nome}</td>
                                     <td>{cliente.statusAtual.status_nome}</td>
-                                    <td></td>
-                                    <td>{cliente.cliente.cliente_StatusIntegral}</td>
+                                    <td>{cliente.cliente.cliente_StatusIntegral == 11 ? "Aguardando Averbação" : cliente.cliente.cliente_StatusIntegral == 12 ? "Enviado para Averbação" : cliente.cliente.cliente_StatusIntegral == 13 ? "Cancelado" : cliente.cliente.cliente_StatusIntegral == 14 ? "Cancelado/Não averbado" : cliente.cliente.cliente_StatusIntegral == 15 ? "Averbado" : cliente.cliente.cliente_StatusIntegral == 16 ? "Ativo/Pago" : ""}</td>
                                     <td className='button-container-grid'>
                                         <ButtonTooltip
                                             backgroundColor={'#004d00'}
@@ -381,7 +382,7 @@ const Cclientes = () => {
                                         />
                                         <ModalLogStatus ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />
                                         <ModalLogBeneficios ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />
-                                        <ModalVisualizarCliente Cliente={cliente.cliente} />
+                                        <ModalVisualizarCliente Cliente={cliente.cliente} Captador={cliente.captador} />
                                         <ButtonTooltip
                                             backgroundColor={'#00b300'}
                                             onClick={() => window.location.href = `/cliente?clienteId=${cliente.cliente.cliente_id}`}

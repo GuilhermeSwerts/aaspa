@@ -107,6 +107,8 @@ function ModalEditarContatoOcorrencia({ ContatoOcorrenciaId, ClienteId, BuscarHi
                             <option value="ATENDIDA">ATENDIDA</option>
                             <option value="EM TRATAMENTO">EM TRATAMENTO</option>
                             <option value="CANCELADA">CANCELADA</option>
+                            <option value="FINALIZADO">FINALIZADO</option>
+                            <option value="REEMBOLSO AGENDADO">REEMBOLSO AGENDADO</option>
                         </select>
                         <Label>Descrição Da Ocorrência</Label>
                         <textarea name='HistoricoContatosOcorrenciaDescricao' value={desc} onChange={e => setDesc(e.target.value)} required maxLength={1000} className='form-control'></textarea>
