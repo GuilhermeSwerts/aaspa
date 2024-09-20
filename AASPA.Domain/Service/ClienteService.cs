@@ -20,6 +20,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -430,7 +431,7 @@ cli.cliente_id
                 if (!string.IsNullOrEmpty(request.Nome))
                     cmd.Parameters.AddWithValue("@Nome", request.Nome);
                 if (!string.IsNullOrEmpty(request.Cpf))
-                    cmd.Parameters.AddWithValue("@Cpf", request.Cpf.Replace(".", "").Replace("-", ""));
+                    cmd.Parameters.AddWithValue("@Cpf", RemoveZerosEsquerda(request.Cpf.Replace(".", "").Replace("-", "")));
                 if (request.CadastroExterno > 0)
                     cmd.Parameters.AddWithValue("@CadastroExterno", request.CadastroExterno);
                 if (request.CadastroExterno > 0)
@@ -518,6 +519,12 @@ cli.cliente_id
 
         }
 
+        private string RemoveZerosEsquerda(string cpf)
+        {
+            string numerosCpf = Regex.Replace(cpf, @"\D", "");
+            numerosCpf = numerosCpf.TrimStart('0');
+            return Regex.Replace(numerosCpf, @"(\d{3})(\d{3})(\d{3})(\d{2})", "$1$2$3$4");
+        }
         public StatusDb BuscaStatusAtual(int clienteId, bool isDownload)
         {
             if (isDownload) return new StatusDb();
