@@ -65,13 +65,13 @@ function ClienteForm({
                 <Col md={3}>
                     <FormGroup>
                         <Label for="matriculaBeneficio">Matrícula/Benefício*</Label>
-                        <Input maxLength={10} required type="text" name="matriculaBeneficio" id="matriculaBeneficio" value={cliente.matriculaBeneficio} onChange={handleChange} />
+                        <Input maxLength={21} required type="text" name="matriculaBeneficio" id="matriculaBeneficio" value={cliente.matriculaBeneficio} onChange={handleChange} />
                     </FormGroup>
                 </Col>
                 <Col md={2}>
                     <FormGroup>
                         <Label for="nrDocumento">Nr. Documento (RG/CNH etc)*</Label>
-                        <Input required type="text" maxLength={10} name="nrDocto" id="nrDocto" value={cliente.nrDocto} onChange={handleChange} />
+                        <Input required type="text" maxLength={21} name="nrDocto" id="nrDocto" value={cliente.nrDocto} onChange={handleChange} />
                     </FormGroup>
                 </Col>
                 {isEdit && <Col md={2}>

@@ -40,7 +40,9 @@ function ModalVisualizarCliente({ Cliente, Captador }) {
 
     const {
         captador_nome
-    } = Captador
+    } = Captador;
+
+    let [matricula1, matricula2] = Cliente.cliente_matriculaBeneficio.split('|');
 
     return (
         <>
@@ -147,9 +149,13 @@ function ModalVisualizarCliente({ Cliente, Captador }) {
                             <label>Empregador:</label>
                             <input className='form-control' type="text" disabled value={cliente_empregador} />
                         </Col>
-                        <Col md={4}>
-                            <label>Matrícula Benefício:</label>
-                            <input className='form-control' type="text" disabled value={cliente_matriculaBeneficio} />
+                        <Col md={3}>
+                            <label>Matrícula Benefício 1:</label>
+                            <input className='form-control' type="text" disabled value={matricula1} />
+                        </Col>
+                        <Col md={3}>
+                            <label>Matrícula Benefício 2:</label>
+                            <input className='form-control' type="text" disabled value={matricula2} />
                         </Col>
                     </Row>
                     <Row>

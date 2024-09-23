@@ -9,6 +9,7 @@ import { api } from '../../api/api';
 import { Alert } from '../../util/alertas';
 import CrudAtendimento from './CrudAtendimento';
 import { Size } from '../../util/size';
+import Captador from '../Gerenciamento/Captador/index';
 
 function Atendimento() {
     const ref = useRef();
@@ -144,6 +145,7 @@ function Atendimento() {
                         <th>Nome</th>
                         <th>Telefone(Celular)</th>
                         <th>Data Cadastro</th>
+                        <th>Captador</th>
                         <th>Status Atual</th>
                     </tr>
                 </thead>
@@ -157,6 +159,7 @@ function Atendimento() {
                                 <td>{cliente.cliente.cliente_nome}</td>
                                 <td>{Mascara.telefone(cliente.cliente.cliente_telefoneCelular)}</td>
                                 <td>{Mascara.data(cliente.cliente.cliente_dataCadastro)}</td>
+                                <td>{cliente.captador.captador_nome}</td>
                                 <td>{cliente.statusAtual.status_nome}</td>
                             </tr>
                         )
