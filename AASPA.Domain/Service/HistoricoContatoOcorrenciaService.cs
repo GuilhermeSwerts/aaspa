@@ -35,11 +35,11 @@ namespace AASPA.Domain.Service
                         SituacaoOcorrencia = hit.historico_contatos_ocorrencia_situacao_ocorrencia,
                         DescricaoDaOcorrência = hit.historico_contatos_ocorrencia_descricao,
                         Id = hit.historico_contatos_ocorrencia_id,
-                        Agencia = hit.historico_contatos_ocorrencia_agencia,
-                        Banco = hit.historico_contatos_ocorrencia_banco,
-                        Conta = hit.historico_contatos_ocorrencia_conta,
-                        Digito = hit.historico_contatos_ocorrencia_digito,
-                        Pix = hit.historico_contatos_ocorrencia_chave_pix
+                        Agencia = hit.historico_contatos_ocorrencia_agencia == null ? "-" : hit.historico_contatos_ocorrencia_agencia,
+                        Banco = hit.historico_contatos_ocorrencia_banco == null ? "-" : hit.historico_contatos_ocorrencia_banco,
+                        Conta = hit.historico_contatos_ocorrencia_conta == null ? "-" : hit.historico_contatos_ocorrencia_conta,
+                        Digito = hit.historico_contatos_ocorrencia_digito == null ? "-" : hit.historico_contatos_ocorrencia_digito,
+                        Pix = hit.historico_contatos_ocorrencia_chave_pix == null ? "-" : hit.historico_contatos_ocorrencia_chave_pix
                     }).ToList().OrderByDescending(x => x.DataHoraOcorrencia);
         }
 
@@ -75,11 +75,12 @@ namespace AASPA.Domain.Service
                 contatoOcorrencia.historico_contatos_ocorrencia_motivo_contato_id = historicoContatos.HistoricoContatosOcorrenciaMotivoContatoId;
                 contatoOcorrencia.historico_contatos_ocorrencia_origem_id = historicoContatos.HistoricoContatosOcorrenciaOrigemId;
                 contatoOcorrencia.historico_contatos_ocorrencia_situacao_ocorrencia = historicoContatos.HistoricoContatosOcorrenciaSituacaoOcorrencia.ToUpper();
-                contatoOcorrencia.historico_contatos_ocorrencia_banco = historicoContatos.HistoricoContatosOcorrenciaBanco;
-                contatoOcorrencia.historico_contatos_ocorrencia_agencia = historicoContatos.HistoricoContatosOcorrenciaAgencia;
-                contatoOcorrencia.historico_contatos_ocorrencia_conta = historicoContatos.HistoricoContatosOcorrenciaConta;
-                contatoOcorrencia.historico_contatos_ocorrencia_digito = historicoContatos.HistoricoContatosOcorrenciaDigito;
-                contatoOcorrencia.historico_contatos_ocorrencia_chave_pix = historicoContatos.HistoricoContatosOcorrenciaPix;
+                contatoOcorrencia.historico_contatos_ocorrencia_banco = historicoContatos.HistoricoContatosOcorrenciaBanco != null ? historicoContatos.HistoricoContatosOcorrenciaBanco.Replace("null", "") : "";
+                contatoOcorrencia.historico_contatos_ocorrencia_agencia = historicoContatos.HistoricoContatosOcorrenciaAgencia !=  null ? historicoContatos.HistoricoContatosOcorrenciaAgencia.Replace("null", "") : "";
+                contatoOcorrencia.historico_contatos_ocorrencia_conta = historicoContatos.HistoricoContatosOcorrenciaConta != null ? historicoContatos.HistoricoContatosOcorrenciaConta.Replace("null", "")  : "";
+                contatoOcorrencia.historico_contatos_ocorrencia_digito = historicoContatos.HistoricoContatosOcorrenciaDigito != null ? historicoContatos.HistoricoContatosOcorrenciaDigito.Replace("null", "") : "";
+                contatoOcorrencia.historico_contatos_ocorrencia_chave_pix = historicoContatos.HistoricoContatosOcorrenciaPix != null ? historicoContatos.HistoricoContatosOcorrenciaPix.Replace("null", "") : "";
+                contatoOcorrencia.historico_contatos_ocorrencia_tipo_chave_pix = historicoContatos.HistoricoContatosOcorrenciaTipoChavePix != null ? historicoContatos.HistoricoContatosOcorrenciaTipoChavePix.Replace("null", "") : "";
 
                 _mysql.SaveChanges();
                 tran.Commit();
@@ -105,11 +106,12 @@ namespace AASPA.Domain.Service
                     historico_contatos_ocorrencia_motivo_contato_id = historicoContatos.HistoricoContatosOcorrenciaMotivoContatoId,
                     historico_contatos_ocorrencia_origem_id = historicoContatos.HistoricoContatosOcorrenciaOrigemId,
                     historico_contatos_ocorrencia_situacao_ocorrencia = historicoContatos.HistoricoContatosOcorrenciaSituacaoOcorrencia.ToUpper(),
-                    historico_contatos_ocorrencia_banco = historicoContatos.HistoricoContatosOcorrenciaBanco,
-                    historico_contatos_ocorrencia_agencia = historicoContatos.HistoricoContatosOcorrenciaAgencia,
-                    historico_contatos_ocorrencia_conta = historicoContatos.HistoricoContatosOcorrenciaConta,
-                    historico_contatos_ocorrencia_digito = historicoContatos.HistoricoContatosOcorrenciaDigito,
-                    historico_contatos_ocorrencia_chave_pix = historicoContatos.HistoricoContatosOcorrenciaPix
+                    historico_contatos_ocorrencia_banco = historicoContatos.HistoricoContatosOcorrenciaBanco != null ? historicoContatos.HistoricoContatosOcorrenciaBanco.Replace("null", "") : "",
+                    historico_contatos_ocorrencia_agencia = historicoContatos.HistoricoContatosOcorrenciaAgencia != null ? historicoContatos.HistoricoContatosOcorrenciaAgencia.Replace("null", "") : "",
+                    historico_contatos_ocorrencia_conta = historicoContatos.HistoricoContatosOcorrenciaConta != null ? historicoContatos.HistoricoContatosOcorrenciaConta.Replace("null", "") : "",
+                    historico_contatos_ocorrencia_digito = historicoContatos.HistoricoContatosOcorrenciaDigito != null ? historicoContatos.HistoricoContatosOcorrenciaDigito.Replace("null", "") : "",
+                    historico_contatos_ocorrencia_chave_pix = historicoContatos.HistoricoContatosOcorrenciaPix != null ? historicoContatos.HistoricoContatosOcorrenciaPix.Replace("null", "") : "",
+                    historico_contatos_ocorrencia_tipo_chave_pix = historicoContatos.HistoricoContatosOcorrenciaTipoChavePix != null ? historicoContatos.HistoricoContatosOcorrenciaTipoChavePix.Replace("null", "") : ""
                 });
 
                 _mysql.SaveChanges();

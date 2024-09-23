@@ -11,6 +11,10 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
     const [show, setShow] = useState(false);
     const [origens, setOrigens] = useState([]);
     const [motivos, setMotivos] = useState([]);
+    const [tipoChavePix, setTipoChavePix] = useState("CPF");
+    const [tipoPagamento, setTipoPagamento] = useState(true);
+
+    const onChangeTipoPagamento = e => setTipoPagamento(e.target.value === "0")
 
     function getDataDeHoje() {
         const today = new Date();
@@ -95,6 +99,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         formData.append("HistoricoContatosOcorrenciaConta", conta)
         formData.append("HistoricoContatosOcorrenciaDigito", digito)
         formData.append("HistoricoContatosOcorrenciaPix", pix)
+        formData.append("HistoricoContatosOcorrenciaTipoChavePix", tipoChavePix)
 
         api.post("NovoContatoOcorrencia", formData, res => {
             initState();
@@ -174,25 +179,46 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                         <small><b>Dados Bancários:</b></small>
                         <div className='row'>
                             <div className="col-md-3">
-                                <Label>Banco</Label>
-                                <input type="text" value={banco} onChange={e => setBanco(e.target.value)} className='form-control' />
+                                <label>Tipo de depósito:</label>
+                                <select onChange={onChangeTipoPagamento} className='form-control'>
+                                    <option value="0">PIX</option>
+                                    <option value="1">Dados bancários</option>
+                                </select>
                             </div>
-                            <div className="col-md-2">
-                                <Label>Agência</Label>
-                                <input maxLength={4} type="text" value={agencia} onChange={e => setAgencia(e.target.value)} className='form-control' />
-                            </div>
-                            <div className="col-md-3">
-                                <Label>Conta</Label>
-                                <input maxLength={15} type="text" value={conta} onChange={e => setConta(e.target.value)} placeholder='Conta sem dígito' className='form-control' />
-                            </div>
-                            <div className="col-md-1">
-                                <Label>Dígito</Label>
-                                <input maxLength={15} type="text" value={digito} onChange={e => setDigito(e.target.value)} placeholder='Dígito' className='form-control' />
-                            </div>
-                            <div className="col-md-3">
-                                <Label>Chave PIX</Label>
-                                <input type="text" value={pix} onChange={e => setPIX(e.target.value)} placeholder='Chave PIX' className='form-control' />
-                            </div>
+                            {!tipoPagamento && <>
+                                <div className="col-md-3">
+                                    <Label>Banco</Label>
+                                    <input type="text" value={banco} onChange={e => setBanco(e.target.value)} className='form-control' />
+                                </div>
+                                <div className="col-md-2">
+                                    <Label>Agência</Label>
+                                    <input maxLength={4} type="text" value={agencia} onChange={e => setAgencia(e.target.value)} className='form-control' />
+                                </div>
+                                <div className="col-md-3">
+                                    <Label>Conta</Label>
+                                    <input maxLength={15} type="text" value={conta} onChange={e => setConta(e.target.value)} placeholder='Conta sem dígito' className='form-control' />
+                                </div>
+                                <div className="col-md-1">
+                                    <Label>Dígito</Label>
+                                    <input maxLength={15} type="text" value={digito} onChange={e => setDigito(e.target.value)} placeholder='Dígito' className='form-control' />
+                                </div>
+                            </>}
+                            {tipoPagamento && <>
+                                <div className="col-md-3">
+                                    <Label>Tipo Chave PIX</Label>
+                                    <select value={tipoChavePix} onChange={e => setTipoChavePix(e.target.value)} className='form-control'>
+                                        <option value="CPF">CPF</option>
+                                        <option value="CNPJ">CNPJ</option>
+                                        <option value="telefone">telefone</option>
+                                        <option value="e-mail">E-mail</option>
+                                        <option value="chave aleatória">Chave aleatória</option>
+                                    </select>
+                                </div>
+                                <div className="col-md-4">
+                                    <Label>Chave PIX</Label>
+                                    <input type="text" value={pix} onChange={e => setPIX(e.target.value)} placeholder='Chave PIX' className='form-control' />
+                                </div>
+                            </>}
                         </div>
                         <hr />
                         <div className='row'>
