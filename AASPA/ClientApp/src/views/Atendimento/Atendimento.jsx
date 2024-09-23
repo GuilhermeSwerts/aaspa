@@ -57,7 +57,7 @@ function Atendimento() {
     const DownloadFiltro = () => {
 
         console.log(api.ambiente);
-        window.open(`${api.ambiente}/DownloadContatoFiltro?cpf=${filtro.cpf}&beneficio=${filtro.matricula}&dataInitAtendimento=${dateInit}&dataEndAtendimento=${dateEnd}&situacaoOcorrencia=${situacao}`)
+        window.open(`${api.ambiente}/DownloadContatoFiltro?cpf=${filtro.cpf}&beneficio=${filtro.matricula}&dataInitAtendimento=${dateInitAtendimento}&dataEndAtendimento=${dateEndAtendimento}&situacaoOcorrencia=${situacao}`)
     }
 
     return (

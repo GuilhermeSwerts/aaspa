@@ -53,7 +53,7 @@ class CrudAtendimento extends Component {
 
     BuscarHistoricoOcorrenciaCliente = async (id) => {
         try {
-            api.get(`${api.urlBase}BuscarTodosContatoOcorrencia/${id}`, res => {
+            api.get(`${api.urlBase}/BuscarTodosContatoOcorrencia/${id}`, res => {
                 this.setState({ historicoOcorrenciaCliente: res.data });
             })
         } catch (error) {
