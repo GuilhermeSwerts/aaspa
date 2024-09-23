@@ -90,7 +90,7 @@ class CrudAtendimento extends Component {
         const ExcluirOcorrencia = async (id) => {
             if (await Pergunta("Deseja realmente excluir essa ocorrência?")) {
                 try {
-                    var res = await axios.delete(`${api.urlBase}DeletarContatoOcorrencia/${id}`, {
+                    var res = await axios.delete(`${api.urlBase}/DeletarContatoOcorrencia/${id}`, {
                         headers: {
                             "Authorization": `Bearer ${api.access_token ? api.access_token : ""}`
                         }
