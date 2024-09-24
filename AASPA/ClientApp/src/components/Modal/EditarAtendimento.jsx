@@ -1,17 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Row, Col, Modal, ModalBody, ModalFooter, ModalHeader, Form, FormGroup, Label, Input, Button } from 'reactstrap';
 import { api } from '../../api/api';
 import { Mascara } from '../../util/mascara';
-import { FaPencil, FaPlus } from 'react-icons/fa6';
+import { FaPencil, FaEye, FaPlus } from 'react-icons/fa6';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { Alert } from '../../util/alertas';
 import { Size } from '../../util/size';
+import { FaTrash } from 'react-icons/fa6';
+import { FiPaperclip } from 'react-icons/fi';
+import ModalVisualizarAnexo from './modalVisualizarAnexo';
 
 function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = null, HistoricoId }) {
+    const modalAnexo = useRef();
     const [show, setShow] = useState(false);
     const [origens, setOrigens] = useState([]);
     const [motivos, setMotivos] = useState([]);
-
+    const [telefone, setTelefone] = useState("");
     const [dtOcorrencia, setDtOcorrencia] = useState('');
     const [origem, setOrigem] = useState();
     const [motivo, setMotivo] = useState();
@@ -24,6 +28,8 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
     const [pix, setPIX] = useState("");
     const [tipoChavePix, setTipoChavePix] = useState("CPF");
     const [tipoPagamento, setTipoPagamento] = useState(true);
+
+    const [anexos, setAnexos] = useState([]);
 
     const onChangeTipoPagamento = e => setTipoPagamento(e.target.value === "0")
     const initState = () => {
@@ -59,6 +65,20 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         })
     }
 
+    function base64ToFile(base64String, fileName, mimeType) {
+        const byteString = window.atob(base64String);
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+
+        for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+        }
+
+        const blob = new Blob([ab], { type: mimeType });
+
+        return new File([blob], fileName, { type: mimeType });
+    }
+
     const handdleSubmit = (e) => {
         const formData = new FormData();
 
@@ -75,6 +95,16 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         formData.append("HistoricoContatosOcorrenciaDigito", digito)
         formData.append("HistoricoContatosOcorrenciaPix", pix)
         formData.append("HistoricoContatosOcorrenciaTipoChavePix", tipoChavePix)
+        formData.append("HistoricoContatosOcorrenciaTelefone", telefone)
+
+        for (const file of anexos) {
+            if (file.existente) {
+                let blob = base64ToFile(file.file, file.fileName, file.fileName.includes(".pdf") ? 'application/pdf' : 'image/png');
+                formData.append('HistoricoContatosOcorrenciaAnexos', blob, file.fileName);
+            } else {
+                formData.append('HistoricoContatosOcorrenciaAnexos', file.file, file.fileName)
+            }
+        }
 
         api.post("EditarContatoOcorrencia", formData, res => {
             initState();
@@ -103,10 +133,48 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
             setDigito(res.data.historico_contatos_ocorrencia_digito);
             setPIX(res.data.historico_contatos_ocorrencia_chave_pix);
             setTipoChavePix(res.data.historico_contatos_ocorrencia_tipo_chave_pix);
-            setShow(true)
+            setTelefone(res.data.historico_contatos_ocorrencia_telefone);
+
+            let arquivos = [];
+            res.data.anexos.forEach(anexo => {
+                arquivos.push({ file: anexo.anexo_anexo, fileName: anexo.anexo_nome, existente: true });
+            });
+
+            setAnexos(arquivos);
+
+            setShow(true);
         }, err => {
             Alert('houve um erro ao buscar o Contato/Ocorrencia do id:' + HistoricoId, false)
         })
+    }
+
+    const RemoverAnexo = (index) => {
+        var arry = [...anexos];
+        arry.splice(index, 1);
+        setAnexos(arry);
+    }
+
+    const handleAnexoChange = (event) => {
+        const file = event.target.files[0];
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+        if (file && allowedTypes.includes(file.type)) {
+            const novoAnexo = { file: file, fileName: file.name };
+            let arry = [...anexos];
+            arry.push(novoAnexo);
+            setAnexos(arry);
+        } else {
+            alert('Somente arquivos PDF ou imagens (JPG, PNG) são permitidos.');
+        }
+    };
+
+    const VisualizarAnexo = (index) => {
+        var anexo = anexos[index];
+        let obj = {
+            anexo_nome: anexo.fileName,
+            anexo_anexo: anexo.file,
+            anexo_tipo: anexo.fileName.includes('.pdf')
+        }
+        modalAnexo.current.VisualizarAnexo(obj);
     }
 
     return (
@@ -115,10 +183,11 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                 onClick={handleOpenModal}
                 className='btn btn-warning'
                 text={'Editar Atendimento'}
-                top={false}
+                top={true}
                 textButton={<FaPencil size={Size.IconeTabela} />}
             />
             <Modal isOpen={show} style={{ maxWidth: '80%', margin: '0 auto' }}>
+                <ModalVisualizarAnexo ref={modalAnexo} />
                 <form onSubmit={e => { e.preventDefault(); handdleSubmit(e) }}>
                     <ModalHeader>
                         Editar Atendimento
@@ -215,6 +284,33 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                             </>}
                         </div>
                         <hr />
+                        <small><b>Dados Extras:</b></small>
+                        <div className="row">
+                            <div className="col-md-3">
+                                <Label>Telefone De Contato</Label>
+                                <input className='form-control' maxLength={15} value={(Mascara.telefone(telefone))} placeholder='(__) _____-____' onChange={e => setTelefone(e.target.value)} type="text" name="" id="" />
+                            </div>
+                        </div>
+                        <hr />
+                        <small>Anexos:</small>
+                        <div className="row">
+                            <div className="col-md-4">
+                                <button type='button' onClick={() => document.getElementById('anexo').click()} className='btn btn-primary'>Novo Anexo <FiPaperclip size={Size.IconeTabela} /></button>
+                                <input onChange={handleAnexoChange} type="file" style={{ display: 'none' }} id='anexo' />
+                                <br />
+                                {anexos.map((anexo, i) => (
+                                    <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 5 }}>
+                                        {anexo.fileName}
+                                        <div style={{ gap: 5, display: 'flex', justifyContent: 'center', alignItems: 'center', }}>
+                                            {anexo.existente && <button type='button' onClick={e => VisualizarAnexo(i)} className='btn btn-primary'><FaEye size={Size.IconePequeno} /></button>}
+                                            <button type='button' onClick={e => RemoverAnexo(i)} className='btn btn-primary'><FaTrash size={Size.IconePequeno} /></button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                        </div>
+                        <hr />
                         <div className='row'>
                             <div className="col-md-12">
                                 <Label>Descrição Da Ocorrência</Label>
@@ -224,7 +320,7 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                     </ModalBody>
                     <ModalFooter>
                         <button type='button' onClick={() => { initState(); setShow(false) }} className='btn btn-danger'>Fechar</button>
-                        <button type='submit' className='btn btn-primary'>Salvar</button>
+                        <button type='submit' className='btn btn-primary'>Salvar Alterações</button>
                     </ModalFooter>
                 </form>
             </Modal>

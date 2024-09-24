@@ -7,7 +7,7 @@ import { IoMdCloseCircle } from "react-icons/io";
 import { IoMdExit } from "react-icons/io";
 import { Size } from '../../util/size';
 import { PublicaRotas } from '../../router/Rotas';
-import { FaCubes} from 'react-icons/fa';
+import { FaCubes } from 'react-icons/fa';
 import { CgPassword } from "react-icons/cg";
 import ModalAlterarSenha from '../../components/Modal/ModalAlterarSenha';
 
@@ -17,7 +17,7 @@ function NavBar({ children, usuario_nome, usuario_tipo }) {
     const [show, setShow] = useState(false);
     const [user, setUser] = useState({ sigla: '', nome: '' });
     const rota_atual = window.location.pathname
-
+    const [usuarioMaster, setUsuarioMaster] = useState(false);
     const pagina_atual = PublicaRotas.find(x => x.path === rota_atual);
 
     useEffect(() => {
@@ -26,6 +26,9 @@ function NavBar({ children, usuario_nome, usuario_tipo }) {
                 sigla: usuario.usuario_nome.split(' ').map(nome => nome[0]).join(''),
                 nome: usuario.usuario_nome
             });
+        }
+        if (usuario?.usuario_tipo) {
+            setUsuarioMaster(usuario.usuario_tipo === 1);
         }
     }, [usuario]);
 
@@ -44,7 +47,14 @@ function NavBar({ children, usuario_nome, usuario_tipo }) {
                         <button className='btn-menu' onClick={toggleMenu}><IoMdCloseCircle size={Size.IconeMenu} /></button>
                     </div>
                     <div style={{ width: '100%' }}>
-                        {PublicaRotas.map((rota, i) => (
+                        {usuarioMaster && PublicaRotas.map((rota, i) => (
+                            <div key={`${rota.path}-${i}`} className={rota_atual === rota.path ? "link link-active" : "link"}>
+                                <a href={rota.path}>
+                                    {rota.Icon && <rota.Icon size={Size.IconeMenu} />} {rota.nome}
+                                </a>
+                            </div>
+                        ))}
+                        {!usuarioMaster && PublicaRotas.filter(x => x.Operador).map((rota, i) => (
                             <div key={`${rota.path}-${i}`} className={rota_atual === rota.path ? "link link-active" : "link"}>
                                 <a href={rota.path}>
                                     {rota.Icon && <rota.Icon size={Size.IconeMenu} />} {rota.nome}

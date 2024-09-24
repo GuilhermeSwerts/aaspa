@@ -37,6 +37,7 @@ namespace AASPA.Repository
         public DbSet<CodigoRetornoDb> codigo_retorno { get; set; }
         public DbSet<SolicitacaoReembolsoDb> solicitacaoreembolso { get; set; }
         public DbSet<ElegivelReembolsoDb> elegivelreembolso { get; set; }
+        public DbSet<AnexosDb> anexos { get; set; }
 
     }
 }

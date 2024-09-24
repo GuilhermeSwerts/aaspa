@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,5 +22,7 @@ namespace AASPA.Models.Requests
         public string? HistoricoContatosOcorrenciaDigito { get; set; }
         public string? HistoricoContatosOcorrenciaPix { get; set; }
         public string? HistoricoContatosOcorrenciaTipoChavePix { get; set; }
+        public string? HistoricoContatosOcorrenciaTelefone { get; set; }
+        public List<IFormFile> HistoricoContatosOcorrenciaAnexos { get; set; }
     }
 }

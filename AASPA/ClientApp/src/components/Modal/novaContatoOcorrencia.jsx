@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Row, Col, Modal, ModalBody, ModalFooter, ModalHeader, Form, FormGroup, Label, Input, Button } from 'reactstrap';
 import { api } from '../../api/api';
 import { Mascara } from '../../util/mascara';
-import { FaPlus } from 'react-icons/fa6';
+import { FaClipboard, FaPlus, FaTrash } from 'react-icons/fa6';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { Alert } from '../../util/alertas';
 import { Size } from '../../util/size';
+import { FiPaperclip } from 'react-icons/fi';
 
 function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = null, isEdit = false }) {
     const [show, setShow] = useState(false);
@@ -13,7 +14,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
     const [motivos, setMotivos] = useState([]);
     const [tipoChavePix, setTipoChavePix] = useState("CPF");
     const [tipoPagamento, setTipoPagamento] = useState(true);
-
+    const [anexos, setAnexos] = useState([]);
     const onChangeTipoPagamento = e => setTipoPagamento(e.target.value === "0")
 
     function getDataDeHoje() {
@@ -37,6 +38,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
     const [conta, setConta] = useState("");
     const [digito, setDigito] = useState("");
     const [pix, setPIX] = useState("");
+    const [telefone, setTelefone] = useState("");
 
     const initState = () => {
         setDtOcorrencia(getDataDeHoje());
@@ -100,6 +102,10 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         formData.append("HistoricoContatosOcorrenciaDigito", digito)
         formData.append("HistoricoContatosOcorrenciaPix", pix)
         formData.append("HistoricoContatosOcorrenciaTipoChavePix", tipoChavePix)
+        formData.append("HistoricoContatosOcorrenciaTelefone", telefone)
+
+        for (const file of anexos)
+            formData.append('HistoricoContatosOcorrenciaAnexos', file.file, file.file.name);
 
         api.post("NovoContatoOcorrencia", formData, res => {
             initState();
@@ -112,6 +118,24 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
             Alert(err.response.data, false)
         })
     }
+
+    const RemoverAnexo = (index) => {
+        var arry = [...anexos];
+        arry.splice(index, 1);
+        setAnexos(arry);
+    }
+
+    const handleAnexoChange = (event) => {
+        const file = event.target.files[0];
+
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+        if (file && allowedTypes.includes(file.type)) {
+            const novoAnexo = { file: file, fileName: file.name };
+            setAnexos((prevAnexos) => [...prevAnexos, novoAnexo]);
+        } else {
+            alert('Somente arquivos PDF ou imagens (JPG, PNG) são permitidos.');
+        }
+    };
 
     return (
         <>
@@ -219,6 +243,30 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                                     <input type="text" value={pix} onChange={e => setPIX(e.target.value)} placeholder='Chave PIX' className='form-control' />
                                 </div>
                             </>}
+                        </div>
+                        <hr />
+                        <small><b>Dados Extras:</b></small>
+                        <div className="row">
+                            <div className="col-md-3">
+                                <Label>Telefone De Contato</Label>
+                                <input className='form-control' maxLength={15} value={(Mascara.telefone(telefone))} placeholder='(__) _____-____' onChange={e => setTelefone(e.target.value)} type="text" name="" id="" />
+                            </div>
+                        </div>
+                        <hr />
+                        <small><b>Anexos:</b></small>
+                        <div className="row">
+                            <div className="col-md-3">
+                                <button type='button' onClick={() => document.getElementById('anexo').click()} className='btn btn-primary'>Novo Anexo <FiPaperclip size={Size.IconeTabela} /></button>
+                                <input onChange={handleAnexoChange} type="file" style={{ display: 'none' }} id='anexo' />
+                                <br />
+                                {anexos.map((anexo, i) => (
+                                    <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 5 }}>
+                                        {anexo.fileName}
+                                        <button type='button' onClick={e => RemoverAnexo(i)} className='btn btn-primary'><FaTrash size={Size.IconePequeno} /></button>
+                                    </div>
+                                ))}
+                            </div>
+
                         </div>
                         <hr />
                         <div className='row'>

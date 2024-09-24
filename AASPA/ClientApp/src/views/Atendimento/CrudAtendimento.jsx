@@ -10,6 +10,8 @@ import ModalContatoOcorrencia from '../../components/Modal/novaContatoOcorrencia
 import { FaEye, FaTrash } from 'react-icons/fa';
 import ModalEditarAtendimento from '../../components/Modal/EditarAtendimento';
 import axios from 'axios';
+import { FaPaperclip } from 'react-icons/fa6';
+import ModalAnexos from '../../components/Modal/modalAnexos';
 
 class CrudAtendimento extends Component {
 
@@ -49,6 +51,7 @@ class CrudAtendimento extends Component {
             this.setState({ clientId, show: true })
         }
         this.descRef = createRef();
+        this.anexosRef = createRef();
     }
 
     BuscarHistoricoOcorrenciaCliente = async (id) => {
@@ -65,7 +68,7 @@ class CrudAtendimento extends Component {
 
     render() {
         const { show, historicoOcorrenciaCliente, clienteData, clientId } = this.state;
-        const { descRef } = this;
+        const { descRef, anexosRef } = this;
 
         //**paginação**
         const limit = this.state.limit;
@@ -86,6 +89,10 @@ class CrudAtendimento extends Component {
         const AbrirDescricao = (desc) => {
             descRef.current.AbrirModal(desc);
         };
+
+        const AbrirModalAnexos = (hstId) => {
+            anexosRef.current.VisualizarAnexos(hstId);
+        }
 
         const ExcluirOcorrencia = async (id) => {
             if (await Pergunta("Deseja realmente excluir essa ocorrência?")) {
@@ -114,6 +121,7 @@ class CrudAtendimento extends Component {
         return (
             <div style={{ display: show ? 'block' : 'none' }} className='modal-crud'>
                 <DescricaoModal ref={descRef} />
+                <ModalAnexos ref={anexosRef} />
                 <h4>Cliente: {clienteData.cliente.cliente_nome}</h4>
                 <br />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 20 }}>
@@ -148,6 +156,13 @@ class CrudAtendimento extends Component {
                                 <td>{historico.pix}</td>
                                 <td><button style={{ marginLeft: "4rem" }} className='btn btn-success' type="button" onClick={() => AbrirDescricao(historico.descricaoDaOcorrência)}><FaEye color='#fff' size={20} /></button></td>
                                 <td style={{ display: 'flex', gap: 20 }}>
+                                    <ButtonTooltip
+                                        onClick={async () => AbrirModalAnexos(historico.id)}
+                                        className='btn btn-success'
+                                        text={'Anexos'}
+                                        top={true}
+                                        textButton={<FaPaperclip color='#fff' size={20} />}
+                                    />
                                     <ModalEditarAtendimento
                                         BuscarHistoricoOcorrenciaCliente={this.BuscarHistoricoOcorrenciaCliente}
                                         HistoricoId={historico.id}
