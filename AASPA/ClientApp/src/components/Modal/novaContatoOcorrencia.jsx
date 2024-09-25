@@ -58,7 +58,10 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         setAgencia("");
         setConta("");
         setDigito("");
-        setPIX("")
+        setPIX("");
+        setTipoChavePix("CPF");
+        setTipoPagamento(true);
+        setTelefone("");
     }
 
     const BuscarMotivos = () => {
@@ -196,6 +199,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                                     <option value="CANCELADA">CANCELADA</option>
                                     <option value="FINALIZADO">FINALIZADO</option>
                                     <option value="REEMBOLSO AGENDADO">REEMBOLSO AGENDADO</option>
+                                    <option value="DADOS INVALIDOS">DADOS INVALIDOS</option>
                                 </select>
                             </div>
                         </div>

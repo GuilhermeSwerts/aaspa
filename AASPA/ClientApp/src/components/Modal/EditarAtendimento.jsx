@@ -45,6 +45,7 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         setPIX("");
         setTipoChavePix("CPF");
         setTipoPagamento(true);
+        setTelefone("");
     }
 
     const BuscarMotivos = () => {
@@ -235,6 +236,8 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                                     <option value="EM TRATAMENTO">EM TRATAMENTO</option>
                                     <option value="CANCELADA">CANCELADA</option>
                                     <option value="FINALIZADO">FINALIZADO</option>
+                                    <option value="REEMBOLSO AGENDADO">REEMBOLSO AGENDADO</option>
+                                    <option value="DADOS INVALIDOS">DADOS INVALIDOS</option>
                                 </select>
                             </div>
                         </div>

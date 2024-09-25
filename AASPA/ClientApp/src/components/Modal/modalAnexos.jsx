@@ -3,6 +3,7 @@ import React, { Component, createRef } from 'react';
 import { FaDownload } from 'react-icons/fa6';
 import { api } from '../../api/api';
 import ModalVisualizarAnexo from './modalVisualizarAnexo';
+import { Alert } from '../../util/alertas';
 
 class ModalAnexos extends Component {
     constructor(props) {
@@ -21,7 +22,7 @@ class ModalAnexos extends Component {
 
                 this.setState({ anexos: arquivos, show: true })
             }, err => {
-                Alert('houve um erro ao buscar o Contato/Ocorrencia do id:' + HistoricoId, false)
+                Alert('houve um erro ao buscar o Contato/Ocorrencia do id:' + id, false)
             })
         }
         this.modal = createRef();
