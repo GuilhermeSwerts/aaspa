@@ -258,7 +258,7 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                                 </div>
                                 <div className="col-md-2">
                                     <Label>Agência</Label>
-                                    <input maxLength={4} type="text" value={agencia} onChange={e => setAgencia(e.target.value)} className='form-control' />
+                                    <input maxLength={6} type="text" value={agencia} onChange={e => setAgencia(e.target.value)} className='form-control' />
                                 </div>
                                 <div className="col-md-3">
                                     <Label>Conta</Label>
