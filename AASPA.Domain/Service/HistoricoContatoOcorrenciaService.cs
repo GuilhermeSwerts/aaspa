@@ -178,7 +178,7 @@ namespace AASPA.Domain.Service
                 var (CamposAlterados, Log) = Comparador.CompararObjetos(old, contatoOcorrencia);
 
                 if (CamposAlterados.Count > 0 && Log.Count > 0)
-                    _log.NovaAlteracao($"Campos alterados: {string.Join(',', CamposAlterados)}", string.Join("\n", Log), usuarioLogadoId, ETipoLog.Atendimento, contatoOcorrencia.historico_contatos_ocorrencia_id);
+                    _log.NovaAlteracao($"Alteração No Atendimento", string.Join("\n", Log), usuarioLogadoId, ETipoLog.Atendimento, contatoOcorrencia.historico_contatos_ocorrencia_id);
 
                 _mysql.SaveChanges();
                 tran.Commit();
