@@ -25,5 +25,7 @@ namespace AASPA.Repository.Maps
         public string? historico_contatos_ocorrencia_chave_pix { get; set; }
         public string? historico_contatos_ocorrencia_tipo_chave_pix { get; set; }
         public string? historico_contatos_ocorrencia_telefone { get; set; }
+        public int? historico_contatos_ocorrencia_usuario_fk { get; set; }
+        public bool historico_contatos_ocorrencia_ativo { get; set; } = true;
     }
 }

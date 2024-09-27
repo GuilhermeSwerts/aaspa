@@ -20,5 +20,7 @@ namespace AASPA.Models.Response
         public string Conta { get; set; }
         public string Digito { get; set; }
         public string Pix { get; set; }
+        public string Usuario { get; set; }
+        public string UltimoUsuario { get; set; }
     }
 }

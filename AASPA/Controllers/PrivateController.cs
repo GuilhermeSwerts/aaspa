@@ -1,4 +1,5 @@
 ﻿using AASPA.Repository.Maps;
+using DocumentFormat.OpenXml.Drawing;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
@@ -10,6 +11,8 @@ namespace AASPA.Controllers
     public class PrivateController : Controller
     {
         public UsuarioDb Usuario => GetUser();
+
+        public int UsuarioLogadoId => GetUsuarioLogadoId();
 
         [HttpGet]
         public UsuarioDb GetUser()
@@ -32,6 +35,14 @@ namespace AASPA.Controllers
                 }
             }
             return null;
+        }
+
+        [HttpGet]
+        public int GetUsuarioLogadoId()
+        {
+            var usuario = GetUser();
+            
+            return usuario != null ? usuario.usuario_id : 0;
         }
     }
 }

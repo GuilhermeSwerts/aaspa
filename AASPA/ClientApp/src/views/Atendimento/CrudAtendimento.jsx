@@ -140,6 +140,8 @@ class CrudAtendimento extends Component {
                         <th>Dígito</th>
                         <th>Chave PIX</th>
                         <th>Descricao da Ocorrência </th>
+                        <th>Criador</th>
+                        <th>Ultima Alteração</th>
                         <th>Ações</th>
                     </thead>
                     <tbody>
@@ -155,6 +157,8 @@ class CrudAtendimento extends Component {
                                 <td>{historico.digito}</td>
                                 <td>{historico.pix}</td>
                                 <td><button style={{ marginLeft: "4rem" }} className='btn btn-success' type="button" onClick={() => AbrirDescricao(historico.descricaoDaOcorrência)}><FaEye color='#fff' size={20} /></button></td>
+                                <td>{historico.usuario}</td>
+                                <td>{historico.ultimoUsuario}</td>
                                 <td style={{ display: 'flex', gap: 20 }}>
                                     <ButtonTooltip
                                         onClick={async () => AbrirModalAnexos(historico.id)}

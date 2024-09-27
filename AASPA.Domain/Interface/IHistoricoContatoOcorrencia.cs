@@ -12,9 +12,9 @@ namespace AASPA.Domain.Interface
     {
         object BuscarContatoOcorrenciaById(int contatoOcorrenciaId);
         object BuscarTodosContatoOcorrencia(int clienteId);
-        void DeletarContatoOcorrencia(int contatoOcorrenciaId);
-        void EditarContatoOcorrencia(HistoricoContatosOcorrenciaRequest historicoContatos);
-        void NovoContatoOcorrencia(HistoricoContatosOcorrenciaRequest historicoContatos);
+        void DeletarContatoOcorrencia(int contatoOcorrenciaId, int usuarioId);
+        void EditarContatoOcorrencia(HistoricoContatosOcorrenciaRequest historicoContatos, int usuarioLogadoId);
+        void NovoContatoOcorrencia(HistoricoContatosOcorrenciaRequest historicoContatos, int usuarioId);
         (List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) BuscarTodosClientes(ConsultaParametros request);
         byte[] DownloadContatoFiltro((List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) clientes);
     }
