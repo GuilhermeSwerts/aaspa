@@ -109,7 +109,7 @@ namespace AASPA.Domain.Service
 
             _log.NovaAlteracao("Exclusão Do Atendimento", "", usuarioId, ETipoLog.Atendimento, contatoOcorrencia.historico_contatos_ocorrencia_id);
             contatoOcorrencia.historico_contatos_ocorrencia_ativo = false;
-            
+
             _mysql.SaveChanges();
         }
 
@@ -160,17 +160,17 @@ namespace AASPA.Domain.Service
                 if (anexos.Count != novosAnexos.Count)
                 {
                     bool adicionouArquivo = anexos.Count < novosAnexos.Count;
-                    var ids = anexos.Select(x => x.anexo_id).ToList();
                     if (adicionouArquivo)
                     {
-                        var lgAnexo = novosAnexos.Where(x => !ids.Contains(x.anexo_id)).Select(x => x.anexo_nome).ToList();
-                        _log.NovaAlteracao("Adicionado(s) Novo(s) Anexo(s)", $"Anexos Adicionados: {string.Join(",", lgAnexo)}", usuarioLogadoId, ETipoLog.Atendimento, contatoOcorrencia.historico_contatos_ocorrencia_id);
+                        var nomes = anexos.Select(x => x.anexo_nome).ToList();
+                        var lgAnexo = novosAnexos.Where(x => !nomes.Contains(x.anexo_nome)).Select(x => x.anexo_nome).ToList();
+                        _log.NovaAlteracao("Adicionado(s) Novo(s) Anexo(s)", $"Anexos Adicionados:\n {string.Join("\n ", lgAnexo)}", usuarioLogadoId, ETipoLog.Atendimento, contatoOcorrencia.historico_contatos_ocorrencia_id);
                     }
                     else
                     {
                         var nomes = novosAnexos.Select(x => x.anexo_nome).ToList();
                         var lgAnexo = anexos.Where(x => !nomes.Contains(x.anexo_nome)).Select(x => x.anexo_nome).ToList();
-                        _log.NovaAlteracao("Removeu Anexo(s)", $"Anexos Removidos: {string.Join(",", lgAnexo)}", usuarioLogadoId, ETipoLog.Atendimento, contatoOcorrencia.historico_contatos_ocorrencia_id);
+                        _log.NovaAlteracao("Removeu Anexo(s)", $"Anexos Removidos:\n {string.Join("\n ", lgAnexo)}", usuarioLogadoId, ETipoLog.Atendimento, contatoOcorrencia.historico_contatos_ocorrencia_id);
 
                     }
                 }

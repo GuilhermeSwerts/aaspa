@@ -7,11 +7,12 @@ import { Paginacao } from '../../components/Paginacao/Paginacao';
 import { Alert, Pergunta } from '../../util/alertas';
 import './crud.css';
 import ModalContatoOcorrencia from '../../components/Modal/novaContatoOcorrencia';
-import { FaEye, FaTrash } from 'react-icons/fa';
+import { FaEye, FaHistory, FaTrash } from 'react-icons/fa';
 import ModalEditarAtendimento from '../../components/Modal/EditarAtendimento';
 import axios from 'axios';
 import { FaPaperclip } from 'react-icons/fa6';
 import ModalAnexos from '../../components/Modal/modalAnexos';
+import ModalLogAtendimento from '../../components/Modal/ModalLogAtendimento';
 
 class CrudAtendimento extends Component {
 
@@ -23,7 +24,7 @@ class CrudAtendimento extends Component {
             clienteData: { cliente: { cliente_nome: '', cliente_cpf: '', cliente_id: 0 } },
             clientId: 0,
             limit: 8,
-            offset: 0
+            offset: 0,
         }
         this.AbrirCrud = (clientId) => {
 
@@ -52,6 +53,7 @@ class CrudAtendimento extends Component {
         }
         this.descRef = createRef();
         this.anexosRef = createRef();
+        this.logRef = createRef();
     }
 
     BuscarHistoricoOcorrenciaCliente = async (id) => {
@@ -68,7 +70,7 @@ class CrudAtendimento extends Component {
 
     render() {
         const { show, historicoOcorrenciaCliente, clienteData, clientId } = this.state;
-        const { descRef, anexosRef } = this;
+        const { descRef, anexosRef, logRef } = this;
 
         //**paginação**
         const limit = this.state.limit;
@@ -92,6 +94,10 @@ class CrudAtendimento extends Component {
 
         const AbrirModalAnexos = (hstId) => {
             anexosRef.current.VisualizarAnexos(hstId);
+        }
+
+        const AbrirModalLog = (hstId) => {
+            logRef.current.open(hstId);
         }
 
         const ExcluirOcorrencia = async (id) => {
@@ -118,9 +124,12 @@ class CrudAtendimento extends Component {
             this.setState({ show: false });
         }
 
+        const { isUsuarioMaster } = this.props;
+
         return (
             <div style={{ display: show ? 'block' : 'none' }} className='modal-crud'>
                 <DescricaoModal ref={descRef} />
+                <ModalLogAtendimento ref={logRef} />
                 <ModalAnexos ref={anexosRef} />
                 <h4>Cliente: {clienteData.cliente.cliente_nome}</h4>
                 <br />
@@ -160,6 +169,13 @@ class CrudAtendimento extends Component {
                                 <td>{historico.usuario}</td>
                                 <td>{historico.ultimoUsuario}</td>
                                 <td style={{ display: 'flex', gap: 20 }}>
+                                    {isUsuarioMaster && <ButtonTooltip
+                                        onClick={async () => AbrirModalLog(historico.id)}
+                                        className='btn btn-success'
+                                        text={'Log'}
+                                        top={true}
+                                        textButton={<FaHistory color='#fff' size={20} />}
+                                    />}
                                     <ButtonTooltip
                                         onClick={async () => AbrirModalAnexos(historico.id)}
                                         className='btn btn-success'

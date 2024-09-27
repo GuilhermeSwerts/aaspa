@@ -9,6 +9,7 @@ namespace AASPA.Domain.Interface
 {
     public interface ILog
     {
+        object GetLogAlteracao(int tabelaFk);
         void NovaAlteracao(string titulo, string log, int usuarioId, ETipoLog tipo,int fk);
     }
 }
