@@ -18,7 +18,7 @@ class ModalLogAtendimento extends Component {
         }
         this.open = (hstId) => {
             api.get(`Log/Alteracao?tabelaFk=${hstId}&ETipoLog=Atendimento`, res => {
-                this.setState({ logs: res.data, selecionado: res.data[0], show: true })
+                this.setState({ logs: res.data, selecionado: res.data[0], show: true, Id: hstId })
             }, err => {
                 Alert("Houve um erro ao buscar log do atendimento " + hstId)
             })

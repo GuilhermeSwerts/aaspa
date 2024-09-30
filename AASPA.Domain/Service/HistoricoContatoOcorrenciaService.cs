@@ -97,6 +97,7 @@ namespace AASPA.Domain.Service
                 hst.historico_contatos_ocorrencia_chave_pix,
                 hst.historico_contatos_ocorrencia_tipo_chave_pix,
                 hst.historico_contatos_ocorrencia_telefone,
+                hst.historico_contatos_ocorrencia_tipo_conta,
                 anexos
             };
         }
@@ -136,6 +137,7 @@ namespace AASPA.Domain.Service
                 contatoOcorrencia.historico_contatos_ocorrencia_chave_pix = historicoContatos.HistoricoContatosOcorrenciaPix != null ? historicoContatos.HistoricoContatosOcorrenciaPix.Replace("null", "") : "";
                 contatoOcorrencia.historico_contatos_ocorrencia_tipo_chave_pix = historicoContatos.HistoricoContatosOcorrenciaTipoChavePix != null ? historicoContatos.HistoricoContatosOcorrenciaTipoChavePix.Replace("null", "") : "";
                 contatoOcorrencia.historico_contatos_ocorrencia_telefone = historicoContatos.HistoricoContatosOcorrenciaTelefone != null ? historicoContatos.HistoricoContatosOcorrenciaTelefone.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "") : "";
+                contatoOcorrencia.historico_contatos_ocorrencia_tipo_conta = historicoContatos.HistoricoContatosOcorrenciaTipoConta != null ? historicoContatos.HistoricoContatosOcorrenciaTipoConta.Replace("null", "") : "";
 
                 var anexos = _mysql.anexos.Where(x => x.anexo_historico_contato_fk == contatoOcorrencia.historico_contatos_ocorrencia_id).ToList();
                 _mysql.anexos.RemoveRange(anexos);
@@ -219,7 +221,8 @@ namespace AASPA.Domain.Service
                     historico_contatos_ocorrencia_chave_pix = historicoContatos.HistoricoContatosOcorrenciaPix != null ? historicoContatos.HistoricoContatosOcorrenciaPix.Replace("null", "") : "",
                     historico_contatos_ocorrencia_tipo_chave_pix = historicoContatos.HistoricoContatosOcorrenciaTipoChavePix != null ? historicoContatos.HistoricoContatosOcorrenciaTipoChavePix.Replace("null", "") : "",
                     historico_contatos_ocorrencia_telefone = historicoContatos.HistoricoContatosOcorrenciaTelefone != null ? historicoContatos.HistoricoContatosOcorrenciaTelefone.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "") : "",
-                    historico_contatos_ocorrencia_usuario_fk = usuarioId
+                    historico_contatos_ocorrencia_usuario_fk = usuarioId,
+                    historico_contatos_ocorrencia_tipo_conta = historicoContatos.HistoricoContatosOcorrenciaTipoConta != null ? historicoContatos.HistoricoContatosOcorrenciaTipoConta.Replace("null", "")  : ""
                 };
 
                 _mysql.historico_contatos_ocorrencia.Add(hst);

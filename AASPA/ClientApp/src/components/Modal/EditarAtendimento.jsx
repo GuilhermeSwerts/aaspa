@@ -28,10 +28,14 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
     const [pix, setPIX] = useState("");
     const [tipoChavePix, setTipoChavePix] = useState("CPF");
     const [tipoPagamento, setTipoPagamento] = useState(true);
-
+    const [tipoConta, setTipoConta] = useState("");
+    const [tipoDeposito, setTipoDeposito] = useState("0");
     const [anexos, setAnexos] = useState([]);
 
-    const onChangeTipoPagamento = e => setTipoPagamento(e.target.value === "0")
+    const onChangeTipoPagamento = e => {
+        setTipoPagamento(e.target.value === "0");
+        setTipoDeposito(e.target.value);
+    }
     const initState = () => {
         setDtOcorrencia('');
         setOrigem(origens[0]);
@@ -46,6 +50,8 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         setTipoChavePix("CPF");
         setTipoPagamento(true);
         setTelefone("");
+        setTipoConta("");
+        setTipoDeposito("0");
     }
 
     const BuscarMotivos = () => {
@@ -97,6 +103,7 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         formData.append("HistoricoContatosOcorrenciaPix", pix)
         formData.append("HistoricoContatosOcorrenciaTipoChavePix", tipoChavePix)
         formData.append("HistoricoContatosOcorrenciaTelefone", telefone)
+        formData.append("HistoricoContatosOcorrenciaTipoConta", tipoConta)
 
         for (const file of anexos) {
             if (file.existente) {
@@ -135,6 +142,10 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
             setPIX(res.data.historico_contatos_ocorrencia_chave_pix);
             setTipoChavePix(res.data.historico_contatos_ocorrencia_tipo_chave_pix);
             setTelefone(res.data.historico_contatos_ocorrencia_telefone);
+            setTipoConta(res.data.historico_contatos_ocorrencia_tipo_conta);
+            const isPix = !(res.data.historico_contatos_ocorrencia_banco !== "" && res.data.historico_contatos_ocorrencia_agencia !== "" && res.data.historico_contatos_ocorrencia_conta !== "" && res.data.historico_contatos_ocorrencia_digito !== "");
+            setTipoPagamento(isPix)
+            setTipoDeposito(isPix ? "0" : "1");
 
             let arquivos = [];
             res.data.anexos.forEach(anexo => {
@@ -246,12 +257,20 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                         <div className='row'>
                             <div className="col-md-3">
                                 <label>Tipo de depósito:</label>
-                                <select onChange={onChangeTipoPagamento} className='form-control'>
+                                <select value={tipoDeposito} onChange={onChangeTipoPagamento} className='form-control'>
                                     <option value="0">PIX</option>
                                     <option value="1">Dados bancários</option>
                                 </select>
                             </div>
                             {!tipoPagamento && <>
+                                <div className="col-md-3">
+                                    <Label>Tipo Conta</Label>
+                                    <select name="" id="" className='form-control' value={tipoConta} onChange={e => setTipoConta(e.target.value)}>
+                                        <option value="">Selecione</option>
+                                        <option value="CONTA CORRENTE">CONTA CORRENTE</option>
+                                        <option value="CONTA POUPANÇA">CONTA POUPANÇA</option>
+                                    </select>
+                                </div>
                                 <div className="col-md-3">
                                     <Label>Banco</Label>
                                     <input type="text" value={banco} onChange={e => setBanco(e.target.value)} className='form-control' />

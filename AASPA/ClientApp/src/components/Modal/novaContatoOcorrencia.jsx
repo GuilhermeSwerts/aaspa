@@ -36,6 +36,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
     const [banco, setBanco] = useState("");
     const [agencia, setAgencia] = useState("");
     const [conta, setConta] = useState("");
+    const [tipoConta, setTipoConta] = useState("");
     const [digito, setDigito] = useState("");
     const [pix, setPIX] = useState("");
     const [telefone, setTelefone] = useState("");
@@ -62,6 +63,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         setTipoChavePix("CPF");
         setTipoPagamento(true);
         setTelefone("");
+        setTipoConta("");
     }
 
     const BuscarMotivos = () => {
@@ -101,6 +103,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         formData.append("HistoricoContatosOcorrenciaSituacaoOcorrencia", situacao)
         formData.append("HistoricoContatosOcorrenciaBanco", banco)
         formData.append("HistoricoContatosOcorrenciaAgencia", agencia)
+        formData.append("HistoricoContatosOcorrenciaTipoConta", tipoConta)
         formData.append("HistoricoContatosOcorrenciaConta", conta)
         formData.append("HistoricoContatosOcorrenciaDigito", digito)
         formData.append("HistoricoContatosOcorrenciaPix", pix)
@@ -214,6 +217,14 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                                 </select>
                             </div>
                             {!tipoPagamento && <>
+                                <div className="col-md-3">
+                                    <Label>Tipo Conta</Label>
+                                    <select name="" id="" className='form-control' value={tipoConta} onChange={e=> setTipoConta(e.target.value)}>
+                                        <option value="">Selecione</option>
+                                        <option value="CONTA CORRENTE">CONTA CORRENTE</option>
+                                        <option value="CONTA POUPANÇA">CONTA POUPANÇA</option>
+                                    </select>
+                                </div>
                                 <div className="col-md-3">
                                     <Label>Banco</Label>
                                     <input type="text" value={banco} onChange={e => setBanco(e.target.value)} className='form-control' />
