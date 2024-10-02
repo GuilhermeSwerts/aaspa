@@ -390,19 +390,35 @@ namespace AASPA.Domain.Service
 
             return CalcularPagina(todosClientes, request.PaginaAtual, totalClientes);
         }
-        public byte[] DownloadContatoFiltro((List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) clientesData)
+        public byte[] DownloadContatoFiltro()
         {
+            var clientesData = (from cli in _mysql.clientes
+                                join hist in _mysql.historico_contatos_ocorrencia on cli.cliente_id equals hist.historico_contatos_ocorrencia_cliente_id
+                                join mot in _mysql.motivo_contato on hist.historico_contatos_ocorrencia_motivo_contato_id equals mot.motivo_contato_id
+                                join ori in _mysql.origem on hist.historico_contatos_ocorrencia_origem_id equals ori.origem_id
+                                join vin in _mysql.vinculo_cliente_captador on cli.cliente_id equals vin.vinculo_cliente_id
+                                join cap in _mysql.captadores on vin.vinculo_captador_id equals cap.captador_id
+                                select new BuscarClienteByIdResponse
+                                {
+                                    Cliente = cli,
+                                    Historico = hist,
+                                    Motivo =  mot,
+                                    Origem = ori,
+                                    Captador = cap,
+                                }).ToList();
+
             var builder = new StringBuilder();
 
             builder.AppendLine("#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO;STATUS_INTEGRAALL;MOTIVO_ATENDIMENTO;ORIGEM_ATENDIMENTO;DATA_ATENDIMENTO;DESCRICAO_ATENDIMENTO;DADOS_BANCARIOS_BANCO;DADOS_BANCARIOS_AGENCIA;DADOS_BANCARIOS_CONTA;DADOS_BANCARIOS_DIGITO;DADOS_BANCARIOS_CHAVE_PIX\n");
             
-            for (int i = 0; i < clientesData.Clientes.Count; i++)
+            for (int i = 0; i < clientesData.Count; i++)
             {
-                var cliente = clientesData.Clientes[i];
+                var cliente = clientesData[i];
                 var dtAverbacao = cliente.Cliente.cliente_DataAverbacao.HasValue ? cliente.Cliente.cliente_DataAverbacao.Value.ToString("dd/MM/yyyy hh:mm:ss:") : "";
                 var motivoNome = cliente.Motivo != null ? cliente.Motivo.motivo_contato_nome : ";;";
                 var origem = (cliente.Origem != null && !string.IsNullOrEmpty(cliente.Origem.origem_nome)) ? cliente.Origem.origem_nome : ";;";
-                var historico = cliente.Historico != null ? $"{cliente.Historico.historico_contatos_ocorrencia_dt_ocorrencia};{cliente.Historico.historico_contatos_ocorrencia_descricao};{cliente.Historico.historico_contatos_ocorrencia_banco};{cliente.Historico.historico_contatos_ocorrencia_agencia};{cliente.Historico.historico_contatos_ocorrencia_conta};{cliente.Historico.historico_contatos_ocorrencia_digito};{cliente.Historico.historico_contatos_ocorrencia_chave_pix}" : ";;;;;;";
+                var remessa = cliente.Cliente.cliente_remessa_id ?? 0;
+            var historico = cliente.Historico != null ? $"{cliente.Historico.historico_contatos_ocorrencia_dt_ocorrencia};{cliente.Historico.historico_contatos_ocorrencia_descricao};{cliente.Historico.historico_contatos_ocorrencia_banco};{cliente.Historico.historico_contatos_ocorrencia_agencia};{cliente.Historico.historico_contatos_ocorrencia_conta};{cliente.Historico.historico_contatos_ocorrencia_digito};{cliente.Historico.historico_contatos_ocorrencia_chave_pix}" : ";;;;;;";
                 builder.AppendLine(
                     $"{cliente.Cliente.cliente_id};" +
                     $"{cliente.Cliente.cliente_cpf};" +
@@ -429,7 +445,7 @@ namespace AASPA.Domain.Service
                     $"{cliente.Cliente.cliente_situacao};" +
                     $"{cliente.Cliente.cliente_estado_civil};" +
                     $"{cliente.Cliente.cliente_sexo};" +
-                    $"{cliente.Cliente.cliente_remessa_id ?? 0};" +
+                    $"{remessa};" +
                     $"{cliente.Captador.captador_nome};" +
                     $"{cliente.Captador.captador_cpf_cnpj};" +
                     $"{cliente.Captador.captador_descricao};" +
