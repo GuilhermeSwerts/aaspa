@@ -38,5 +38,21 @@ namespace AASPA.Repository
         public DbSet<SolicitacaoReembolsoDb> solicitacaoreembolso { get; set; }
         public DbSet<ElegivelReembolsoDb> elegivelreembolso { get; set; }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<ClienteDb>()
+                .HasMany(c => c.LogStatus)
+                .WithOne()
+                .HasForeignKey(l => l.log_status_cliente_id)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<LogBeneficioDb>()
+                .HasOne<ClienteDb>()
+                .WithMany(c => c.LogBeneficios)
+                .HasForeignKey(lb => lb.log_beneficios_cliente_id)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
     }
 }

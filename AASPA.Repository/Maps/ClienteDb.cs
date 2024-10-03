@@ -40,5 +40,7 @@ namespace AASPA.Repository.Maps
         public bool clientes_cadastro_externo { get; set; }
         public DateTime? cliente_DataAverbacao { get; set; }
         public int? cliente_StatusIntegral { get; set; }
+        public virtual ICollection<LogStatusDb> LogStatus { get; set; }
+        public virtual ICollection<LogBeneficioDb> LogBeneficios { get; set; }
     }
 }

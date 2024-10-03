@@ -838,5 +838,55 @@ cli.cliente_id
                     throw new ArgumentException("Estado civil não reconhecido.");
             }
         }
+
+        public async Task ExcluirCliente(ClienteRequest request, string motivoCancelamento)
+        {
+            var cliente = _mysql.clientes.Where(x => x.cliente_matriculaBeneficio == request.Cliente.MatriculaBeneficio).FirstOrDefault();
+
+            if (cliente != null)
+            {
+                var logs = _mysql.log_status.Where(l => l.log_status_cliente_id == cliente.cliente_id);
+                if (logs.Any())
+                {
+                    _mysql.log_status.RemoveRange(logs);
+                }
+
+                var beneficio = _mysql.log_beneficios.Where(b => b.log_beneficios_cliente_id == cliente.cliente_id);
+                if (beneficio.Any())
+                {
+                    _mysql.log_beneficios.RemoveRange(beneficio);
+                }
+
+                _mysql.Remove(cliente);
+                _mysql.SaveChanges();
+
+                string tokenIntegraall = await GerarToken();
+                InativarClienteIntegraall(request, motivoCancelamento, tokenIntegraall);
+            }
+        }
+
+        private async void InativarClienteIntegraall(ClienteRequest request, string motivocancelamento, string tokenIntegraall)
+        {
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenIntegraall);
+            var url = "https://hml.integraall.com/api/Proposta/CancelarPorCpfMatricula";
+
+            var data = new
+            {
+                cpf = request.Cliente.Cpf,
+                matricula = request.Cliente.MatriculaBeneficio,
+                motivoCancelamento = motivocancelamento
+            };
+            var jsonData = JsonConvert.SerializeObject(data);
+            var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync(url, content);
+            if (response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Sucesso");
+            }
+            else
+            {
+                Console.WriteLine($"Error: {response.StatusCode}");
+            }
+        }
     }
 }

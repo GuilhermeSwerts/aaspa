@@ -3,7 +3,7 @@ import { AuthContext } from '../../context/AuthContext';
 import { NavBar } from '../../components/Layout/layout';
 import { ButtonTooltip } from '../../components/Inputs/ButtonTooltip';
 import { RiChatHistoryLine } from "react-icons/ri";
-import { FaDownload, FaFilter, FaPlus, FaSearch, FaUserEdit } from "react-icons/fa";
+import { FaDownload, FaFilter, FaPlus, FaSearch, FaUserEdit, FaTrashAlt } from "react-icons/fa";
 import { Mascara } from '../../util/mascara';
 import { api } from '../../api/api';
 import ModalEditarStatusAtual from '../../components/Modal/editarStatusAtual';
@@ -17,6 +17,7 @@ import { Collapse } from 'reactstrap'
 import { Paginacao } from '../../components/Paginacao/Paginacao';
 import { Size } from '../../util/size';
 import { GetParametro } from '../../util/parametro';
+import ExcluirCliente from '../../components/Modal/excluirCliente';
 
 const Cclientes = () => {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -38,6 +39,9 @@ const Cclientes = () => {
     const [cpf, setCpf] = useState('');
     const [qtdPaginas, setQtdPaginas] = useState(0);
     const [isSimples, setIsSimpes] = useState(false);
+    const [ModalExcluir, setModalExcluir] = useState(false);
+    const [clienteSelecionado, setClienteSelecionado] = useState(null);
+
 
     //**paginação**
     const [limit, setLimit] = useState(10);
@@ -101,6 +105,34 @@ const Cclientes = () => {
             default:
                 break;
         }
+    }
+
+    const handleOpenModal = (cliente) => {
+        setClienteSelecionado(cliente);
+        setModalExcluir(true);
+    };
+
+    const handleConfirmExclusion = (reason) => {
+        var formData = new FormData();
+        addCampos(formData, reason);
+
+        console.log('Cliente excluído. Motivo:', reason);
+        api.post("/ExcluirCliente", formData)
+            .then(res => {
+                // Lógica de sucesso
+                console.log('Exclusão realizada com sucesso');
+            })
+            .catch(err => {
+                Alert(err.response.data, false);
+            });
+
+        handleCloseModal();
+    };
+
+    const addCampos = (formData, motivoCancelamento) => {
+        formData.append('Cliente[Cpf]', clienteSelecionado.cliente.cliente_cpf);        
+        formData.append('Cliente[MatriculaBeneficio]', clienteSelecionado.cliente.cliente_matriculaBeneficio);  
+        formData.append('motivoCancelamento', motivoCancelamento);
     }
 
     const DownloadClienteFiltro = () => {
@@ -350,6 +382,14 @@ const Cclientes = () => {
                                             top={true}
                                             textButton={<FaUserEdit color='#fff' size={Size.IconeTabela} />}
                                         />
+                                        <ButtonTooltip
+                                            backgroundColor={'#ff0000'}
+                                            onClick={() => handleOpenModal(cliente)}
+                                            className='btn btn-danger button-container-item'
+                                            text={'Excluir'}
+                                            top={true}
+                                            textButton={<FaTrashAlt color='#fff' size={Size.IconeTabela} />}
+                                        />
                                         <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />
                                     </td>
                                 </tr>}
@@ -391,6 +431,14 @@ const Cclientes = () => {
                                             top={true}
                                             textButton={<FaUserEdit color='#fff' size={Size.IconeTabela} />}
                                         />
+                                        <ButtonTooltip
+                                            backgroundColor={'#ff0000'}
+                                            onClick={() => handleOpenModal(cliente)}
+                                            className='btn btn-danger button-container-item'
+                                            text={'Excluir'}
+                                            top={true}
+                                            textButton={<FaTrashAlt color='#fff' size={Size.IconeTabela} />}
+                                        />
                                         <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />
                                     </td>
                                 </tr>}
@@ -407,6 +455,11 @@ const Cclientes = () => {
                 total={totalClientes}
                 setOffset={setOffset}
                 setCurrentPage={value => BuscarTodosClientes(null, null, value)}
+            />
+            <ExcluirCliente
+                show={ModalExcluir}
+                handleClose={() => setModalExcluir(false)}
+                handleConfirm={handleConfirmExclusion}
             />
         </NavBar >
     );

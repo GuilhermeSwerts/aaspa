@@ -142,6 +142,19 @@ namespace AASPA.Host.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [HttpPost("/ExcluirCliente")]
+        public ActionResult ExcluirCliente([FromForm] ClienteRequest request, [FromForm] string motivoCancelamento)
+        {
+            try
+            {
+                _service.ExcluirCliente(request, motivoCancelamento);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Erro ao excluir cliente: {ex.Message}");
+            }
+        }
         #endregion
 
     }
