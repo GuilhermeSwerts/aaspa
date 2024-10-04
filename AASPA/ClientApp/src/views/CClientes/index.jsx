@@ -129,6 +129,10 @@ const Cclientes = () => {
         handleCloseModal();
     };
 
+    const handleCloseModal = () => {
+        setModalExcluir(false);
+    }
+
     const addCampos = (formData, motivoCancelamento) => {
         formData.append('Cliente[Cpf]', clienteSelecionado.cliente.cliente_cpf);        
         formData.append('Cliente[MatriculaBeneficio]', clienteSelecionado.cliente.cliente_matriculaBeneficio);  
