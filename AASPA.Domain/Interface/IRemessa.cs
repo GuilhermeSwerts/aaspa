@@ -1,4 +1,6 @@
-﻿using AASPA.Models.Response;
+﻿using AASPA.Models.Requests;
+using AASPA.Models.Response;
+using AASPA.Repository.Maps;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -18,5 +20,6 @@ namespace AASPA.Domain.Interface
         Task<string> LerRetornoRepasse(IFormFile file);
         BuscarRetornoResponse BuscarRetorno(int mes, int ano);
         object GetBuscarRepasse(int? mes, int? ano);
+        (List<ClienteDb> Clientes, int QtdPaginas, int TotalClientes) BuscarClientesElegivel(ConsultaParametros request);
     }
 }

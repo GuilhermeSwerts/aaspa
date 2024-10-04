@@ -104,16 +104,6 @@ function Retorno() {
     return (
         <NavBar pagina_atual={'RETORNO'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
             <Row>
-                <Col md="6">
-                    <BuscarPorMesAno
-                        mesSelecionado={mesSelecionado}
-                        setMesSelecionado={setMesSelecionado}
-                        anoSelecionado={anoSelecionado}
-                        setAnoSelecionado={setAnoSelecionado}
-                        BuscarRemessas={BuscarRetorno}
-                        OnClick={BuscarRetorno}
-                    />
-                </Col>
                 <Col md="12" style={{ marginTop: '2rem' }}>
                     {!importar && (
                         <Button color="primary" onClick={HabilitarImportacao}>Importar Arquivo</Button>
@@ -125,9 +115,10 @@ function Retorno() {
                                     <Label for="fileID" className="btn btn-secondary" style={{ marginTop: '8px', marginRight: '10px' }}>
                                         Selecionar Arquivo
                                     </Label>
-                                    <Button color="primary" onClick={handleSubmit}>
+                                    <Button disabled={!file} color="primary" onClick={handleSubmit}>
                                         Enviar Retorno
                                     </Button>
+                                    {fileName && <p>Arquivo selecionado: {fileName}</p>}
                                 </Col>
                                 <Col md="6">
                                     <Input
@@ -136,13 +127,20 @@ function Retorno() {
                                         id="fileID"
                                         style={{ display: 'none' }}
                                     />
-                                    {fileName && <p>Arquivo selecionado: {fileName}</p>}
                                 </Col>
                             </Row>
                         </Col>
                     )}
                 </Col>
             </Row>
+            <BuscarPorMesAno
+                mesSelecionado={mesSelecionado}
+                setMesSelecionado={setMesSelecionado}
+                anoSelecionado={anoSelecionado}
+                setAnoSelecionado={setAnoSelecionado}
+                BuscarRemessas={BuscarRetorno}
+                OnClick={BuscarRetorno}
+            />
             <br />
             <br />
             {retorno && (

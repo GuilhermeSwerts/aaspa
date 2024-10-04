@@ -53,7 +53,6 @@ function Remessa() {
 
     return (
         <NavBar pagina_atual={'REMESSA'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
-            <small>Filtro:</small>
             <BuscarPorMesAno
                 mesSelecionado={mesSelecionado}
                 setMesSelecionado={setMesSelecionado}

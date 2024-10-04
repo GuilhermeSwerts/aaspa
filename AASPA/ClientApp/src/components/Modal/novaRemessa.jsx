@@ -99,7 +99,7 @@ function ModalNovaRemessa({ BuscarRemessas, DownloadRemessa }) {
 
                         {editarCompetencia && <>
                             <br />
-                            <h5>Período:</h5>
+                            <h5>Período de busca os clientes:</h5>
                             <Row>
                                 <Col md={6}>
                                     <label htmlFor="">De:</label>
@@ -113,7 +113,7 @@ function ModalNovaRemessa({ BuscarRemessas, DownloadRemessa }) {
 
                             <hr />
 
-                            <h5>Mês/Ano competente:</h5>
+                            <h5>Mês/Ano competente do arquivo:</h5>
                             <Row>
                                 <Col md={6}>
                                     <label htmlFor="">Selecione o mês:</label>

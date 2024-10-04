@@ -1,18 +1,15 @@
 ﻿using AASPA.Domain.CustonException;
 using AASPA.Domain.Interface;
-using AASPA.Models.Enum;
 using AASPA.Models.Requests;
 using AASPA.Models.Response;
 using AASPA.Repository;
 using AASPA.Repository.Maps;
-using DocumentFormat.OpenXml.Drawing;
-using DocumentFormat.OpenXml.Wordprocessing;
+using AASPA.Repository.Response;
+using Dapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using MySqlConnector;
 using Newtonsoft.Json;
-using NuGet.Packaging;
-using Paket;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -286,10 +283,10 @@ namespace AASPA.Domain.Service
 
         public (List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) BuscarTodosClientes(ConsultaParametros request)
         {
-            request.StatusCliente = request.StatusCliente ?? 0;
-            request.QtdPorPagina = request.QtdPorPagina ?? 10;
-            request.StatusRemessa = request.StatusRemessa ?? 0;
-            request.StatusIntegraall = request.StatusIntegraall ?? 0;
+            request.StatusCliente ??= 0;
+            request.QtdPorPagina ??= 10;
+            request.StatusRemessa ??= 0;
+            request.StatusIntegraall ??= 0;
 
             var (Clientes, _) = GetClientesByFiltro(request);
             request.PaginaAtual = null;
@@ -313,51 +310,16 @@ namespace AASPA.Domain.Service
             int qtd = 0;
             using (MySqlConnection connection = new(_mysql.Database.GetConnectionString()))
             {
-                List<string> filtros = new List<string>();
-                var colunas = @"
-cli.cliente_id
-,cli.cliente_cpf
-,cli.cliente_nome
-,cli.cliente_cep
-,cli.cliente_logradouro
-,cli.cliente_bairro
-,cli.cliente_localidade
-,cli.cliente_uf
-,cli.cliente_numero
-,cli.cliente_complemento
-,cli.cliente_dataNasc
-,cli.cliente_dataCadastro
-,cli.cliente_nrDocto
-,cli.cliente_empregador
-,cli.cliente_matriculaBeneficio
-,cli.cliente_nomeMae
-,cli.cliente_nomePai
-,cli.cliente_telefoneFixo
-,cli.cliente_telefoneCelular
-,cli.cliente_possuiWhatsapp
-,cli.cliente_funcaoAASPA
-,cli.cliente_email
-,cli.cliente_situacao
-,cli.cliente_estado_civil
-,cli.cliente_sexo
-,cli.cliente_remessa_id
-,cli.clientes_cadastro_externo
-,cli.cliente_StatusIntegral
-,cpt.captador_id
-,cpt.captador_cpf_cnpj
-,cpt.captador_nome
-,cpt.captador_descricao
-,cpt.captador_e_cnpj
-,cpt.captador_situacao
-";
+                List<string> filtros = new();
 
-                string coluns = isCount ? "count(*) as QTD" : colunas;
+                string colunas = "cli.*, cpt.*";
+                string coluns = isCount ? "count(*) as Qtd" : colunas;
                 string query = @$"
-                          SELECT {coluns}
-                FROM clientes cli
-                JOIN vinculo_cliente_captador vin ON cli.cliente_id = vinculo_cliente_id
-                JOIN captadores cpt ON vin.vinculo_captador_id = cpt.captador_id
-                LEFT JOIN historico_contatos_ocorrencia his ON cli.cliente_id = his.historico_contatos_ocorrencia_cliente_id";
+                         SELECT {coluns}    
+    FROM clientes cli
+    JOIN vinculo_cliente_captador vin ON cli.cliente_id = vin.vinculo_cliente_id
+    JOIN captadores cpt ON vin.vinculo_captador_id = cpt.captador_id
+    LEFT JOIN historico_contatos_ocorrencia his ON cli.cliente_id = his.historico_contatos_ocorrencia_cliente_id";
 
                 if (request.DateInit.HasValue)
                 {
@@ -427,103 +389,64 @@ cli.cliente_id
                     }
                 }
 
-                query +=" ORDER BY cli.cliente_dataCadastro DESC";
+                query += " ORDER BY cli.cliente_dataCadastro DESC";
 
                 if (request.PaginaAtual != null)
                 {
-                    query += " LIMIT @PageSize OFFSET @Offset";
+                    query += $" LIMIT {offset}, {pageSize}";
                 }
 
-
-                MySqlCommand cmd = new MySqlCommand(query, connection);
+                var parameters = new DynamicParameters();
 
                 if (request.DateInit.HasValue)
-                    cmd.Parameters.AddWithValue("@DateInit", request.DateInit);
+                    parameters.Add("@DateInit", request.DateInit);
                 if (request.DateEnd.HasValue)
-                    cmd.Parameters.AddWithValue("@DateEnd", request.DateEnd.Value.AddDays(1));
+                    parameters.Add("@DateEnd", request.DateEnd.Value.AddDays(1));
                 if (!string.IsNullOrEmpty(request.Nome))
-                    cmd.Parameters.AddWithValue("@Nome", request.Nome);
+                    parameters.Add("@Nome", request.Nome);
                 if (!string.IsNullOrEmpty(request.Cpf))
-                    cmd.Parameters.AddWithValue("@Cpf", RemoveZerosEsquerda(request.Cpf.Replace(".", "").Replace("-", "")));
+                    parameters.Add("@Cpf", RemoveZerosEsquerda(request.Cpf.Replace(".", "").Replace("-", "")));
                 if (request.CadastroExterno > 0)
-                    cmd.Parameters.AddWithValue("@CadastroExterno", request.CadastroExterno);
+                    parameters.Add("@CadastroExterno", request.CadastroExterno);
                 if (request.CadastroExterno > 0)
-                    cmd.Parameters.AddWithValue("@StatusCliente", request.StatusCliente);
+                    parameters.Add("@StatusCliente", request.StatusCliente);
                 if (request.StatusRemessa > 0)
-                    cmd.Parameters.AddWithValue("@StatusRemessa", request.StatusRemessa);
+                    parameters.Add("@StatusRemessa", request.StatusRemessa);
                 if (request.StatusIntegraall > 0)
-                    cmd.Parameters.AddWithValue("@StatusIntegraall", request.StatusIntegraall);
+                    parameters.Add("@StatusIntegraall", request.StatusIntegraall);
                 if (!string.IsNullOrEmpty(request.Beneficio))
-                    cmd.Parameters.AddWithValue("@Nb", request.Beneficio.Replace(".", "").Replace("-", ""));
-                if(!string.IsNullOrEmpty(request.SituacaoOcorrencia))
-                    cmd.Parameters.AddWithValue("@SituacaoOcorrencia", request.SituacaoOcorrencia);
+                    parameters.Add("@Nb", request.Beneficio.Replace(".", "").Replace("-", ""));
+                if (!string.IsNullOrEmpty(request.SituacaoOcorrencia))
+                    parameters.Add("@SituacaoOcorrencia", request.SituacaoOcorrencia);
                 if (request.DataInitAtendimento.HasValue)
-                    cmd.Parameters.AddWithValue("@DataInitAtendimento", request.DataInitAtendimento);
+                    parameters.Add("@DataInitAtendimento", request.DataInitAtendimento);
                 if (request.DataEndAtendimento.HasValue)
-                    cmd.Parameters.AddWithValue("@DataEndAtendimento", request.DataEndAtendimento.Value.AddDays(1));
-                if (request.PaginaAtual != null)
-                {
-                    cmd.Parameters.AddWithValue("@PageSize", pageSize);
-                    cmd.Parameters.AddWithValue("@Offset", offset);
-                }
+                    parameters.Add("@DataEndAtendimento", request.DataEndAtendimento.Value.AddDays(1));
 
-                connection.Open();
-                using (MySqlDataReader reader = cmd.ExecuteReader())
+                if (!isCount)
                 {
-                    while (reader.Read())
+                    var data = connection.Query<ClienteDb, CaptadorDb, BuscarClienteByIdResponse>(query,
+                                                    (cliente, captador) =>
+                                                    {
+                                                        return new BuscarClienteByIdResponse
+                                                        {
+                                                            Cliente = cliente,
+                                                            Captador = captador
+                                                        };
+                                                    },
+                                                    param: parameters,
+                                                    splitOn: "captador_id"
+                                                    ).ToList();
+                    foreach (var item in data)
                     {
-                        if (isCount)
-                        {
-                            qtd = reader.GetInt32("QTD");
-                        }
-                        else
-                        {
-                            clientes.Add(new BuscarClienteByIdResponse
-                            {
-                                Cliente = new ClienteDb
-                                {
-                                    cliente_id = reader.GetInt32("cliente_id"),
-                                    cliente_cpf = reader.IsDBNull("cliente_cpf") ? null : reader.GetString("cliente_cpf").PadLeft(11,'0'),
-                                    cliente_nome = reader.IsDBNull("cliente_nome") ? null : reader.GetString("cliente_nome"),
-                                    cliente_cep = reader.IsDBNull("cliente_cep") ? null : reader.GetString("cliente_cep"),
-                                    cliente_logradouro = reader.IsDBNull("cliente_logradouro") ? null : reader.GetString("cliente_logradouro"),
-                                    cliente_bairro = reader.IsDBNull("cliente_bairro") ? null : reader.GetString("cliente_bairro"),
-                                    cliente_localidade = reader.IsDBNull("cliente_localidade") ? null : reader.GetString("cliente_localidade"),
-                                    cliente_uf = reader.IsDBNull("cliente_uf") ? null : reader.GetString("cliente_uf"),
-                                    cliente_numero = reader.IsDBNull("cliente_numero") ? null : reader.GetString("cliente_numero"),
-                                    cliente_complemento = reader.IsDBNull("cliente_complemento") ? null : reader.GetString("cliente_complemento"),
-                                    cliente_dataNasc = reader.GetDateTime("cliente_dataNasc"),
-                                    cliente_dataCadastro = reader.GetDateTime("cliente_dataCadastro"),
-                                    cliente_nrDocto = reader.IsDBNull("cliente_nrDocto") ? null : reader.GetString("cliente_nrDocto"),
-                                    cliente_empregador = reader.IsDBNull("cliente_empregador") ? null : reader.GetString("cliente_empregador"),
-                                    cliente_matriculaBeneficio = reader.IsDBNull("cliente_matriculaBeneficio") ? null : reader.GetString("cliente_matriculaBeneficio").PadLeft(10, '0'),
-                                    cliente_nomeMae = reader.IsDBNull("cliente_nomeMae") ? null : reader.GetString("cliente_nomeMae"),
-                                    cliente_nomePai = reader.IsDBNull("cliente_nomePai") ? null : reader.GetString("cliente_nomePai"),
-                                    cliente_telefoneFixo = reader.IsDBNull("cliente_telefoneFixo") ? null : reader.GetString("cliente_telefoneFixo"),
-                                    cliente_telefoneCelular = reader.IsDBNull("cliente_telefoneCelular") ? null : reader.GetString("cliente_telefoneCelular"),
-                                    cliente_possuiWhatsapp = reader.IsDBNull("cliente_possuiWhatsapp") ? false : reader.GetBoolean("cliente_possuiWhatsapp"),
-                                    cliente_funcaoAASPA = reader.IsDBNull("cliente_funcaoAASPA") ? null : reader.GetString("cliente_funcaoAASPA"),
-                                    cliente_email = reader.IsDBNull("cliente_email") ? null : reader.GetString("cliente_email"),
-                                    cliente_situacao = reader.IsDBNull("cliente_situacao") ? false : reader.GetBoolean("cliente_situacao"),
-                                    cliente_estado_civil = reader.GetInt32("cliente_estado_civil"),
-                                    cliente_sexo = reader.IsDBNull("cliente_sexo") ? (int?)null : reader.GetInt32("cliente_sexo"),
-                                    cliente_remessa_id = reader.IsDBNull("cliente_remessa_id") ? (int?)null : reader.GetInt32("cliente_remessa_id"),
-                                    clientes_cadastro_externo = reader.IsDBNull("clientes_cadastro_externo") ? false : reader.GetBoolean("clientes_cadastro_externo"),
-                                    cliente_StatusIntegral = reader.IsDBNull("cliente_StatusIntegral") ? (int?)null : reader.GetInt32("cliente_StatusIntegral")
-                                },
-                                Captador = new CaptadorDb
-                                {
-                                    captador_id = reader.GetInt32("captador_id"),
-                                    captador_cpf_cnpj = reader.IsDBNull("captador_cpf_cnpj") ? null : reader.GetString("captador_cpf_cnpj"),
-                                    captador_nome = reader.IsDBNull("captador_nome") ? null : reader.GetString("captador_nome"),
-                                    captador_descricao = reader.IsDBNull("captador_descricao") ? null : reader.GetString("captador_descricao"),
-                                    captador_e_cnpj = reader.IsDBNull("captador_e_cnpj") ? false : reader.GetBoolean("captador_e_cnpj"),
-                                    captador_situacao = reader.IsDBNull("captador_situacao") ? false : reader.GetBoolean("captador_situacao")
-                                },
-                                StatusAtual = BuscaStatusAtual(reader.GetInt32("cliente_id"), isDownload)
-                            });
-                        }
+                        item.StatusAtual = BuscaStatusAtual(item.Cliente.cliente_id, isDownload);
                     }
+
+                    clientes.AddRange(data);
+                }else
+                {
+                    var data = connection.Query<QuantidadeResponse>(query,parameters).First();
+                    qtd = data.Qtd;
                 }
             }
 

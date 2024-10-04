@@ -1,4 +1,5 @@
 ﻿using AASPA.Domain.Interface;
+using AASPA.Models.Requests;
 using AASPA.Models.Response;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +19,27 @@ namespace AASPA.Controllers
         }
 
         [HttpGet]
+        [Route("/PreVisualizar")]
+        public ActionResult GetPreVisualizar([FromQuery] ConsultaParametros request)
+        {
+            try
+            {
+                var (Clientes, QtdPaginas, TotalClientes) = _remessa.BuscarClientesElegivel(request);
+                return Ok(new
+                {
+                    Clientes,
+                    QtdPaginas,
+                    TotalClientes
+                });
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+            [HttpGet]
         [Route("/GerarRemessa")]
         public IActionResult GerarRemessa([FromQuery] int mes, [FromQuery] int ano, [FromQuery] DateTime dateInit, [FromQuery] DateTime dateEnd)
         {
