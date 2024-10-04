@@ -6,13 +6,14 @@ import { useEffect, useRef } from 'react';
 const ExcluirCliente = ({ show, handleClose, handleConfirm }) => {
     const [deleteReason, setDeleteReason] = useState('');
     const deleteReasonRef = useRef(null);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const handleDelete = () => {
         if (deleteReason.trim() === '') {
             alert('Por favor, informe um motivo para a exclusão.');
             return;
         }
-
+        setIsProcessing(true);
         handleConfirm(deleteReason);
 
         setDeleteReason('');

@@ -41,6 +41,7 @@ const Cclientes = () => {
     const [isSimples, setIsSimpes] = useState(false);
     const [ModalExcluir, setModalExcluir] = useState(false);
     const [clienteSelecionado, setClienteSelecionado] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
 
     //**paginação**
@@ -117,17 +118,20 @@ const Cclientes = () => {
         addCampos(formData, reason);
 
         console.log('Cliente excluído. Motivo:', reason);
-        api.post("/ExcluirCliente", formData)
-            .then(res => {
-                // Lógica de sucesso
-                console.log('Exclusão realizada com sucesso');
-            })
-            .catch(err => {
-                Alert(err.response.data, false);
-            });
 
-        handleCloseModal();
+        api.post("/ExcluirCliente", formData, res => {
+            if (res.data === "Proposta não encontrada!") {
+                Alert(res.data, false)
+            } else {
+                Alert(res.data, true)
+            }
+
+            setModalExcluir(false);
+        }, err => {
+            Alert(err.response ? err.response.data : 'Erro desconhecido', false);
+        })
     };
+
 
     const handleCloseModal = () => {
         setModalExcluir(false);

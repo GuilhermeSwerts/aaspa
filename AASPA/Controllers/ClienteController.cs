@@ -143,19 +143,19 @@ namespace AASPA.Host.Controllers
             }
         }
         [HttpPost("/ExcluirCliente")]
-        public ActionResult ExcluirCliente([FromForm] ClienteRequest request, [FromForm] string motivoCancelamento)
+        public async Task<ActionResult> ExcluirCliente([FromForm] ClienteRequest request, [FromForm] string motivoCancelamento)
         {
             try
             {
-                _service.ExcluirCliente(request, motivoCancelamento);
-                return Ok();
+                string tokenIntegraall = await _service.GerarToken();
+                var retorno = await _service.InativarClienteIntegraall(request, motivoCancelamento, tokenIntegraall);
+                return Ok(retorno);
             }
             catch (Exception ex)
             {
-                throw new Exception($"Erro ao excluir cliente: {ex.Message}");
+                return BadRequest($"Erro ao excluir cliente: {ex.Message}");
             }
         }
         #endregion
-
     }
 }

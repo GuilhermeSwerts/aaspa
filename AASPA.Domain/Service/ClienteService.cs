@@ -782,11 +782,11 @@ cli.cliente_id
                 NovoCliente(cli, true, true);
             }
         }
-        private async Task<string> GerarToken()
+        public async Task<string> GerarToken()
         {
             try
             {
-                var requestUriLogin = "https://integraall.com/api/Login/validar";
+                var requestUriLogin = "https://hml.integraall.com/api/Login/validar";
                 var loginRequest = new
                 {
                     login,
@@ -839,9 +839,9 @@ cli.cliente_id
             }
         }
 
-        public async Task ExcluirCliente(ClienteRequest request, string motivoCancelamento)
+        public async Task ExcluirCliente(ClienteRequest request)
         {
-            var cliente = _mysql.clientes.Where(x => x.cliente_matriculaBeneficio == request.Cliente.MatriculaBeneficio).FirstOrDefault();
+            var cliente = _mysql.clientes.Where(x => x.cliente_cpf == request.Cliente.Cpf).FirstOrDefault();
 
             if (cliente != null)
             {
@@ -858,34 +858,44 @@ cli.cliente_id
                 }
 
                 _mysql.Remove(cliente);
-                _mysql.SaveChanges();
-
-                string tokenIntegraall = await GerarToken();
-                InativarClienteIntegraall(request, motivoCancelamento, tokenIntegraall);
+                _mysql.SaveChanges();                
             }
         }
 
-        private async void InativarClienteIntegraall(ClienteRequest request, string motivocancelamento, string tokenIntegraall)
+        public async Task<string> InativarClienteIntegraall(ClienteRequest request, string motivocancelamento, string tokenIntegraall)
         {
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenIntegraall);
-            var url = "https://hml.integraall.com/api/Proposta/CancelarPorCpfMatricula";
+            try
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenIntegraall);
+                var url = "https://hml.integraall.com/api/Proposta/CancelarPorCpfMatricula";
 
-            var data = new
-            {
-                cpf = request.Cliente.Cpf,
-                matricula = request.Cliente.MatriculaBeneficio,
-                motivoCancelamento = motivocancelamento
-            };
-            var jsonData = JsonConvert.SerializeObject(data);
-            var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync(url, content);
-            if (response.IsSuccessStatusCode)
-            {
-                Console.WriteLine("Sucesso");
+                var data = new
+                {
+                    cpf = request.Cliente.Cpf,
+                    matricula = request.Cliente.MatriculaBeneficio,
+                    motivoCancelamento = motivocancelamento
+                };
+                var jsonData = JsonConvert.SerializeObject(data);
+                var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync(url, content);
+                Console.WriteLine(response.StatusCode);
+                if (response.IsSuccessStatusCode)
+                {
+                    ExcluirCliente(request);
+                    throw new Exception("Cliente excluido com sucesso!");
+                }
+                else if(response.Content.ReadAsStringAsync().Result.Contains("Proposta não encontrada!"))
+                {
+                    throw new Exception("Proposta não encontrada!");
+                }
+                else
+                {
+                    throw new Exception(response.StatusCode.ToString());
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine($"Error: {response.StatusCode}");
+                return ex.Message;
             }
         }
     }
