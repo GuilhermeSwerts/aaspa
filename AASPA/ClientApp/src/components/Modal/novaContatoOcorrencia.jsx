@@ -2,15 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { Row, Col, Modal, ModalBody, ModalFooter, ModalHeader, Form, FormGroup, Label, Input, Button } from 'reactstrap';
 import { api } from '../../api/api';
 import { Mascara } from '../../util/mascara';
-import { FaPlus } from 'react-icons/fa6';
+import { FaClipboard, FaPlus, FaTrash } from 'react-icons/fa6';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { Alert } from '../../util/alertas';
 import { Size } from '../../util/size';
+import { FiPaperclip } from 'react-icons/fi';
 
 function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = null, isEdit = false }) {
     const [show, setShow] = useState(false);
     const [origens, setOrigens] = useState([]);
     const [motivos, setMotivos] = useState([]);
+    const [tipoChavePix, setTipoChavePix] = useState("CPF");
+    const [tipoPagamento, setTipoPagamento] = useState(true);
+    const [anexos, setAnexos] = useState([]);
+    const onChangeTipoPagamento = e => setTipoPagamento(e.target.value === "0")
 
     function getDataDeHoje() {
         const today = new Date();
@@ -31,8 +36,10 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
     const [banco, setBanco] = useState("");
     const [agencia, setAgencia] = useState("");
     const [conta, setConta] = useState("");
+    const [tipoConta, setTipoConta] = useState("");
     const [digito, setDigito] = useState("");
     const [pix, setPIX] = useState("");
+    const [telefone, setTelefone] = useState("");
 
     const initState = () => {
         setDtOcorrencia(getDataDeHoje());
@@ -52,7 +59,11 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         setAgencia("");
         setConta("");
         setDigito("");
-        setPIX("")
+        setPIX("");
+        setTipoChavePix("CPF");
+        setTipoPagamento(true);
+        setTelefone("");
+        setTipoConta("");
     }
 
     const BuscarMotivos = () => {
@@ -92,9 +103,15 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         formData.append("HistoricoContatosOcorrenciaSituacaoOcorrencia", situacao)
         formData.append("HistoricoContatosOcorrenciaBanco", banco)
         formData.append("HistoricoContatosOcorrenciaAgencia", agencia)
+        formData.append("HistoricoContatosOcorrenciaTipoConta", tipoConta)
         formData.append("HistoricoContatosOcorrenciaConta", conta)
         formData.append("HistoricoContatosOcorrenciaDigito", digito)
         formData.append("HistoricoContatosOcorrenciaPix", pix)
+        formData.append("HistoricoContatosOcorrenciaTipoChavePix", tipoChavePix)
+        formData.append("HistoricoContatosOcorrenciaTelefone", telefone)
+
+        for (const file of anexos)
+            formData.append('HistoricoContatosOcorrenciaAnexos', file.file, file.file.name);
 
         api.post("NovoContatoOcorrencia", formData, res => {
             initState();
@@ -107,6 +124,24 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
             Alert(err.response.data, false)
         })
     }
+
+    const RemoverAnexo = (index) => {
+        var arry = [...anexos];
+        arry.splice(index, 1);
+        setAnexos(arry);
+    }
+
+    const handleAnexoChange = (event) => {
+        const file = event.target.files[0];
+
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+        if (file && allowedTypes.includes(file.type)) {
+            const novoAnexo = { file: file, fileName: file.name };
+            setAnexos((prevAnexos) => [...prevAnexos, novoAnexo]);
+        } else {
+            alert('Somente arquivos PDF ou imagens (JPG, PNG) são permitidos.');
+        }
+    };
 
     return (
         <>
@@ -167,6 +202,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                                     <option value="CANCELADA">CANCELADA</option>
                                     <option value="FINALIZADO">FINALIZADO</option>
                                     <option value="REEMBOLSO AGENDADO">REEMBOLSO AGENDADO</option>
+                                    <option value="DADOS INVALIDOS">DADOS INVALIDOS</option>
                                 </select>
                             </div>
                         </div>
@@ -174,25 +210,78 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                         <small><b>Dados Bancários:</b></small>
                         <div className='row'>
                             <div className="col-md-3">
-                                <Label>Banco</Label>
-                                <input type="text" value={banco} onChange={e => setBanco(e.target.value)} className='form-control' />
+                                <label>Tipo de depósito:</label>
+                                <select onChange={onChangeTipoPagamento} className='form-control'>
+                                    <option value="0">PIX</option>
+                                    <option value="1">Dados bancários</option>
+                                </select>
                             </div>
-                            <div className="col-md-2">
-                                <Label>Agência</Label>
-                                <input maxLength={4} type="text" value={agencia} onChange={e => setAgencia(e.target.value)} className='form-control' />
-                            </div>
+                            {!tipoPagamento && <>
+                                <div className="col-md-3">
+                                    <Label>Tipo Conta</Label>
+                                    <select name="" id="" className='form-control' value={tipoConta} onChange={e=> setTipoConta(e.target.value)}>
+                                        <option value="">Selecione</option>
+                                        <option value="CONTA CORRENTE">CONTA CORRENTE</option>
+                                        <option value="CONTA POUPANÇA">CONTA POUPANÇA</option>
+                                    </select>
+                                </div>
+                                <div className="col-md-3">
+                                    <Label>Banco</Label>
+                                    <input type="text" value={banco} onChange={e => setBanco(e.target.value)} className='form-control' />
+                                </div>
+                                <div className="col-md-2">
+                                    <Label>Agência</Label>
+                                    <input maxLength={6} type="text" value={agencia} onChange={e => setAgencia(e.target.value)} className='form-control' />
+                                </div>
+                                <div className="col-md-3">
+                                    <Label>Conta</Label>
+                                    <input maxLength={15} type="text" value={conta} onChange={e => setConta(e.target.value)} placeholder='Conta sem dígito' className='form-control' />
+                                </div>
+                                <div className="col-md-1">
+                                    <Label>Dígito</Label>
+                                    <input maxLength={15} type="text" value={digito} onChange={e => setDigito(e.target.value)} placeholder='Dígito' className='form-control' />
+                                </div>
+                            </>}
+                            {tipoPagamento && <>
+                                <div className="col-md-3">
+                                    <Label>Tipo Chave PIX</Label>
+                                    <select value={tipoChavePix} onChange={e => setTipoChavePix(e.target.value)} className='form-control'>
+                                        <option value="CPF">CPF</option>
+                                        <option value="CNPJ">CNPJ</option>
+                                        <option value="telefone">telefone</option>
+                                        <option value="e-mail">E-mail</option>
+                                        <option value="chave aleatória">Chave aleatória</option>
+                                    </select>
+                                </div>
+                                <div className="col-md-4">
+                                    <Label>Chave PIX</Label>
+                                    <input type="text" value={pix} onChange={e => setPIX(e.target.value)} placeholder='Chave PIX' className='form-control' />
+                                </div>
+                            </>}
+                        </div>
+                        <hr />
+                        <small><b>Dados Extras:</b></small>
+                        <div className="row">
                             <div className="col-md-3">
-                                <Label>Conta</Label>
-                                <input maxLength={15} type="text" value={conta} onChange={e => setConta(e.target.value)} placeholder='Conta sem dígito' className='form-control' />
+                                <Label>Telefone De Contato</Label>
+                                <input className='form-control' maxLength={15} value={(Mascara.telefone(telefone))} placeholder='(__) _____-____' onChange={e => setTelefone(e.target.value)} type="text" name="" id="" />
                             </div>
-                            <div className="col-md-1">
-                                <Label>Dígito</Label>
-                                <input maxLength={15} type="text" value={digito} onChange={e => setDigito(e.target.value)} placeholder='Dígito' className='form-control' />
-                            </div>
+                        </div>
+                        <hr />
+                        <small><b>Anexos:</b></small>
+                        <div className="row">
                             <div className="col-md-3">
-                                <Label>Chave PIX</Label>
-                                <input type="text" value={pix} onChange={e => setPIX(e.target.value)} placeholder='Chave PIX' className='form-control' />
+                                <button type='button' onClick={() => document.getElementById('anexo').click()} className='btn btn-primary'>Novo Anexo <FiPaperclip size={Size.IconeTabela} /></button>
+                                <input onChange={handleAnexoChange} type="file" style={{ display: 'none' }} id='anexo' />
+                                <br />
+                                {anexos.map((anexo, i) => (
+                                    <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 5 }}>
+                                        {anexo.fileName}
+                                        <button type='button' onClick={e => RemoverAnexo(i)} className='btn btn-primary'><FaTrash size={Size.IconePequeno} /></button>
+                                    </div>
+                                ))}
                             </div>
+
                         </div>
                         <hr />
                         <div className='row'>

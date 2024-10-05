@@ -15,7 +15,17 @@ namespace AASPA.Repository
         {
         }
 
-        
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<LogAlteracaoDb>(entity =>
+            {
+                entity.Property(e => e.log_tipo)
+                      .HasConversion<int>();
+            });
+
+            base.OnModelCreating(modelBuilder);
+        }
+
         public DbSet<UsuarioDb> usuarios { get; set; }
         public DbSet<HistoricoContatosOcorrenciaDb> historico_contatos_ocorrencia { get; set; }
         public DbSet<OrigemDb> origem { get; set; }
@@ -37,6 +47,8 @@ namespace AASPA.Repository
         public DbSet<CodigoRetornoDb> codigo_retorno { get; set; }
         public DbSet<SolicitacaoReembolsoDb> solicitacaoreembolso { get; set; }
         public DbSet<ElegivelReembolsoDb> elegivelreembolso { get; set; }
+        public DbSet<AnexosDb> anexos { get; set; }
+        public DbSet<LogAlteracaoDb> log_alteracao { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

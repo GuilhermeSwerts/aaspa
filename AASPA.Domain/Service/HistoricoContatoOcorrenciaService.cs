@@ -1,11 +1,15 @@
 ﻿using AASPA.Domain.Interface;
+using AASPA.Domain.Util;
 using AASPA.Models.Enum;
 using AASPA.Models.Requests;
 using AASPA.Models.Response;
 using AASPA.Repository;
 using AASPA.Repository.Maps;
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,52 +19,102 @@ namespace AASPA.Domain.Service
     public class HistoricoContatoOcorrenciaService : IHistoricoContatoOcorrencia
     {
         private readonly MysqlContexto _mysql;
+        private readonly ILog _log;
 
-        public HistoricoContatoOcorrenciaService(MysqlContexto mysql)
+        public HistoricoContatoOcorrenciaService(MysqlContexto mysql, ILog log)
         {
             _mysql = mysql;
+            _log = log;
         }
 
         public object BuscarTodosContatoOcorrencia(int clienteId)
         {
-            return (from hit in _mysql.historico_contatos_ocorrencia
-                    join ori in _mysql.origem on hit.historico_contatos_ocorrencia_origem_id equals ori.origem_id
-                    join mot in _mysql.motivo_contato on hit.historico_contatos_ocorrencia_motivo_contato_id equals mot.motivo_contato_id
-                    where hit.historico_contatos_ocorrencia_cliente_id == clienteId
-                    select new HistoricoContatoOcorrenciaResponse
-                    {
-                        DataHoraOcorrencia = hit.historico_contatos_ocorrencia_dt_ocorrencia.ToString("dd/MM/yyyy HH:mm:ss"),
-                        MotivoDoContato = mot.motivo_contato_nome,
-                        Origem = ori.origem_nome,
-                        SituacaoOcorrencia = hit.historico_contatos_ocorrencia_situacao_ocorrencia,
-                        DescricaoDaOcorrência = hit.historico_contatos_ocorrencia_descricao,
-                        Id = hit.historico_contatos_ocorrencia_id,
-                        Agencia = hit.historico_contatos_ocorrencia_agencia,
-                        Banco = hit.historico_contatos_ocorrencia_banco,
-                        Conta = hit.historico_contatos_ocorrencia_conta,
-                        Digito = hit.historico_contatos_ocorrencia_digito,
-                        Pix = hit.historico_contatos_ocorrencia_chave_pix
-                    }).ToList().OrderByDescending(x => x.DataHoraOcorrencia);
+            var resultado = (from hit in _mysql.historico_contatos_ocorrencia
+                             join ori in _mysql.origem on hit.historico_contatos_ocorrencia_origem_id equals ori.origem_id
+                             join mot in _mysql.motivo_contato on hit.historico_contatos_ocorrencia_motivo_contato_id equals mot.motivo_contato_id
+                             join usu in _mysql.usuarios on hit.historico_contatos_ocorrencia_usuario_fk equals usu.usuario_id into usuario
+                             from usu in usuario.DefaultIfEmpty()
+                             where hit.historico_contatos_ocorrencia_cliente_id == clienteId && hit.historico_contatos_ocorrencia_ativo
+                             select new HistoricoContatoOcorrenciaResponse
+                             {
+                                 DataHoraOcorrencia = hit.historico_contatos_ocorrencia_dt_ocorrencia.ToString("dd/MM/yyyy HH:mm:ss"),
+                                 MotivoDoContato = mot.motivo_contato_nome,
+                                 Origem = ori.origem_nome,
+                                 SituacaoOcorrencia = hit.historico_contatos_ocorrencia_situacao_ocorrencia,
+                                 DescricaoDaOcorrência = hit.historico_contatos_ocorrencia_descricao,
+                                 Id = hit.historico_contatos_ocorrencia_id,
+                                 Agencia = hit.historico_contatos_ocorrencia_agencia == null ? "-" : hit.historico_contatos_ocorrencia_agencia,
+                                 Banco = hit.historico_contatos_ocorrencia_banco == null ? "-" : hit.historico_contatos_ocorrencia_banco,
+                                 Conta = hit.historico_contatos_ocorrencia_conta == null ? "-" : hit.historico_contatos_ocorrencia_conta,
+                                 Digito = hit.historico_contatos_ocorrencia_digito == null ? "-" : hit.historico_contatos_ocorrencia_digito,
+                                 Pix = hit.historico_contatos_ocorrencia_chave_pix == null ? "-" : hit.historico_contatos_ocorrencia_chave_pix,
+                                 Usuario = usu != null ? usu.usuario_nome : "",
+                             }).ToList().OrderByDescending(x => x.DataHoraOcorrencia);
+
+            foreach (var item in resultado)
+            {
+                item.UltimoUsuario = BuscarNomeUltimoUsuario(item.Id);
+            }
+
+            return resultado;
+        }
+
+        private string BuscarNomeUltimoUsuario(int hstId)
+        {
+            var usu = _mysql.log_alteracao.Where(x => x.log_id_tabela_fk == hstId).ToList();
+
+            if (usu.Count == 0) return "";
+
+            var ultimo = usu.OrderByDescending(x => x.log_id).FirstOrDefault();
+
+            if (ultimo == null) return "";
+
+            return _mysql.usuarios.FirstOrDefault(x => x.usuario_id == ultimo.log_usuario_fk).usuario_nome;
         }
 
         public object BuscarContatoOcorrenciaById(int historicoContatosOcorrenciaId)
         {
-            return _mysql.historico_contatos_ocorrencia
-                .FirstOrDefault(x => x.historico_contatos_ocorrencia_id == historicoContatosOcorrenciaId)
+            var hst = _mysql.historico_contatos_ocorrencia
+                .FirstOrDefault(x => x.historico_contatos_ocorrencia_id == historicoContatosOcorrenciaId && x.historico_contatos_ocorrencia_ativo)
                 ?? throw new Exception($"Contato Historico do id: {historicoContatosOcorrenciaId} não encontrado");
+
+            var anexos = _mysql.anexos.Where(x => x.anexo_historico_contato_fk == hst.historico_contatos_ocorrencia_id).ToList();
+
+            return new
+            {
+                hst.historico_contatos_ocorrencia_id,
+                hst.historico_contatos_ocorrencia_origem_id,
+                hst.historico_contatos_ocorrencia_cliente_id,
+                hst.historico_contatos_ocorrencia_motivo_contato_id,
+                hst.historico_contatos_ocorrencia_dt_ocorrencia,
+                hst.historico_contatos_ocorrencia_descricao,
+                hst.historico_contatos_ocorrencia_situacao_ocorrencia,
+                hst.historico_contatos_ocorrencia_dt_cadastro,
+                hst.historico_contatos_ocorrencia_banco,
+                hst.historico_contatos_ocorrencia_agencia,
+                hst.historico_contatos_ocorrencia_conta,
+                hst.historico_contatos_ocorrencia_digito,
+                hst.historico_contatos_ocorrencia_chave_pix,
+                hst.historico_contatos_ocorrencia_tipo_chave_pix,
+                hst.historico_contatos_ocorrencia_telefone,
+                hst.historico_contatos_ocorrencia_tipo_conta,
+                anexos
+            };
         }
 
-        public void DeletarContatoOcorrencia(int historicoContatosOcorrenciaId)
+        public void DeletarContatoOcorrencia(int historicoContatosOcorrenciaId, int usuarioId)
         {
             var contatoOcorrencia = _mysql.historico_contatos_ocorrencia
                 .FirstOrDefault(x => x.historico_contatos_ocorrencia_id == historicoContatosOcorrenciaId)
                 ?? throw new Exception($"Contato Historico do id: {historicoContatosOcorrenciaId} não encontrado");
 
-            _mysql.historico_contatos_ocorrencia.Remove(contatoOcorrencia);
+            _log.NovaAlteracao("Exclusão Do Atendimento", "", usuarioId, ETipoLog.Atendimento, contatoOcorrencia.historico_contatos_ocorrencia_id);
+            contatoOcorrencia.historico_contatos_ocorrencia_ativo = false;
+
             _mysql.SaveChanges();
         }
 
-        public void EditarContatoOcorrencia(HistoricoContatosOcorrenciaRequest historicoContatos)
+        public void EditarContatoOcorrencia(HistoricoContatosOcorrenciaRequest historicoContatos, int usuarioLogadoId)
         {
             using var tran = _mysql.Database.BeginTransaction();
             try
@@ -69,17 +123,64 @@ namespace AASPA.Domain.Service
                     .FirstOrDefault(x => x.historico_contatos_ocorrencia_id == historicoContatos.HistoricoContatosOcorrenciaId)
                     ?? throw new Exception($"Contato Historico do id: {historicoContatos.HistoricoContatosOcorrenciaId} não encontrado");
 
+                var old = JsonConvert.DeserializeObject<HistoricoContatosOcorrenciaDb>(JsonConvert.SerializeObject(contatoOcorrencia));
+
                 contatoOcorrencia.historico_contatos_ocorrencia_descricao = historicoContatos.HistoricoContatosOcorrenciaDescricao;
-                contatoOcorrencia.historico_contatos_ocorrencia_dt_cadastro = DateTime.Now;
                 contatoOcorrencia.historico_contatos_ocorrencia_dt_ocorrencia = historicoContatos.HistoricoContatosOcorrenciaDtOcorrencia;
                 contatoOcorrencia.historico_contatos_ocorrencia_motivo_contato_id = historicoContatos.HistoricoContatosOcorrenciaMotivoContatoId;
                 contatoOcorrencia.historico_contatos_ocorrencia_origem_id = historicoContatos.HistoricoContatosOcorrenciaOrigemId;
                 contatoOcorrencia.historico_contatos_ocorrencia_situacao_ocorrencia = historicoContatos.HistoricoContatosOcorrenciaSituacaoOcorrencia.ToUpper();
-                contatoOcorrencia.historico_contatos_ocorrencia_banco = historicoContatos.HistoricoContatosOcorrenciaBanco;
-                contatoOcorrencia.historico_contatos_ocorrencia_agencia = historicoContatos.HistoricoContatosOcorrenciaAgencia;
-                contatoOcorrencia.historico_contatos_ocorrencia_conta = historicoContatos.HistoricoContatosOcorrenciaConta;
-                contatoOcorrencia.historico_contatos_ocorrencia_digito = historicoContatos.HistoricoContatosOcorrenciaDigito;
-                contatoOcorrencia.historico_contatos_ocorrencia_chave_pix = historicoContatos.HistoricoContatosOcorrenciaPix;
+                contatoOcorrencia.historico_contatos_ocorrencia_banco = historicoContatos.HistoricoContatosOcorrenciaBanco != null ? historicoContatos.HistoricoContatosOcorrenciaBanco.Replace("null", "") : "";
+                contatoOcorrencia.historico_contatos_ocorrencia_agencia = historicoContatos.HistoricoContatosOcorrenciaAgencia != null ? historicoContatos.HistoricoContatosOcorrenciaAgencia.Replace("null", "") : "";
+                contatoOcorrencia.historico_contatos_ocorrencia_conta = historicoContatos.HistoricoContatosOcorrenciaConta != null ? historicoContatos.HistoricoContatosOcorrenciaConta.Replace("null", "") : "";
+                contatoOcorrencia.historico_contatos_ocorrencia_digito = historicoContatos.HistoricoContatosOcorrenciaDigito != null ? historicoContatos.HistoricoContatosOcorrenciaDigito.Replace("null", "") : "";
+                contatoOcorrencia.historico_contatos_ocorrencia_chave_pix = historicoContatos.HistoricoContatosOcorrenciaPix != null ? historicoContatos.HistoricoContatosOcorrenciaPix.Replace("null", "") : "";
+                contatoOcorrencia.historico_contatos_ocorrencia_tipo_chave_pix = historicoContatos.HistoricoContatosOcorrenciaTipoChavePix != null ? historicoContatos.HistoricoContatosOcorrenciaTipoChavePix.Replace("null", "") : "";
+                contatoOcorrencia.historico_contatos_ocorrencia_telefone = historicoContatos.HistoricoContatosOcorrenciaTelefone != null ? historicoContatos.HistoricoContatosOcorrenciaTelefone.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "") : "";
+                contatoOcorrencia.historico_contatos_ocorrencia_tipo_conta = historicoContatos.HistoricoContatosOcorrenciaTipoConta != null ? historicoContatos.HistoricoContatosOcorrenciaTipoConta.Replace("null", "") : "";
+
+                var anexos = _mysql.anexos.Where(x => x.anexo_historico_contato_fk == contatoOcorrencia.historico_contatos_ocorrencia_id).ToList();
+                _mysql.anexos.RemoveRange(anexos);
+                var novosAnexos = new List<AnexosDb>();
+
+                if (historicoContatos.HistoricoContatosOcorrenciaAnexos != null)
+                {
+
+                    foreach (var item in historicoContatos.HistoricoContatosOcorrenciaAnexos)
+                    {
+                        novosAnexos.Add(new AnexosDb
+                        {
+                            anexo_anexo = ConverterArquivoParaBase64(item),
+                            anexo_historico_contato_fk = contatoOcorrencia.historico_contatos_ocorrencia_id,
+                            anexo_nome = item.FileName
+                        });
+                    }
+                    _mysql.anexos.AddRange(novosAnexos);
+                    _mysql.SaveChanges();
+                }
+
+                if (anexos.Count != novosAnexos.Count)
+                {
+                    bool adicionouArquivo = anexos.Count < novosAnexos.Count;
+                    if (adicionouArquivo)
+                    {
+                        var nomes = anexos.Select(x => x.anexo_nome).ToList();
+                        var lgAnexo = novosAnexos.Where(x => !nomes.Contains(x.anexo_nome)).Select(x => x.anexo_nome).ToList();
+                        _log.NovaAlteracao("Adicionado(s) Novo(s) Anexo(s)", $"Anexos Adicionados:\n {string.Join("\n ", lgAnexo)}", usuarioLogadoId, ETipoLog.Atendimento, contatoOcorrencia.historico_contatos_ocorrencia_id);
+                    }
+                    else
+                    {
+                        var nomes = novosAnexos.Select(x => x.anexo_nome).ToList();
+                        var lgAnexo = anexos.Where(x => !nomes.Contains(x.anexo_nome)).Select(x => x.anexo_nome).ToList();
+                        _log.NovaAlteracao("Removeu Anexo(s)", $"Anexos Removidos:\n {string.Join("\n ", lgAnexo)}", usuarioLogadoId, ETipoLog.Atendimento, contatoOcorrencia.historico_contatos_ocorrencia_id);
+
+                    }
+                }
+
+                var (CamposAlterados, Log) = Comparador.CompararObjetos(old, contatoOcorrencia);
+
+                if (CamposAlterados.Count > 0 && Log.Count > 0)
+                    _log.NovaAlteracao($"Alteração No Atendimento", string.Join("\n", Log), usuarioLogadoId, ETipoLog.Atendimento, contatoOcorrencia.historico_contatos_ocorrencia_id);
 
                 _mysql.SaveChanges();
                 tran.Commit();
@@ -90,13 +191,21 @@ namespace AASPA.Domain.Service
                 throw;
             }
         }
-
-        public void NovoContatoOcorrencia(HistoricoContatosOcorrenciaRequest historicoContatos)
+        public string ConverterArquivoParaBase64(IFormFile arquivo)
+        {
+            using (var memoryStream = new MemoryStream())
+            {
+                arquivo.CopyTo(memoryStream);
+                var bytes = memoryStream.ToArray();
+                return Convert.ToBase64String(bytes);
+            }
+        }
+        public void NovoContatoOcorrencia(HistoricoContatosOcorrenciaRequest historicoContatos, int usuarioId)
         {
             using var tran = _mysql.Database.BeginTransaction();
             try
             {
-                _mysql.historico_contatos_ocorrencia.Add(new Repository.Maps.HistoricoContatosOcorrenciaDb
+                var hst = new Repository.Maps.HistoricoContatosOcorrenciaDb
                 {
                     historico_contatos_ocorrencia_cliente_id = historicoContatos.HistoricoContatosOcorrenciaClienteId,
                     historico_contatos_ocorrencia_descricao = historicoContatos.HistoricoContatosOcorrenciaDescricao,
@@ -105,14 +214,36 @@ namespace AASPA.Domain.Service
                     historico_contatos_ocorrencia_motivo_contato_id = historicoContatos.HistoricoContatosOcorrenciaMotivoContatoId,
                     historico_contatos_ocorrencia_origem_id = historicoContatos.HistoricoContatosOcorrenciaOrigemId,
                     historico_contatos_ocorrencia_situacao_ocorrencia = historicoContatos.HistoricoContatosOcorrenciaSituacaoOcorrencia.ToUpper(),
-                    historico_contatos_ocorrencia_banco = historicoContatos.HistoricoContatosOcorrenciaBanco,
-                    historico_contatos_ocorrencia_agencia = historicoContatos.HistoricoContatosOcorrenciaAgencia,
-                    historico_contatos_ocorrencia_conta = historicoContatos.HistoricoContatosOcorrenciaConta,
-                    historico_contatos_ocorrencia_digito = historicoContatos.HistoricoContatosOcorrenciaDigito,
-                    historico_contatos_ocorrencia_chave_pix = historicoContatos.HistoricoContatosOcorrenciaPix
-                });
+                    historico_contatos_ocorrencia_banco = historicoContatos.HistoricoContatosOcorrenciaBanco != null ? historicoContatos.HistoricoContatosOcorrenciaBanco.Replace("null", "") : "",
+                    historico_contatos_ocorrencia_agencia = historicoContatos.HistoricoContatosOcorrenciaAgencia != null ? historicoContatos.HistoricoContatosOcorrenciaAgencia.Replace("null", "") : "",
+                    historico_contatos_ocorrencia_conta = historicoContatos.HistoricoContatosOcorrenciaConta != null ? historicoContatos.HistoricoContatosOcorrenciaConta.Replace("null", "") : "",
+                    historico_contatos_ocorrencia_digito = historicoContatos.HistoricoContatosOcorrenciaDigito != null ? historicoContatos.HistoricoContatosOcorrenciaDigito.Replace("null", "") : "",
+                    historico_contatos_ocorrencia_chave_pix = historicoContatos.HistoricoContatosOcorrenciaPix != null ? historicoContatos.HistoricoContatosOcorrenciaPix.Replace("null", "") : "",
+                    historico_contatos_ocorrencia_tipo_chave_pix = historicoContatos.HistoricoContatosOcorrenciaTipoChavePix != null ? historicoContatos.HistoricoContatosOcorrenciaTipoChavePix.Replace("null", "") : "",
+                    historico_contatos_ocorrencia_telefone = historicoContatos.HistoricoContatosOcorrenciaTelefone != null ? historicoContatos.HistoricoContatosOcorrenciaTelefone.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "") : "",
+                    historico_contatos_ocorrencia_usuario_fk = usuarioId,
+                    historico_contatos_ocorrencia_tipo_conta = historicoContatos.HistoricoContatosOcorrenciaTipoConta != null ? historicoContatos.HistoricoContatosOcorrenciaTipoConta.Replace("null", "")  : ""
+                };
 
+                _mysql.historico_contatos_ocorrencia.Add(hst);
                 _mysql.SaveChanges();
+
+                if (historicoContatos.HistoricoContatosOcorrenciaAnexos != null)
+                {
+                    foreach (var item in historicoContatos.HistoricoContatosOcorrenciaAnexos)
+                    {
+                        _mysql.anexos.Add(new AnexosDb
+                        {
+                            anexo_anexo = ConverterArquivoParaBase64(item),
+                            anexo_historico_contato_fk = hst.historico_contatos_ocorrencia_id,
+                            anexo_nome = item.FileName
+                        });
+                        _mysql.SaveChanges();
+                    }
+                }
+
+                _log.NovaAlteracao("Novo Atendimento", "-", usuarioId, ETipoLog.Atendimento, hst.historico_contatos_ocorrencia_id);
+
                 tran.Commit();
             }
             catch (Exception)
@@ -259,40 +390,73 @@ namespace AASPA.Domain.Service
 
             return CalcularPagina(todosClientes, request.PaginaAtual, totalClientes);
         }
-        public byte[] DownloadContatoFiltro((List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) clientesData)
+        public byte[] DownloadContatoFiltro()
         {
-            string texto = "#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO;STATUS_INTEGRAALL;MOTIVO_ATENDIMENTO;ORIGEM_ATENDIMENTO;DATA_ATENDIMENTO;DESCRICAO_ATENDIMENTO;DADOS_BANCARIOS_BANCO;DADOS_BANCARIOS_AGENCIA;DADOS_BANCARIOS_CONTA;DADOS_BANCARIOS_DIGITO;DADOS_BANCARIOS_CHAVE_PIX\n";
-            for (int i = 0; i < clientesData.Clientes.Count; i++)
+            var clientesData = (from cli in _mysql.clientes
+                                join hist in _mysql.historico_contatos_ocorrencia on cli.cliente_id equals hist.historico_contatos_ocorrencia_cliente_id
+                                join mot in _mysql.motivo_contato on hist.historico_contatos_ocorrencia_motivo_contato_id equals mot.motivo_contato_id
+                                join ori in _mysql.origem on hist.historico_contatos_ocorrencia_origem_id equals ori.origem_id
+                                join vin in _mysql.vinculo_cliente_captador on cli.cliente_id equals vin.vinculo_cliente_id
+                                join cap in _mysql.captadores on vin.vinculo_captador_id equals cap.captador_id
+                                select new BuscarClienteByIdResponse
+                                {
+                                    Cliente = cli,
+                                    Historico = hist,
+                                    Motivo =  mot,
+                                    Origem = ori,
+                                    Captador = cap,
+                                }).ToList();
+
+            var builder = new StringBuilder();
+
+            builder.AppendLine("#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO;STATUS_INTEGRAALL;MOTIVO_ATENDIMENTO;ORIGEM_ATENDIMENTO;DATA_ATENDIMENTO;DESCRICAO_ATENDIMENTO;DADOS_BANCARIOS_BANCO;DADOS_BANCARIOS_AGENCIA;DADOS_BANCARIOS_CONTA;DADOS_BANCARIOS_DIGITO;DADOS_BANCARIOS_CHAVE_PIX\n");
+            
+            for (int i = 0; i < clientesData.Count; i++)
             {
-                string na = "N/A";
-                var cliente = clientesData.Clientes[i];
-
+                var cliente = clientesData[i];
                 var dtAverbacao = cliente.Cliente.cliente_DataAverbacao.HasValue ? cliente.Cliente.cliente_DataAverbacao.Value.ToString("dd/MM/yyyy hh:mm:ss:") : "";
-
-                texto += $"{cliente.Cliente.cliente_id};{cliente.Cliente.cliente_cpf};{cliente.Cliente.cliente_nome};{cliente.Cliente.cliente_cep};{cliente.Cliente.cliente_logradouro};{cliente.Cliente.cliente_bairro};{cliente.Cliente.cliente_localidade};{cliente.Cliente.cliente_uf};{cliente.Cliente.cliente_numero.Replace(";", "")};{cliente.Cliente.cliente_complemento};{cliente.Cliente.cliente_dataNasc};{cliente.Cliente.cliente_dataCadastro};{cliente.Cliente.cliente_nrDocto};{cliente.Cliente.cliente_empregador};{cliente.Cliente.cliente_matriculaBeneficio};{cliente.Cliente.cliente_nomeMae};{cliente.Cliente.cliente_nomePai};{cliente.Cliente.cliente_telefoneFixo};{cliente.Cliente.cliente_telefoneCelular};{cliente.Cliente.cliente_possuiWhatsapp};{cliente.Cliente.cliente_funcaoAASPA};{cliente.Cliente.cliente_email};{cliente.Cliente.cliente_situacao};{cliente.Cliente.cliente_estado_civil};{cliente.Cliente.cliente_sexo};{cliente.Cliente.cliente_remessa_id ?? 0};{cliente.Captador.captador_nome};{cliente.Captador.captador_cpf_cnpj};{cliente.Captador.captador_descricao};{dtAverbacao};{cliente.Cliente.cliente_StatusIntegral}";
-
-                if (cliente.Motivo != null)
-                {
-                    texto += $";{cliente.Motivo.motivo_contato_nome}";
-                }
-                else texto += ";;";
-
-                if (cliente.Origem != null)
-                {
-                    texto += $";{cliente.Origem.origem_nome}";
-                }
-                else texto += ";;";
-
-                if (cliente.Historico != null)
-                {
-                    texto += $";{cliente.Historico.historico_contatos_ocorrencia_dt_ocorrencia};{cliente.Historico.historico_contatos_ocorrencia_descricao};{cliente.Historico.historico_contatos_ocorrencia_banco};{cliente.Historico.historico_contatos_ocorrencia_agencia};{cliente.Historico.historico_contatos_ocorrencia_conta};{cliente.Historico.historico_contatos_ocorrencia_digito};{cliente.Historico.historico_contatos_ocorrencia_chave_pix}";
-                }
-                else texto += ";;;;;;";
-
-                texto += "\n";
+                var motivoNome = cliente.Motivo != null ? cliente.Motivo.motivo_contato_nome : ";;";
+                var origem = (cliente.Origem != null && !string.IsNullOrEmpty(cliente.Origem.origem_nome)) ? cliente.Origem.origem_nome : ";;";
+                var remessa = cliente.Cliente.cliente_remessa_id ?? 0;
+            var historico = cliente.Historico != null ? $"{cliente.Historico.historico_contatos_ocorrencia_dt_ocorrencia};{cliente.Historico.historico_contatos_ocorrencia_descricao};{cliente.Historico.historico_contatos_ocorrencia_banco};{cliente.Historico.historico_contatos_ocorrencia_agencia};{cliente.Historico.historico_contatos_ocorrencia_conta};{cliente.Historico.historico_contatos_ocorrencia_digito};{cliente.Historico.historico_contatos_ocorrencia_chave_pix}" : ";;;;;;";
+                builder.AppendLine(
+                    $"{cliente.Cliente.cliente_id};" +
+                    $"{cliente.Cliente.cliente_cpf};" +
+                    $"{cliente.Cliente.cliente_nome};" +
+                    $"{cliente.Cliente.cliente_cep};" +
+                    $"{cliente.Cliente.cliente_logradouro};" +
+                    $"{cliente.Cliente.cliente_bairro};" +
+                    $"{cliente.Cliente.cliente_localidade};" +
+                    $"{cliente.Cliente.cliente_uf};" +
+                    $"{cliente.Cliente.cliente_numero.Replace(";", "")};" +
+                    $"{cliente.Cliente.cliente_complemento};" +
+                    $"{cliente.Cliente.cliente_dataNasc};" +
+                    $"{cliente.Cliente.cliente_dataCadastro};" +
+                    $"{cliente.Cliente.cliente_nrDocto};" +
+                    $"{cliente.Cliente.cliente_empregador};" +
+                    $"{cliente.Cliente.cliente_matriculaBeneficio};" +
+                    $"{cliente.Cliente.cliente_nomeMae};" +
+                    $"{cliente.Cliente.cliente_nomePai};" +
+                    $"{cliente.Cliente.cliente_telefoneFixo};" +
+                    $"{cliente.Cliente.cliente_telefoneCelular};" +
+                    $"{cliente.Cliente.cliente_possuiWhatsapp};" +
+                    $"{cliente.Cliente.cliente_funcaoAASPA};" +
+                    $"{cliente.Cliente.cliente_email};" +
+                    $"{cliente.Cliente.cliente_situacao};" +
+                    $"{cliente.Cliente.cliente_estado_civil};" +
+                    $"{cliente.Cliente.cliente_sexo};" +
+                    $"{remessa};" +
+                    $"{cliente.Captador.captador_nome};" +
+                    $"{cliente.Captador.captador_cpf_cnpj};" +
+                    $"{cliente.Captador.captador_descricao};" +
+                    $"{dtAverbacao};" +
+                    $"{cliente.Cliente.cliente_StatusIntegral};" +
+                    $"{motivoNome};" +
+                    $"{origem};" +
+                    $"{historico}");
             }
 
-            byte[] fileBytes = Encoding.Latin1.GetBytes(texto);
+            byte[] fileBytes = Encoding.Latin1.GetBytes(builder.ToString());
             return fileBytes;
         }
         private (List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) CalcularPagina(List<BuscarClienteByIdResponse> todosClientes, int? paginaAtual, int totalClientes)

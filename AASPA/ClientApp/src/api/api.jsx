@@ -93,5 +93,5 @@ export default class Api {
     }
 }
 
-//export const api = new Api('https://adm.aaspa.org.br');
-export const api = new Api('https://localhost:5001');
+export const api = new Api('https://adm.aaspa.org.br');
+  //export const api = new Api('https://localhost:44326');

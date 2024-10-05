@@ -1,17 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Row, Col, Modal, ModalBody, ModalFooter, ModalHeader, Form, FormGroup, Label, Input, Button } from 'reactstrap';
 import { api } from '../../api/api';
 import { Mascara } from '../../util/mascara';
-import { FaPencil, FaPlus } from 'react-icons/fa6';
+import { FaPencil, FaEye, FaPlus } from 'react-icons/fa6';
 import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { Alert } from '../../util/alertas';
 import { Size } from '../../util/size';
+import { FaTrash } from 'react-icons/fa6';
+import { FiPaperclip } from 'react-icons/fi';
+import ModalVisualizarAnexo from './modalVisualizarAnexo';
 
 function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = null, HistoricoId }) {
+    const modalAnexo = useRef();
     const [show, setShow] = useState(false);
     const [origens, setOrigens] = useState([]);
     const [motivos, setMotivos] = useState([]);
-
+    const [telefone, setTelefone] = useState("");
     const [dtOcorrencia, setDtOcorrencia] = useState('');
     const [origem, setOrigem] = useState();
     const [motivo, setMotivo] = useState();
@@ -22,7 +26,16 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
     const [conta, setConta] = useState("");
     const [digito, setDigito] = useState("");
     const [pix, setPIX] = useState("");
+    const [tipoChavePix, setTipoChavePix] = useState("CPF");
+    const [tipoPagamento, setTipoPagamento] = useState(true);
+    const [tipoConta, setTipoConta] = useState("");
+    const [tipoDeposito, setTipoDeposito] = useState("0");
+    const [anexos, setAnexos] = useState([]);
 
+    const onChangeTipoPagamento = e => {
+        setTipoPagamento(e.target.value === "0");
+        setTipoDeposito(e.target.value);
+    }
     const initState = () => {
         setDtOcorrencia('');
         setOrigem(origens[0]);
@@ -33,7 +46,12 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         setAgencia("");
         setConta("");
         setDigito("");
-        setPIX("")
+        setPIX("");
+        setTipoChavePix("CPF");
+        setTipoPagamento(true);
+        setTelefone("");
+        setTipoConta("");
+        setTipoDeposito("0");
     }
 
     const BuscarMotivos = () => {
@@ -54,6 +72,20 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         })
     }
 
+    function base64ToFile(base64String, fileName, mimeType) {
+        const byteString = window.atob(base64String);
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+
+        for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+        }
+
+        const blob = new Blob([ab], { type: mimeType });
+
+        return new File([blob], fileName, { type: mimeType });
+    }
+
     const handdleSubmit = (e) => {
         const formData = new FormData();
 
@@ -69,6 +101,18 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         formData.append("HistoricoContatosOcorrenciaConta", conta)
         formData.append("HistoricoContatosOcorrenciaDigito", digito)
         formData.append("HistoricoContatosOcorrenciaPix", pix)
+        formData.append("HistoricoContatosOcorrenciaTipoChavePix", tipoChavePix)
+        formData.append("HistoricoContatosOcorrenciaTelefone", telefone)
+        formData.append("HistoricoContatosOcorrenciaTipoConta", tipoConta)
+
+        for (const file of anexos) {
+            if (file.existente) {
+                let blob = base64ToFile(file.file, file.fileName, file.fileName.includes(".pdf") ? 'application/pdf' : 'image/png');
+                formData.append('HistoricoContatosOcorrenciaAnexos', blob, file.fileName);
+            } else {
+                formData.append('HistoricoContatosOcorrenciaAnexos', file.file, file.fileName)
+            }
+        }
 
         api.post("EditarContatoOcorrencia", formData, res => {
             initState();
@@ -96,10 +140,53 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
             setConta(res.data.historico_contatos_ocorrencia_conta);
             setDigito(res.data.historico_contatos_ocorrencia_digito);
             setPIX(res.data.historico_contatos_ocorrencia_chave_pix);
-            setShow(true)
+            setTipoChavePix(res.data.historico_contatos_ocorrencia_tipo_chave_pix);
+            setTelefone(res.data.historico_contatos_ocorrencia_telefone);
+            setTipoConta(res.data.historico_contatos_ocorrencia_tipo_conta);
+            const isPix = !(res.data.historico_contatos_ocorrencia_banco !== "" && res.data.historico_contatos_ocorrencia_agencia !== "" && res.data.historico_contatos_ocorrencia_conta !== "" && res.data.historico_contatos_ocorrencia_digito !== "");
+            setTipoPagamento(isPix)
+            setTipoDeposito(isPix ? "0" : "1");
+
+            let arquivos = [];
+            res.data.anexos.forEach(anexo => {
+                arquivos.push({ file: anexo.anexo_anexo, fileName: anexo.anexo_nome, existente: true });
+            });
+
+            setAnexos(arquivos);
+
+            setShow(true);
         }, err => {
             Alert('houve um erro ao buscar o Contato/Ocorrencia do id:' + HistoricoId, false)
         })
+    }
+
+    const RemoverAnexo = (index) => {
+        var arry = [...anexos];
+        arry.splice(index, 1);
+        setAnexos(arry);
+    }
+
+    const handleAnexoChange = (event) => {
+        const file = event.target.files[0];
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+        if (file && allowedTypes.includes(file.type)) {
+            const novoAnexo = { file: file, fileName: file.name };
+            let arry = [...anexos];
+            arry.push(novoAnexo);
+            setAnexos(arry);
+        } else {
+            alert('Somente arquivos PDF ou imagens (JPG, PNG) são permitidos.');
+        }
+    };
+
+    const VisualizarAnexo = (index) => {
+        var anexo = anexos[index];
+        let obj = {
+            anexo_nome: anexo.fileName,
+            anexo_anexo: anexo.file,
+            anexo_tipo: anexo.fileName.includes('.pdf')
+        }
+        modalAnexo.current.VisualizarAnexo(obj);
     }
 
     return (
@@ -108,10 +195,11 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                 onClick={handleOpenModal}
                 className='btn btn-warning'
                 text={'Editar Atendimento'}
-                top={false}
+                top={true}
                 textButton={<FaPencil size={Size.IconeTabela} />}
             />
             <Modal isOpen={show} style={{ maxWidth: '80%', margin: '0 auto' }}>
+                <ModalVisualizarAnexo ref={modalAnexo} />
                 <form onSubmit={e => { e.preventDefault(); handdleSubmit(e) }}>
                     <ModalHeader>
                         Editar Atendimento
@@ -159,6 +247,8 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                                     <option value="EM TRATAMENTO">EM TRATAMENTO</option>
                                     <option value="CANCELADA">CANCELADA</option>
                                     <option value="FINALIZADO">FINALIZADO</option>
+                                    <option value="REEMBOLSO AGENDADO">REEMBOLSO AGENDADO</option>
+                                    <option value="DADOS INVALIDOS">DADOS INVALIDOS</option>
                                 </select>
                             </div>
                         </div>
@@ -166,25 +256,81 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                         <small><b>Dados Bancários:</b></small>
                         <div className='row'>
                             <div className="col-md-3">
-                                <Label>Banco</Label>
-                                <input type="text" value={banco} onChange={e => setBanco(e.target.value)} className='form-control' />
+                                <label>Tipo de depósito:</label>
+                                <select value={tipoDeposito} onChange={onChangeTipoPagamento} className='form-control'>
+                                    <option value="0">PIX</option>
+                                    <option value="1">Dados bancários</option>
+                                </select>
                             </div>
-                            <div className="col-md-2">
-                                <Label>Agência</Label>
-                                <input maxLength={4} type="text" value={agencia} onChange={e => setAgencia(e.target.value)} className='form-control' />
-                            </div>
+                            {!tipoPagamento && <>
+                                <div className="col-md-3">
+                                    <Label>Tipo Conta</Label>
+                                    <select name="" id="" className='form-control' value={tipoConta} onChange={e => setTipoConta(e.target.value)}>
+                                        <option value="">Selecione</option>
+                                        <option value="CONTA CORRENTE">CONTA CORRENTE</option>
+                                        <option value="CONTA POUPANÇA">CONTA POUPANÇA</option>
+                                    </select>
+                                </div>
+                                <div className="col-md-3">
+                                    <Label>Banco</Label>
+                                    <input type="text" value={banco} onChange={e => setBanco(e.target.value)} className='form-control' />
+                                </div>
+                                <div className="col-md-2">
+                                    <Label>Agência</Label>
+                                    <input maxLength={6} type="text" value={agencia} onChange={e => setAgencia(e.target.value)} className='form-control' />
+                                </div>
+                                <div className="col-md-3">
+                                    <Label>Conta</Label>
+                                    <input maxLength={15} type="text" value={conta} onChange={e => setConta(e.target.value)} placeholder='Conta sem dígito' className='form-control' />
+                                </div>
+                                <div className="col-md-1">
+                                    <Label>Dígito</Label>
+                                    <input maxLength={15} type="text" value={digito} onChange={e => setDigito(e.target.value)} placeholder='Dígito' className='form-control' />
+                                </div>
+                            </>}
+                            {tipoPagamento && <>
+                                <div className="col-md-3">
+                                    <Label>Tipo Chave PIX</Label>
+                                    <select value={tipoChavePix} onChange={e => setTipoChavePix(e.target.value)} className='form-control'>
+                                        <option value="CPF">CPF</option>
+                                        <option value="CNPJ">CNPJ</option>
+                                        <option value="telefone">telefone</option>
+                                        <option value="e-mail">E-mail</option>
+                                        <option value="chave aleatória">Chave aleatória</option>
+                                    </select>
+                                </div>
+                                <div className="col-md-4">
+                                    <Label>Chave PIX</Label>
+                                    <input type="text" value={pix} onChange={e => setPIX(e.target.value)} placeholder='Chave PIX' className='form-control' />
+                                </div>
+                            </>}
+                        </div>
+                        <hr />
+                        <small><b>Dados Extras:</b></small>
+                        <div className="row">
                             <div className="col-md-3">
-                                <Label>Conta</Label>
-                                <input maxLength={15} type="text" value={conta} onChange={e => setConta(e.target.value)} placeholder='Conta sem dígito' className='form-control' />
+                                <Label>Telefone De Contato</Label>
+                                <input className='form-control' maxLength={15} value={(Mascara.telefone(telefone))} placeholder='(__) _____-____' onChange={e => setTelefone(e.target.value)} type="text" name="" id="" />
                             </div>
-                            <div className="col-md-1">
-                                <Label>Dígito</Label>
-                                <input maxLength={15} type="text" value={digito} onChange={e => setDigito(e.target.value)} placeholder='Dígito' className='form-control' />
+                        </div>
+                        <hr />
+                        <small>Anexos:</small>
+                        <div className="row">
+                            <div className="col-md-4">
+                                <button type='button' onClick={() => document.getElementById('anexo').click()} className='btn btn-primary'>Novo Anexo <FiPaperclip size={Size.IconeTabela} /></button>
+                                <input onChange={handleAnexoChange} type="file" style={{ display: 'none' }} id='anexo' />
+                                <br />
+                                {anexos.map((anexo, i) => (
+                                    <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 5 }}>
+                                        {anexo.fileName}
+                                        <div style={{ gap: 5, display: 'flex', justifyContent: 'center', alignItems: 'center', }}>
+                                            {anexo.existente && <button type='button' onClick={e => VisualizarAnexo(i)} className='btn btn-primary'><FaEye size={Size.IconePequeno} /></button>}
+                                            <button type='button' onClick={e => RemoverAnexo(i)} className='btn btn-primary'><FaTrash size={Size.IconePequeno} /></button>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                            <div className="col-md-3">
-                                <Label>Chave PIX</Label>
-                                <input type="text" value={pix} onChange={e => setPIX(e.target.value)} placeholder='Chave PIX' className='form-control' />
-                            </div>
+
                         </div>
                         <hr />
                         <div className='row'>
@@ -196,7 +342,7 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                     </ModalBody>
                     <ModalFooter>
                         <button type='button' onClick={() => { initState(); setShow(false) }} className='btn btn-danger'>Fechar</button>
-                        <button type='submit' className='btn btn-primary'>Salvar</button>
+                        <button type='submit' className='btn btn-primary'>Salvar Alterações</button>
                     </ModalFooter>
                 </form>
             </Modal>

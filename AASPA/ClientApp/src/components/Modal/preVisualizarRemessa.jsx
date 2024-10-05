@@ -5,6 +5,7 @@ import { TbZoomMoney } from 'react-icons/tb';
 import { RiChatHistoryLine } from 'react-icons/ri';
 import { FaDownload, FaUserEdit } from 'react-icons/fa';
 import { Alert } from '../../util/alertas';
+import { Paginacao } from '../Paginacao/Paginacao';
 
 
 class PreVisualizarRemessa extends Component {
@@ -19,11 +20,15 @@ class PreVisualizarRemessa extends Component {
             currentPage: 1,
             clientesPerPage: 10,
             dateInit: '',
-            dateFim: ''
+            dateFim: '',
+            anoSelecionado: '',
+            mesSelecionado: '',
+            offset: 0,
+            limit: 10,
         };
-        this.Show = (dateInit, dateFim, anoSelecionado, mesSelecionado) => {
-            api.get(`BuscarTodosClientes?dateInitAverbacao=${dateInit}&dateEndAverbacao=${dateFim}`, res => {
-                this.setState({ clientes: res.data.clientes, qtdClientes: res.data.totalClientes });
+        this.Show = (dateInit, dateFim, anoSelecionado, mesSelecionado, paginaAtual = 1) => {
+            api.get(`PreVisualizar?DateInit=${dateInit}&DateEnd=${dateFim}&PaginaAtual=${paginaAtual}&QtdPorPagina=${this.state.limit}`, res => {
+                this.setState({ clientes: res.data.clientes, qtdClientes: res.data.totalClientes, dateInit, dateFim, anoSelecionado, mesSelecionado });
             }, err => {
                 Alert("Houve um erro ao buscar clientes.", false);
             });
@@ -44,15 +49,12 @@ class PreVisualizarRemessa extends Component {
     }
 
     render() {
-        const { ano, mes, clientes, currentPage, clientesPerPage, qtdClientes } = this.state;
+        const { ano, mes, clientes, qtdClientes, limit, offset, totalClientes, dateInit, dateFim, anoSelecionado, mesSelecionado } = this.state;
 
-        // Calcular índice dos itens a serem exibidos na página atual
-        const indexOfLastClient = currentPage * clientesPerPage;
-        const indexOfFirstClient = indexOfLastClient - clientesPerPage;
-        const currentClients = clientes.slice(indexOfFirstClient, indexOfLastClient);
+        const setOffset = (value) => { this.setState({ offset: value }) }
+        const setLimit = (value) => { this.setState({ limit: value }) }
 
-        // Calcular o número total de páginas
-        const totalPages = Math.ceil(clientes.length / clientesPerPage);
+        const BuscarTodosClientes = (pagina) => this.Show(dateInit, dateFim, anoSelecionado, mesSelecionado, pagina);
 
         return (
             <div style={{ display: this.state.show ? 'block' : 'none' }} className='previsualizar-container'>
@@ -73,42 +75,31 @@ class PreVisualizarRemessa extends Component {
                             <th>Telefone(Celular)</th>
                             <th>Data Averbação</th>
                             <th>Data Cadastro</th>
-                            <th>Status Atual</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {currentClients.map((cliente) => (
-                            <tr className='selecao' key={cliente.cliente.cliente_id}>
-                                <td>{cliente.cliente.cliente_id}</td>
-                                <td>{Mascara.cpf(cliente.cliente.cliente_cpf)}</td>
-                                <td>{cliente.cliente.cliente_matriculaBeneficio}</td>
-                                <td>{cliente.cliente.cliente_nome}</td>
-                                <td>{Mascara.telefone(cliente.cliente.cliente_telefoneCelular)}</td>
-                                <td>{Mascara.data(cliente.cliente.cliente_DataAverbacao)}</td>
-                                <td>{Mascara.data(cliente.cliente.cliente_dataCadastro)}</td>
-                                <td>{cliente.statusAtual.status_nome}</td>
+                        {clientes.map((cliente) => (
+                            <tr className='selecao' key={cliente.cliente_id}>
+                                <td>{cliente.cliente_id}</td>
+                                <td>{Mascara.cpf(cliente.cliente_cpf)}</td>
+                                <td>{cliente.cliente_matriculaBeneficio}</td>
+                                <td>{cliente.cliente_nome}</td>
+                                <td>{Mascara.telefone(cliente.cliente_telefoneCelular)}</td>
+                                <td>{Mascara.data(cliente.cliente_DataAverbacao)}</td>
+                                <td>{Mascara.data(cliente.cliente_dataCadastro)}</td>
                             </tr>
                         ))}
                         {clientes.length === 0 && <tr><td colSpan="8"><span>Nenhum cliente foi encontrado...</span></td></tr>}
                     </tbody>
                 </table>
-                <div className="pagination" style={{ display: 'flex', justifyContent: 'center', alignItems: "center", gap: 5 }}>
-                    <button
-                        className='btn btn-primary'
-                        onClick={() => this.handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                    >
-                        Anterior
-                    </button>
-                    <span>{currentPage} de {totalPages > 0 ? totalPages : 1}</span>
-                    <button
-                        className='btn btn-primary'
-                        onClick={() => this.handlePageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                    >
-                        Próxima
-                    </button>
-                </div>
+                {this.state.show && <Paginacao
+                    limit={limit}
+                    setLimit={setLimit}
+                    offset={offset}
+                    total={qtdClientes}
+                    setOffset={setOffset}
+                    setCurrentPage={value => BuscarTodosClientes(value)}
+                />}
 
             </div>
         );

@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.17" />
     <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="8.0.6" />
     <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="5.0.17" />
@@ -50,7 +51,7 @@
 
   <Target Name="PublishRunWebpack" AfterTargets="ComputeFilesToPublish">
     <!-- As part of publishing, ensure the JS resources are freshly built in production mode -->
-    <Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
+    <!--<Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />-->
     <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build" />
 
     <!-- Include the newly-built files in the publish output -->

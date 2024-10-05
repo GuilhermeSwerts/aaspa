@@ -7,9 +7,12 @@ import { Paginacao } from '../../components/Paginacao/Paginacao';
 import { Alert, Pergunta } from '../../util/alertas';
 import './crud.css';
 import ModalContatoOcorrencia from '../../components/Modal/novaContatoOcorrencia';
-import { FaEye, FaTrash } from 'react-icons/fa';
+import { FaEye, FaHistory, FaTrash } from 'react-icons/fa';
 import ModalEditarAtendimento from '../../components/Modal/EditarAtendimento';
 import axios from 'axios';
+import { FaPaperclip } from 'react-icons/fa6';
+import ModalAnexos from '../../components/Modal/modalAnexos';
+import ModalLogAtendimento from '../../components/Modal/ModalLogAtendimento';
 
 class CrudAtendimento extends Component {
 
@@ -21,7 +24,7 @@ class CrudAtendimento extends Component {
             clienteData: { cliente: { cliente_nome: '', cliente_cpf: '', cliente_id: 0 } },
             clientId: 0,
             limit: 8,
-            offset: 0
+            offset: 0,
         }
         this.AbrirCrud = (clientId) => {
 
@@ -49,6 +52,8 @@ class CrudAtendimento extends Component {
             this.setState({ clientId, show: true })
         }
         this.descRef = createRef();
+        this.anexosRef = createRef();
+        this.logRef = createRef();
     }
 
     BuscarHistoricoOcorrenciaCliente = async (id) => {
@@ -65,7 +70,7 @@ class CrudAtendimento extends Component {
 
     render() {
         const { show, historicoOcorrenciaCliente, clienteData, clientId } = this.state;
-        const { descRef } = this;
+        const { descRef, anexosRef, logRef } = this;
 
         //**paginação**
         const limit = this.state.limit;
@@ -87,10 +92,18 @@ class CrudAtendimento extends Component {
             descRef.current.AbrirModal(desc);
         };
 
+        const AbrirModalAnexos = (hstId) => {
+            anexosRef.current.VisualizarAnexos(hstId);
+        }
+
+        const AbrirModalLog = (hstId) => {
+            logRef.current.open(hstId);
+        }
+
         const ExcluirOcorrencia = async (id) => {
             if (await Pergunta("Deseja realmente excluir essa ocorrência?")) {
                 try {
-                    var res = await axios.delete(`${api.urlBase}DeletarContatoOcorrencia/${id}`, {
+                    var res = await axios.delete(`${api.urlBase}/DeletarContatoOcorrencia/${id}`, {
                         headers: {
                             "Authorization": `Bearer ${api.access_token ? api.access_token : ""}`
                         }
@@ -111,9 +124,13 @@ class CrudAtendimento extends Component {
             this.setState({ show: false });
         }
 
+        const { isUsuarioMaster } = this.props;
+
         return (
             <div style={{ display: show ? 'block' : 'none' }} className='modal-crud'>
                 <DescricaoModal ref={descRef} />
+                <ModalLogAtendimento ref={logRef} />
+                <ModalAnexos ref={anexosRef} />
                 <h4>Cliente: {clienteData.cliente.cliente_nome}</h4>
                 <br />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 20 }}>
@@ -132,6 +149,8 @@ class CrudAtendimento extends Component {
                         <th>Dígito</th>
                         <th>Chave PIX</th>
                         <th>Descricao da Ocorrência </th>
+                        <th>Criador</th>
+                        <th>Ultima Alteração</th>
                         <th>Ações</th>
                     </thead>
                     <tbody>
@@ -147,7 +166,23 @@ class CrudAtendimento extends Component {
                                 <td>{historico.digito}</td>
                                 <td>{historico.pix}</td>
                                 <td><button style={{ marginLeft: "4rem" }} className='btn btn-success' type="button" onClick={() => AbrirDescricao(historico.descricaoDaOcorrência)}><FaEye color='#fff' size={20} /></button></td>
+                                <td>{historico.usuario}</td>
+                                <td>{historico.ultimoUsuario}</td>
                                 <td style={{ display: 'flex', gap: 20 }}>
+                                    {isUsuarioMaster && <ButtonTooltip
+                                        onClick={async () => AbrirModalLog(historico.id)}
+                                        className='btn btn-success'
+                                        text={'Log'}
+                                        top={true}
+                                        textButton={<FaHistory color='#fff' size={20} />}
+                                    />}
+                                    <ButtonTooltip
+                                        onClick={async () => AbrirModalAnexos(historico.id)}
+                                        className='btn btn-success'
+                                        text={'Anexos'}
+                                        top={true}
+                                        textButton={<FaPaperclip color='#fff' size={20} />}
+                                    />
                                     <ModalEditarAtendimento
                                         BuscarHistoricoOcorrenciaCliente={this.BuscarHistoricoOcorrenciaCliente}
                                         HistoricoId={historico.id}

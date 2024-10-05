@@ -37,7 +37,7 @@ namespace AASPA.Controllers
         {
             try
             {
-                _historicoContato.DeletarContatoOcorrencia(contatoOcorrenciaId);
+                _historicoContato.DeletarContatoOcorrencia(contatoOcorrenciaId,UsuarioLogadoId);
                 return Ok();
             }
             catch (System.Exception ex)
@@ -67,7 +67,7 @@ namespace AASPA.Controllers
         {
             try
             {
-                _historicoContato.EditarContatoOcorrencia(historicoContatos);
+                _historicoContato.EditarContatoOcorrencia(historicoContatos,UsuarioLogadoId);
                 return Ok();
             }
             catch (System.Exception ex)
@@ -82,7 +82,7 @@ namespace AASPA.Controllers
         {
             try
             {
-                _historicoContato.NovoContatoOcorrencia(historicoContatos);
+                _historicoContato.NovoContatoOcorrencia(historicoContatos, UsuarioLogadoId);
                 return Ok();
             }
             catch (System.Exception ex)
@@ -100,8 +100,7 @@ namespace AASPA.Controllers
             {
                 request.PaginaAtual = null;
 
-                var clientes = _historicoContato.BuscarTodosClientes(request);
-                byte[] base64 = _historicoContato.DownloadContatoFiltro(clientes);
+                byte[] base64 = _historicoContato.DownloadContatoFiltro();
                 return File(base64, "application/csv;charset=utf-8", "FiltroClientes.csv");
             }
             catch (System.Exception ex)

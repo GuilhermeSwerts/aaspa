@@ -24,5 +24,6 @@ namespace AASPA.Models.Requests
         public string SituacaoOcorrencia { get; set; }
         public DateTime? DataInitAtendimento { get; set; }
         public DateTime? DataEndAtendimento { get; set; }
+        public List<int>? ListaStatus { get; set; }  
     }
 }

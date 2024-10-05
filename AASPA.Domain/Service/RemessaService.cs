@@ -4,11 +4,20 @@ using AASPA.Models.Requests;
 using AASPA.Models.Response;
 using AASPA.Repository;
 using AASPA.Repository.Maps;
+using AASPA.Repository.Response;
+using Dapper;
 using DocumentFormat.OpenXml.ExtendedProperties;
+using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Win32;
+using MySqlConnector;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -42,12 +51,19 @@ namespace AASPA.Domain.Service
             _mysql.SaveChanges();
         }
 
-        public void AtualizarRemessaCliente(int clienteId, int remessaId)
+        public void AtualizarRemessaCliente(List<int> clienteIds, int remessaId)
         {
-            var cliente = _mysql.clientes.FirstOrDefault(x => x.cliente_id == clienteId);
-            cliente.cliente_remessa_id = remessaId;
-            _mysql.clientes.Update(cliente);
-            _mysql.SaveChanges();
+            using (var connection = new MySqlConnection(_mysql.Database.GetConnectionString()))
+            {
+                var sqlBuilder = new StringBuilder();
+                sqlBuilder.Append("UPDATE clientes SET cliente_remessa_id = @RemessaId WHERE cliente_id IN @Ids");
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@RemessaId", remessaId);
+                parameters.Add("@Ids", clienteIds);
+
+                connection.Execute(sqlBuilder.ToString(), parameters);
+            }
         }
 
         public RetornoRemessaResponse GerarRemessa(int mes, int ano, DateTime dateInit, DateTime dateEnd)
@@ -67,25 +83,20 @@ namespace AASPA.Domain.Service
 
                 string nomeArquivo = $"D.SUB.GER.176.{ano}{mes.ToString().PadLeft(2, '0')}";
 
-                var clientes = RecuperarClientesAtivosExcluidos(dateInit, dateEnd);
-
-                //clientes = RecuperarClientesAtivosExcluidosLegados(dateEnd, clientes);
-
-                if (clientes == null) { throw new Exception("Não existe nenhum cliente para ser gerado remessa no período informado!"); }
+                var clientes = RecuperarClientesAtivosExcluidos(dateInit, dateEnd)
+                    ?? throw new Exception("Não existe nenhum cliente para ser gerado remessa no período informado!");
 
                 var idRegistro = SalvarDadosRemessa(clientes, mes, ano, nomeArquivo, dateInit, dateEnd);
 
                 foreach (var cliente in clientes)
                 {
-                    var clienteData = _clienteService.BuscarClienteID(cliente.cliente_id);
+                    var clienteData = _clienteService.BuscarClienteID(cliente.ClienteId);
 
                     var statusNovo = clienteData.StatusAtual.status_id == (int)EStatus.AtivoAguardandoAverbacao ?
                         (int)EStatus.Ativo : (int)EStatus.Deletado;
-                }
 
-                var remessa = _mysql.remessa.FirstOrDefault(x => x.remessa_id == idRegistro);
-                remessa.remessa_arquivo = GetByteRemessa(idRegistro, mes, ano, nomeArquivo);
-                _mysql.SaveChanges();
+                    _mysql.SaveChanges();
+                }
 
                 return new RetornoRemessaResponse
                 {
@@ -99,27 +110,18 @@ namespace AASPA.Domain.Service
             }
         }
 
-        private byte[] GetByteRemessa(int idRegistro, int mes, int ano, string nomeArquivo)
+        private byte[] GetByteRemessa(int idRegistro)
         {
-            string linhaArquivo = string.Empty;
-            List<string> ValorLinha = new List<string>();
-            
-            ValorLinha.Add("0AASPA            11                        ".PadRight(45));
-
+            var linhaArquivo = new StringBuilder();
+            linhaArquivo.AppendLine("0AASPA            11                        ".PadRight(45));
             var clientes = _mysql.registro_remessa.Where(x => x.remessa_id == idRegistro).ToList();
-
             foreach (var cliente in clientes)
             {
-                ValorLinha.Add($"1{cliente.registro_numero_beneficio}{cliente.registro_codigo_operacao}000{cliente.registro_decimo_terceiro}{cliente.registro_valor_percentual_desconto.ToString().PadLeft(5, '0')}".PadRight(45));
+                linhaArquivo.AppendLine($"1{cliente.registro_numero_beneficio}{cliente.registro_codigo_operacao}000{cliente.registro_decimo_terceiro}{cliente.registro_valor_percentual_desconto.ToString().PadLeft(5, '0')}".PadRight(45));
             }
-            ValorLinha.Add($"9{clientes.Count.ToString().PadLeft(6, '0')}".PadRight(45));
+            linhaArquivo.AppendLine($"9{clientes.Count.ToString().PadLeft(6, '0')}".PadRight(45));
 
-            foreach (var linha in ValorLinha)
-            {
-                linhaArquivo += linha + "\n";
-            }
-
-            return Encoding.Latin1.GetBytes(linhaArquivo);
+            return Encoding.Latin1.GetBytes(linhaArquivo.ToString());
         }
 
         private void RemoverVinculoClientesRemessa(RemessaDb remessaexist)
@@ -170,7 +172,7 @@ namespace AASPA.Domain.Service
             return clientes;
         }
 
-        public int SalvarDadosRemessa(List<ClienteDb> clientes, int mes, int ano, string nomeArquivo, DateTime dateInit, DateTime dateEnd)
+        public int SalvarDadosRemessa(List<ClientesAtivosExcluidosResponse> clientes, int mes, int ano, string nomeArquivo, DateTime dateInit, DateTime dateEnd)
         {
             var remessa = new RemessaDb
             {
@@ -186,23 +188,59 @@ namespace AASPA.Domain.Service
             _mysql.SaveChanges();
             int idRemessa = remessa.remessa_id;
 
+            int batchSize = 10000;
+            var registros = new List<RegistroRemessaDb>();
+
             foreach (var clienteDb in clientes)
             {
-                _mysql.registro_remessa.Add(new RegistroRemessaDb
+                registros.Add(new RegistroRemessaDb
                 {
-                    registro_numero_beneficio = clienteDb.cliente_matriculaBeneficio.Length > 10 ? clienteDb.cliente_matriculaBeneficio.Substring(0, 10) : clienteDb.cliente_matriculaBeneficio.PadLeft(10, '0'),
-                    registro_codigo_operacao = clienteDb.cliente_situacao ? 1 : 5,
+                    registro_numero_beneficio = clienteDb.ClienteMatriculaBeneficio.Length > 10 ? clienteDb.ClienteMatriculaBeneficio.Substring(0, 10) : clienteDb.ClienteMatriculaBeneficio.PadLeft(10, '0'),
+                    registro_codigo_operacao = clienteDb.ClienteSituacao ? 1 : 5,
                     registro_decimo_terceiro = 0,
                     registro_valor_percentual_desconto = 500,
                     remessa_id = idRemessa
                 });
 
-                AtualizarRemessaCliente(clienteDb.cliente_id, remessa.remessa_id);
+                if (registros.Count >= batchSize || registros.Count == clientes.Count)
+                {
+                    InserirDaosRemessa(registros);
+                    AtualizarRemessaCliente(clientes.Select(x => x.ClienteId).ToList(), idRemessa);
+                    registros.Clear();
+                }
             }
 
-            _mysql.SaveChanges();
-
             return idRemessa;
+        }
+
+        private void InserirDaosRemessa(List<RegistroRemessaDb> registros)
+        {
+            using (var connection = new MySqlConnection(_mysql.Database.GetConnectionString()))
+            {
+                var sqlBuilder = new StringBuilder();
+                sqlBuilder.Append("INSERT INTO registro_remessa (registro_numero_beneficio, registro_codigo_operacao, registro_decimo_terceiro, registro_valor_percentual_desconto, remessa_id) VALUES ");
+
+                var parameters = new DynamicParameters();
+                int counter = 0;
+
+                foreach (var registro in registros)
+                {
+                    sqlBuilder.Append($"(@NumeroBeneficio{counter}, @CodigoOperacao{counter}, @DecimoTerceiro{counter}, @ValorDesconto{counter}, @RemessaId{counter}),");
+
+                    parameters.Add($"@NumeroBeneficio{counter}", registro.registro_numero_beneficio);
+                    parameters.Add($"@CodigoOperacao{counter}", registro.registro_codigo_operacao);
+                    parameters.Add($"@DecimoTerceiro{counter}", registro.registro_decimo_terceiro);
+                    parameters.Add($"@ValorDesconto{counter}", registro.registro_valor_percentual_desconto);
+                    parameters.Add($"@RemessaId{counter}", registro.remessa_id);
+
+                    counter++;
+                }
+
+                sqlBuilder.Length--;
+                sqlBuilder.Append(";");
+
+                connection.Execute(sqlBuilder.ToString(), parameters);
+            }
         }
 
         private object VerificarRetornoVinculadoRemessa(int remessa_id)
@@ -293,8 +331,8 @@ namespace AASPA.Domain.Service
 
             return new BuscarArquivoResponse
             {
-                NomeArquivo = $"D.SUB.GER.176.{remessaDb.remessa_ano_mes}",
-                Bytes = remessaDb.remessa_arquivo
+                NomeArquivo = remessaDb.nome_arquivo_remessa,
+                Bytes = GetByteRemessa(remessaDb.remessa_id)
             };
         }
 
@@ -642,30 +680,32 @@ namespace AASPA.Domain.Service
                 throw new Exception(ex.Message);
             }
         }
-        public List<ClienteDb> RecuperarClientesAtivosExcluidos(DateTime dateInit, DateTime dateEnd)
+
+        public List<ClientesAtivosExcluidosResponse> RecuperarClientesAtivosExcluidos(DateTime dateInit, DateTime dateEnd)
         {
-            var result = (from c in _mysql.clientes
-                          join l in
-                              (from l1 in _mysql.log_status
-                               join l2 in
-                                   (from ls in _mysql.log_status
-                                    group ls by ls.log_status_cliente_id into g
-                                    select new
-                                    {
-                                        log_status_cliente_id = g.Key,
-                                        max_date = g.Max(x => x.log_status_dt_cadastro)
-                                    })
-                               on new { l1.log_status_cliente_id, l1.log_status_dt_cadastro }
-                               equals new { l2.log_status_cliente_id, log_status_dt_cadastro = l2.max_date }
-                               select l1)
-                          on c.cliente_id equals l.log_status_cliente_id
-                          where (c.cliente_remessa_id == 0 || c.cliente_remessa_id == null) && new List<int> { (int)EStatus.AtivoAguardandoAverbacao, (int)EStatus.ExcluidoAguardandoEnvio }.Contains(l.log_status_novo_id)
-                          select c).ToList();
+            using (var connection = new MySqlConnection(_mysql.Database.GetConnectionString()))
+            {
+                string sqlQuery = @"select 
+	                     cli.cliente_id as ClienteId ,
+	                     max(ls.log_status_dt_cadastro) as LogStatusDtCadastro ,
+	                     cli.cliente_cpf as ClienteCpf,
+	                     cli.cliente_situacao as ClienteSituacao,
+	                     cli.cliente_matriculaBeneficio as ClienteMatriculaBeneficio
+                    from clientes cli
+                    join log_status ls on cli.cliente_id = ls.log_status_cliente_id
+                where 
+	                (cli.cliente_remessa_id is null or cli.cliente_remessa_id = 0) and 
+	                (ls.log_status_novo_id = 1 or ls.log_status_novo_id = 5) and 
+	                (@DtInit is null or cli.cliente_dataAverbacao >= @DtInit) and
+	                (@DtEnd is null or cli.cliente_dataAverbacao < @DtEnd)
+                group by cli.cliente_id";
 
-            result = result
-                .Where(x => x.cliente_DataAverbacao >= dateInit && x.cliente_DataAverbacao < dateEnd.AddDays(1)).ToList();
+                var clientes = connection.Query<ClientesAtivosExcluidosResponse>(sqlQuery, new { DtInit = dateInit, DtEnd = dateEnd.AddDays(1) }).ToList();
 
-            return result;
+                if (clientes.Count == 0) return null;
+
+                return clientes;
+            }
         }
 
         public object GetBuscarRepasse(int? mes, int? ano)
@@ -742,6 +782,74 @@ namespace AASPA.Domain.Service
                 repasses,
                 dadosRepasse
             };
+        }
+
+        public (List<ClienteDb> Clientes, int QtdPaginas, int TotalClientes) BuscarClientesElegivel(ConsultaParametros request)
+        {
+            request.QtdPorPagina ??= 10;
+            request.StatusRemessa ??= 0;
+            request.StatusIntegraall ??= 0;
+
+            var (Clientes, _) = GetClientesByFiltro(request);
+            var (_, TotalClientes) = GetClientesByFiltro(request, true);
+
+            var copyRequest = request;
+            copyRequest.PaginaAtual = null;
+
+            int totalPaginas = (TotalClientes / request.QtdPorPagina) ?? 1;
+
+            return (Clientes, totalPaginas, TotalClientes);
+        }
+
+        private (List<ClienteDb> Clientes, int TotalClientes) GetClientesByFiltro(ConsultaParametros request, bool isCount = false, bool isDownload = false)
+        {
+            int pageSize = request.QtdPorPagina ?? 10;
+            int currentPage = request.PaginaAtual ?? 1;
+            int offset = (currentPage - 1) * pageSize;
+
+            using (MySqlConnection connection = new(_mysql.Database.GetConnectionString()))
+            {
+                string colunas = isCount ? "count(*) as Qtd" : "cli.*";
+                string query = $@"SELECT {colunas}
+                    from clientes cli
+                    join log_status ls on cli.cliente_id = ls.log_status_cliente_id
+                where 
+	                (cli.cliente_remessa_id is null or cli.cliente_remessa_id = 0) and 
+	                (ls.log_status_novo_id = 1 or ls.log_status_novo_id = 5)";
+
+                if (request.DateInit.HasValue)
+                    query += (" AND (@DtInit is null or cli.cliente_dataAverbacao >= @DtInit)");
+                if (request.DateEnd.HasValue)
+                    query += (" AND (@DtEnd is null or cli.cliente_dataAverbacao < @DtEnd)");
+
+                query += " group by cli.cliente_id";
+
+                if (request.PaginaAtual != null && !isCount)
+                {
+                    query += $" LIMIT {pageSize} OFFSET {offset}";
+                }
+
+                var param = new
+                {
+                    DtInit = request.DateInit ?? (DateTime?)null,
+                    DateEnd = request.DateEnd ?? (DateTime?)null
+                };
+
+                if (isCount)
+                {
+                    var clientes = connection.Query<QuantidadeResponse>(query, param).ToList();
+                    var soma = clientes.Sum(x => x.Qtd);
+
+                    return (new List<ClienteDb>(), soma);
+                }
+                else
+                {
+                    var clientes = connection.Query<ClienteDb>(query, param).ToList();
+                    return (clientes, clientes.Count);
+                }
+
+            }
+
         }
     }
 }

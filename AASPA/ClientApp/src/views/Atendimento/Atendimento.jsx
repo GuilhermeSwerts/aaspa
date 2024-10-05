@@ -63,7 +63,7 @@ function Atendimento() {
 
     return (
         <NavBar pagina_atual='ATENDIMENTO' usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome} >
-            <CrudAtendimento ref={ref} />
+            <CrudAtendimento ref={ref} isUsuarioMaster={usuario && usuario.usuario_tipo === 1} />
             <div className="row">
                 <div className="col-md-2">
                     <button style={{ width: '100%' }} className='btn btn-info' onClick={e => setShowFiltro(!showFiltro)}>{showFiltro ? 'Esconder' : 'Mostrar'} Filtro<FaFilter /></button>
@@ -117,14 +117,14 @@ function Atendimento() {
                     </div>
                     <div className="col-md-2">
                         <span>Situação Ocorrencia</span>
-                        <select name='status' value={situacao} id="status" onChange={e => { setSituacao(e.target.value )}} required className='form-control'>
+                        <select name='status' value={situacao} id="status" onChange={e => { setSituacao(e.target.value) }} required className='form-control'>
                             <option value="TODOS">TODOS</option>
                             <option value="ATENDIDA">ATENDIDA</option>
                             <option value="EM TRATAMENTO">EM TRATAMENTO</option>
                             <option value="CANCELADA">CANCELADA</option>
                             <option value="FINALIZADO">FINALIZADO</option>
                             <option value="REEMBOLSO AGENDADO">REEMBOLSO AGENDADO</option>
-                        </select>                       
+                        </select>
                     </div>
                     <div className="col-md-1" style={{ marginTop: '1.5rem' }}>
                         <button style={{ width: '100%' }} onClick={e => { BuscarTodosClientes(1) }} className='btn btn-primary'><FaSearch size={Size.IconeTabela} /></button>

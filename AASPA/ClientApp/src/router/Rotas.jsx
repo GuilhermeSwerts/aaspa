@@ -37,15 +37,15 @@ import { GiTakeMyMoney } from "react-icons/gi";
 import Home from '../views/Home/home';
 
 export const PublicaRotas = [ /*PUBLICA PARA APARECER NO MENU*/
-    { Icon: FaHome, nome: 'Home', path: '/', component: Home },
+    { Operador: true, Icon: FaHome, nome: 'Home', path: '/', component: Home },
 
     /*ADMINISTRAÇÃO*/
-    { Icon: BiSupport, nome: 'Atendimento', path: '/atendimento', component: Atendimento },
+    { Operador: true, Icon: BiSupport, nome: 'Atendimento', path: '/atendimento', component: Atendimento },
     { Icon: GiTakeMyMoney, nome: 'Reembolso', path: '/reembolso', component: SolicitacaoReembolso },
-    
+
     { Icon: FaUsers, nome: 'Clientes (Busca Simplificada)', path: '/clientes?BuscaSimples=true', component: Cclientes },
     { Icon: FaUsers, nome: 'Clientes (Busca Avançada)', path: '/clientes', component: Cclientes },
-    
+
     { Icon: GiReceiveMoney, nome: 'Clientes Benefícios', path: '/beneficios', component: Beneficios },
     { Icon: GiPayMoney, nome: 'Clientes Pagamentos', path: '/pagamentos', component: Pagamentos },
     { Icon: MdHistory, nome: 'Clientes Histórico de Pagamentos', path: '/historicopagamento', component: HistoricoPagamento },
