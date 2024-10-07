@@ -24,6 +24,18 @@ namespace AASPA.Repository
             });
 
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<ClienteDb>()
+                .HasMany(c => c.LogStatus)
+                .WithOne()
+                .HasForeignKey(l => l.log_status_cliente_id)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<LogBeneficioDb>()
+                .HasOne<ClienteDb>()
+                .WithMany(c => c.LogBeneficios)
+                .HasForeignKey(lb => lb.log_beneficios_cliente_id)
+                .OnDelete(DeleteBehavior.Cascade);
         }
 
         public DbSet<UsuarioDb> usuarios { get; set; }
@@ -49,22 +61,5 @@ namespace AASPA.Repository
         public DbSet<ElegivelReembolsoDb> elegivelreembolso { get; set; }
         public DbSet<AnexosDb> anexos { get; set; }
         public DbSet<LogAlteracaoDb> log_alteracao { get; set; }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
-
-            modelBuilder.Entity<ClienteDb>()
-                .HasMany(c => c.LogStatus)
-                .WithOne()
-                .HasForeignKey(l => l.log_status_cliente_id)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<LogBeneficioDb>()
-                .HasOne<ClienteDb>()
-                .WithMany(c => c.LogBeneficios)
-                .HasForeignKey(lb => lb.log_beneficios_cliente_id)
-                .OnDelete(DeleteBehavior.Cascade);
-        }
     }
 }
