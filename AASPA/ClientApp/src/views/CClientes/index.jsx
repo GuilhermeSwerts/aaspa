@@ -108,41 +108,6 @@ const Cclientes = () => {
         }
     }
 
-    const handleOpenModal = (cliente) => {
-        setClienteSelecionado(cliente);
-        setModalExcluir(true);
-    };
-
-    const handleConfirmExclusion = (reason) => {
-        var formData = new FormData();
-        addCampos(formData, reason);
-
-        console.log('Cliente excluído. Motivo:', reason);
-
-        api.post("/ExcluirCliente", formData, res => {
-            if (res.data === "Proposta não encontrada!") {
-                Alert(res.data, false)
-            } else {
-                Alert(res.data, true)
-            }
-
-            setModalExcluir(false);
-        }, err => {
-            Alert(err.response ? err.response.data : 'Erro desconhecido', false);
-        })
-    };
-
-
-    const handleCloseModal = () => {
-        setModalExcluir(false);
-    }
-
-    const addCampos = (formData, motivoCancelamento) => {
-        formData.append('Cliente[Cpf]', clienteSelecionado.cliente.cliente_cpf);        
-        formData.append('Cliente[MatriculaBeneficio]', clienteSelecionado.cliente.cliente_matriculaBeneficio);  
-        formData.append('motivoCancelamento', motivoCancelamento);
-    }
-
     const DownloadClienteFiltro = () => {
         window.open(`${api.ambiente}/DownloadClienteFiltro?statusCliente=${statusCliente}&statusRemessa=${statusCliente}&dateInit=${dateInit}&dateEnd=${dateEnd}&paginaAtual=${paginaAtual}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}&dateInitAverbacao=${dateInitAverbacao}&dateEndAverbacao=${dateEndAverbacao}&statusIntegraall=${statusIntegraall}`)
     }
@@ -390,14 +355,6 @@ const Cclientes = () => {
                                             top={true}
                                             textButton={<FaUserEdit color='#fff' size={Size.IconeTabela} />}
                                         />
-                                        <ButtonTooltip
-                                            backgroundColor={'#ff0000'}
-                                            onClick={() => handleOpenModal(cliente)}
-                                            className='btn btn-danger button-container-item'
-                                            text={'Excluir'}
-                                            top={true}
-                                            textButton={<FaTrashAlt color='#fff' size={Size.IconeTabela} />}
-                                        />
                                         <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />
                                     </td>
                                 </tr>}
@@ -439,14 +396,6 @@ const Cclientes = () => {
                                             top={true}
                                             textButton={<FaUserEdit color='#fff' size={Size.IconeTabela} />}
                                         />
-                                        <ButtonTooltip
-                                            backgroundColor={'#ff0000'}
-                                            onClick={() => handleOpenModal(cliente)}
-                                            className='btn btn-danger button-container-item'
-                                            text={'Excluir'}
-                                            top={true}
-                                            textButton={<FaTrashAlt color='#fff' size={Size.IconeTabela} />}
-                                        />
                                         <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />
                                     </td>
                                 </tr>}
@@ -463,11 +412,6 @@ const Cclientes = () => {
                 total={totalClientes}
                 setOffset={setOffset}
                 setCurrentPage={value => BuscarTodosClientes(null, null, value)}
-            />
-            <ExcluirCliente
-                show={ModalExcluir}
-                handleClose={() => setModalExcluir(false)}
-                handleConfirm={handleConfirmExclusion}
             />
         </NavBar >
     );

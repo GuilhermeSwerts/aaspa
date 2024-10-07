@@ -4,10 +4,14 @@ using AASPA.Models.Requests;
 using AASPA.Models.Response;
 using AASPA.Repository;
 using AASPA.Repository.Maps;
+using Newtonsoft.Json;
+using Paket;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,6 +21,11 @@ namespace AASPA.Domain.Service
     public class StatusService : IStatus
     {
         private readonly MysqlContexto _mysql;
+        private static readonly HttpClient _httpClient = new HttpClient();
+        private string login = "AASPA";
+        private string senha = "l@znNL,Lkc9x";
+        private string captcha = "XD5V";
+        private string token = "LWGb8VjYsZZkmJfA9JK9tQ==:E1huR9Q8It+WFpAES+pLsA==:0urZEQiqBcMNEGchHF8Elg==";
 
         public StatusService(MysqlContexto mysql)
         {
@@ -48,18 +57,26 @@ namespace AASPA.Domain.Service
             return response;
         }
 
-        public void AlterarStatusCliente(AlterarStatusClienteRequest request)
+        public async Task AlterarStatusCliente(AlterarStatusClienteRequest request)
         {
             using var tran = _mysql.Database.BeginTransaction();
             try
             {
-                if(request.status_id_novo == (int)EStatus.Deletado || request.status_id_novo == (int)EStatus.ExcluidoAguardandoEnvio)
-                {
-                    var cliente = _mysql.clientes.FirstOrDefault(x=> x.cliente_id == request.cliente_id);
-                    cliente.cliente_situacao = false;
-                    _mysql.SaveChanges();
-                }
+                var inativarClienteIntegraall = await InativarClienteIntegraall(request.cliente_id, request.motivo_inativar);
 
+                if (request.status_id_novo == (int)EStatus.Deletado || request.status_id_novo == (int)EStatus.ExcluidoAguardandoEnvio)
+                {
+                    var cliente = _mysql.clientes.FirstOrDefault(x => x.cliente_id == request.cliente_id);
+                    if (cliente != null)
+                    {
+                        cliente.cliente_situacao = false;
+                        _mysql.SaveChanges();
+                    }
+                    else
+                    {
+                        throw new Exception("Cliente não encontrado no banco de dados.");
+                    }
+                }
                 _mysql.log_status.Add(new LogStatusDb
                 {
                     log_status_antigo_id = request.status_id_antigo,
@@ -71,12 +88,13 @@ namespace AASPA.Domain.Service
                 _mysql.SaveChanges();
                 tran.Commit();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 tran.Rollback();
-                throw;
+                throw new Exception($"Erro ao alterar status do cliente: {ex.Message}", ex);
             }
         }
+
 
         public object BuscarStatusById(int statusId)
         {
@@ -126,6 +144,80 @@ namespace AASPA.Domain.Service
             {
                 tran.Rollback();
                 throw;
+            }
+        }
+
+        public async Task<string> GerarToken()
+        {
+            try
+            {
+                var requestUriLogin = "https://hml.integraall.com/api/Login/validar";
+                var loginRequest = new
+                {
+                    login,
+                    senha,
+                    captcha,
+                    token
+                };
+
+                var json = JsonConvert.SerializeObject(loginRequest);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync(requestUriLogin, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseString = await response.Content.ReadAsStringAsync();
+                    var responseObject = JsonConvert.DeserializeObject<dynamic>(responseString);
+                    return responseObject.token;
+                }
+                return "";
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao tentar gerar token.", ex);
+            }
+        }
+
+        public async Task<string> InativarClienteIntegraall(int clienteId, string motivocancelamento)
+        {
+            try
+            {
+                var token = await GerarToken();
+                var cliente = _mysql.clientes.Where(x => x.cliente_id == clienteId).FirstOrDefault();
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                var url = "https://hml.integraall.com/api/Proposta/CancelarPorCpfMatricula";
+
+                var data = new
+                {
+                    cpf = cliente.cliente_cpf,
+                    matricula = cliente.cliente_matriculaBeneficio,
+                    motivoCancelamento = motivocancelamento
+                };
+                var jsonData = JsonConvert.SerializeObject(data);
+                var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync(url, content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    if (responseContent.Contains("Cliente excluido com sucesso!"))
+                    {
+                        return responseContent;
+                    }
+                    else
+                    {
+                        throw new Exception($"Erro ao inativar cliente: {responseContent}");
+                    }
+                }
+                else
+                {
+                    throw new Exception($"Erro na API: {response.StatusCode} - {responseContent}");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Erro ao inativar cliente no Integraall: {ex.Message}", ex);
             }
         }
     }

@@ -3,6 +3,7 @@ using AASPA.Models.Requests;
 using AASPA.Repository.Maps;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Threading.Tasks;
 
 namespace AASPA.Controllers
 {
@@ -78,11 +79,11 @@ namespace AASPA.Controllers
 
         [HttpPost()]
         [Route("/AlterarStatusCliente")]
-        public ActionResult AlterarStatusCliente([FromForm] AlterarStatusClienteRequest request)
+        public async Task<ActionResult> AlterarStatusCliente([FromForm] AlterarStatusClienteRequest request)
         {
             try
             {
-                _service.AlterarStatusCliente(request);
+                await _service.AlterarStatusCliente(request);
                 return Ok();
             }
             catch (System.Exception ex)
