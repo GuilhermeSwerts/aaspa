@@ -6,6 +6,7 @@ using AASPA.Repository;
 using AASPA.Repository.Maps;
 using AASPA.Repository.Response;
 using Dapper;
+using DocumentFormat.OpenXml.Vml.Spreadsheet;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using MySqlConnector;
@@ -297,7 +298,7 @@ namespace AASPA.Domain.Service
 
             int totalPaginas = (TotalClientes / request.QtdPorPagina) ?? 1;
 
-            return (Clientes, totalPaginas, TotalClientes);
+            return (Clientes.Distinct().ToList(), totalPaginas, TotalClientes);
         }
 
         private (List<BuscarClienteByIdResponse> Clientes, int TotalClientes) GetClientesByFiltro(ConsultaParametros request, bool isCount = false, bool isDownload = false)

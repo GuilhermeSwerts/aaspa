@@ -88,15 +88,7 @@ namespace AASPA.Domain.Service
 
                 var idRegistro = SalvarDadosRemessa(clientes, mes, ano, nomeArquivo, dateInit, dateEnd);
 
-                foreach (var cliente in clientes)
-                {
-                    var clienteData = _clienteService.BuscarClienteID(cliente.ClienteId);
-
-                    var statusNovo = clienteData.StatusAtual.status_id == (int)EStatus.AtivoAguardandoAverbacao ?
-                        (int)EStatus.Ativo : (int)EStatus.Deletado;
-
-                    _mysql.SaveChanges();
-                }
+                AtualizaStatusClienteGeradoRemessa(clientes);
 
                 return new RetornoRemessaResponse
                 {
@@ -107,6 +99,56 @@ namespace AASPA.Domain.Service
             {
 
                 throw;
+            }
+        }
+
+        private void AtualizaStatusClienteGeradoRemessa(List<ClientesAtivosExcluidosResponse> clientes)
+        {
+            var logStatus = clientes.Select(x=> new LogStatusDb
+            {
+                log_status_antigo_id = x.LogStatusNovoId,
+                log_status_cliente_id = x.ClienteId,
+                log_status_novo_id = x.LogStatusNovoId == (int)EStatus.AtivoAguardandoAverbacao ? (int)EStatus.Ativo : (int)EStatus.Deletado,
+                log_status_dt_cadastro = DateTime.Now
+            }).ToList();
+
+            int batchSize = 10000;
+            int maxBatchSize = clientes.Count;
+            var registros = new List<LogStatusDb>();
+
+            foreach (var log in logStatus)
+            {
+                registros.Add(log);
+
+                if (registros.Count >= batchSize || registros.Count == clientes.Count || maxBatchSize == registros.Count)
+                {
+                    using (var connection = new MySqlConnection(_mysql.Database.GetConnectionString()))
+                    {
+                        var sqlBuilder = new StringBuilder();
+                        sqlBuilder.Append("INSERT INTO log_status (log_status_antigo_id, log_status_cliente_id, log_status_novo_id, log_status_dt_cadastro) VALUES ");
+
+                        var parameters = new DynamicParameters();
+                        int counter = 0;
+
+                        foreach (var registro in logStatus)
+                        {
+                            sqlBuilder.Append($"(@AntigoStatus{counter}, @ClienteId{counter}, @NovoStatus{counter}, now()),");
+
+                            parameters.Add($"@AntigoStatus{counter}", registro.log_status_antigo_id);
+                            parameters.Add($"@ClienteId{counter}", registro.log_status_cliente_id);
+                            parameters.Add($"@NovoStatus{counter}", registro.log_status_novo_id);
+
+                            counter++;
+                        }
+
+                        sqlBuilder.Length--;
+                        sqlBuilder.Append(";");
+
+                        connection.Execute(sqlBuilder.ToString(), parameters);
+                    }
+                    maxBatchSize -= batchSize;
+                    registros.Clear();
+                }
             }
         }
 
@@ -189,6 +231,7 @@ namespace AASPA.Domain.Service
             int idRemessa = remessa.remessa_id;
 
             int batchSize = 10000;
+            int maxBatchSize = clientes.Count;
             var registros = new List<RegistroRemessaDb>();
 
             foreach (var clienteDb in clientes)
@@ -202,10 +245,11 @@ namespace AASPA.Domain.Service
                     remessa_id = idRemessa
                 });
 
-                if (registros.Count >= batchSize || registros.Count == clientes.Count)
+                if (registros.Count >= batchSize || registros.Count == clientes.Count || maxBatchSize == registros.Count) 
                 {
                     InserirDaosRemessa(registros);
                     AtualizarRemessaCliente(clientes.Select(x => x.ClienteId).ToList(), idRemessa);
+                    maxBatchSize -= batchSize;
                     registros.Clear();
                 }
             }
@@ -690,7 +734,8 @@ namespace AASPA.Domain.Service
 	                     max(ls.log_status_dt_cadastro) as LogStatusDtCadastro ,
 	                     cli.cliente_cpf as ClienteCpf,
 	                     cli.cliente_situacao as ClienteSituacao,
-	                     cli.cliente_matriculaBeneficio as ClienteMatriculaBeneficio
+	                     cli.cliente_matriculaBeneficio as ClienteMatriculaBeneficio,
+                         ls.log_status_novo_id as LogStatusNovoId
                     from clientes cli
                     join log_status ls on cli.cliente_id = ls.log_status_cliente_id
                 where 
@@ -698,7 +743,7 @@ namespace AASPA.Domain.Service
 	                (ls.log_status_novo_id = 1 or ls.log_status_novo_id = 5) and 
 	                (@DtInit is null or cli.cliente_dataAverbacao >= @DtInit) and
 	                (@DtEnd is null or cli.cliente_dataAverbacao < @DtEnd)
-                group by cli.cliente_id";
+                group by cli.cliente_id,ls.log_status_novo_id";
 
                 var clientes = connection.Query<ClientesAtivosExcluidosResponse>(sqlQuery, new { DtInit = dateInit, DtEnd = dateEnd.AddDays(1) }).ToList();
 

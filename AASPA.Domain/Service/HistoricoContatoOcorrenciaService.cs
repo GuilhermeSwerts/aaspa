@@ -409,7 +409,7 @@ namespace AASPA.Domain.Service
 
             var builder = new StringBuilder();
 
-            builder.AppendLine("#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO;STATUS_INTEGRAALL;MOTIVO_ATENDIMENTO;ORIGEM_ATENDIMENTO;DATA_ATENDIMENTO;DESCRICAO_ATENDIMENTO;DADOS_BANCARIOS_BANCO;DADOS_BANCARIOS_AGENCIA;DADOS_BANCARIOS_CONTA;DADOS_BANCARIOS_DIGITO;DADOS_BANCARIOS_CHAVE_PIX\n");
+            builder.AppendLine("#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO;STATUS_INTEGRAALL;MOTIVO_ATENDIMENTO;ORIGEM_ATENDIMENTO;DATA_ATENDIMENTO;DESCRICAO_ATENDIMENTO;DADOS_BANCARIOS_BANCO;DADOS_BANCARIOS_AGENCIA;DADOS_BANCARIOS_CONTA;DADOS_BANCARIOS_DIGITO;DADOS_BANCARIOS_CHAVE_PIX");
             
             for (int i = 0; i < clientesData.Count; i++)
             {
@@ -448,12 +448,12 @@ namespace AASPA.Domain.Service
                     $"{remessa};" +
                     $"{cliente.Captador.captador_nome};" +
                     $"{cliente.Captador.captador_cpf_cnpj};" +
-                    $"{cliente.Captador.captador_descricao};" +
+                    $"{cliente.Captador.captador_descricao.Replace("\r\n", "").Replace("\n", "").Replace("\r", "")};" +
                     $"{dtAverbacao};" +
                     $"{cliente.Cliente.cliente_StatusIntegral};" +
                     $"{motivoNome};" +
                     $"{origem};" +
-                    $"{historico}");
+                    $"{historico.Replace("\r\n", "").Replace("\n", "").Replace("\r", "")}");
             }
 
             byte[] fileBytes = Encoding.Latin1.GetBytes(builder.ToString());
