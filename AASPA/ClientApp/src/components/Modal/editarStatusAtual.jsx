@@ -14,16 +14,7 @@ function ModalEditarStatusAtual({ BuscarTodosClientes, ClienteId, StatusId }) {
     const [oldStatus, setOldStatus] = useState('');
     const [todosStatus, setTodosStatus] = useState([]);
     const [novoStatus, setNovoStatus] = useState(1);
-    const [motivoInativo, setMotivoInativo] = useState('');
-
-    const exclusionReasons = [
-        { value: '', label: 'Selecione o motivo' },
-        { value: '008 – Já existe desc. p/ outra entidade', label: '008 – Já existe desc. p/ outra entidade' },
-        { value: '012 - Benefício bloqueado para desconto', label: '012 - Benefício bloqueado para desconto' },
-        { value: '005 – Benefício não ativo', label: '005 – Benefício não ativo' },
-        { value: '002 – Espécie incompatível', label: '002 – Espécie incompatível' },
-        { value: '013 – Benefício de Pensão Alimentícia', label: '013 – Benefício de Pensão Alimentícia' },
-    ];
+    const [motivoInativo, setMotivoInativo] = useState('');    
 
     const BuscarTodosStatus = () => {
         api.get("TodosStatus", res => {
@@ -69,18 +60,13 @@ function ModalEditarStatusAtual({ BuscarTodosClientes, ClienteId, StatusId }) {
         formData.append("status_id_antigo", StatusId);
         formData.append("status_id_novo", novoStatus);
         formData.append("cliente_id", ClienteId);
-        formData.append("motivo_inativar", motivoInativo);
 
         api.post("/AlterarStatusCliente", formData, res => {
             Alert("Status atualizado com sucesso!", true);
             BuscarTodosClientes();
             setShow(false);
         }, err => {
-            if (err.response?.data?.includes("Falha ao Cancelar Proposta")) {
-                Alert("Falha ao cancelar proposta no Integraall. Proposta não encontrada!", false);
-            } else {
-                Alert("Houve um erro ao editar o status.", false);
-            }
+             Alert("Houve um erro ao editar o status.", false);
         })
     }
 
@@ -113,18 +99,7 @@ function ModalEditarStatusAtual({ BuscarTodosClientes, ClienteId, StatusId }) {
                                 <option value={sts.status_id}>{sts.status_nome}</option>
                             ))}
                         </select>
-                    </FormGroup>
-                    {novoStatus == Enum.EStatus.Inativo && (
-                        <FormGroup>
-                            <Label for="motivo">Motivo da Inativação</Label>
-                            <select className='form-control' onChange={e => setMotivoInativo(e.target.value)} name="motivo" id="motivo">
-                                <option value="" disabled>Selecione o motivo</option>
-                                {exclusionReasons.map(reason => (
-                                    <option key={reason.value} value={reason.value}>{reason.label}</option>
-                                ))}
-                            </select>
-                        </FormGroup>
-                    )}
+                    </FormGroup>                    
                 </ModalBody>
                 <ModalFooter>
                     <button onClick={handleCloseModal} className='btn btn-danger'>Cancelar</button>

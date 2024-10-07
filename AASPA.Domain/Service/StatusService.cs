@@ -57,26 +57,18 @@ namespace AASPA.Domain.Service
             return response;
         }
 
-        public async Task AlterarStatusCliente(AlterarStatusClienteRequest request)
+        public void AlterarStatusCliente(AlterarStatusClienteRequest request)
         {
             using var tran = _mysql.Database.BeginTransaction();
             try
             {
-                var inativarClienteIntegraall = await InativarClienteIntegraall(request.cliente_id, request.motivo_inativar);
-
                 if (request.status_id_novo == (int)EStatus.Deletado || request.status_id_novo == (int)EStatus.ExcluidoAguardandoEnvio)
                 {
                     var cliente = _mysql.clientes.FirstOrDefault(x => x.cliente_id == request.cliente_id);
-                    if (cliente != null)
-                    {
-                        cliente.cliente_situacao = false;
-                        _mysql.SaveChanges();
-                    }
-                    else
-                    {
-                        throw new Exception("Cliente não encontrado no banco de dados.");
-                    }
+                    cliente.cliente_situacao = false;
+                    _mysql.SaveChanges();
                 }
+
                 _mysql.log_status.Add(new LogStatusDb
                 {
                     log_status_antigo_id = request.status_id_antigo,
@@ -88,10 +80,10 @@ namespace AASPA.Domain.Service
                 _mysql.SaveChanges();
                 tran.Commit();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 tran.Rollback();
-                throw new Exception($"Erro ao alterar status do cliente: {ex.Message}", ex);
+                throw;
             }
         }
 

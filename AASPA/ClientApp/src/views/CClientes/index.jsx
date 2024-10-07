@@ -3,7 +3,7 @@ import { AuthContext } from '../../context/AuthContext';
 import { NavBar } from '../../components/Layout/layout';
 import { ButtonTooltip } from '../../components/Inputs/ButtonTooltip';
 import { RiChatHistoryLine } from "react-icons/ri";
-import { FaDownload, FaFilter, FaPlus, FaSearch, FaUserEdit, FaTrashAlt } from "react-icons/fa";
+import { FaDownload, FaFilter, FaPlus, FaSearch, FaUserEdit, FaSyncAlt } from "react-icons/fa";
 import { Mascara } from '../../util/mascara';
 import { api } from '../../api/api';
 import ModalEditarStatusAtual from '../../components/Modal/editarStatusAtual';
@@ -106,6 +106,39 @@ const Cclientes = () => {
             default:
                 break;
         }
+    }
+
+    const handleOpenModal = (cliente) => {
+        setClienteSelecionado(cliente);
+        setModalExcluir(true);
+    };
+
+    const handleConfirmExclusion = ({ cancelamento = '', motivoCancelamento = '' } = {}) => {
+        var formData = new FormData();
+        addCampos(formData, cancelamento, motivoCancelamento);
+
+        api.post("/CancelarClienteIntegraall", formData, res => {
+            if (res.data === "Proposta não encontrada!") {
+                Alert(res.data, false);
+            } else {
+                Alert(res.data, true);
+            }
+
+            setModalExcluir(false);
+        }, err => {
+            Alert(err.response ? err.response.data : 'Erro desconhecido', false);
+        });
+    };
+
+
+    const handleCloseModal = () => {
+        setModalExcluir(false);
+    }
+
+    const addCampos = (formData, cancelamento, motivoCancelamento) => {
+        formData.append("clienteid", clienteSelecionado.cliente.cliente_id);
+        formData.append('cancelamento', cancelamento)
+        formData.append('motivoCancelamento', motivoCancelamento);
     }
 
     const DownloadClienteFiltro = () => {
@@ -355,6 +388,14 @@ const Cclientes = () => {
                                             top={true}
                                             textButton={<FaUserEdit color='#fff' size={Size.IconeTabela} />}
                                         />
+                                        <ButtonTooltip
+                                            backgroundColor={'#ffa500'}
+                                            onClick={() => handleOpenModal(cliente)}
+                                            className='btn btn-danger button-container-item'
+                                            text={'Cancelar'}
+                                            top={true}
+                                            textButton={<FaSyncAlt color='#fff' size={Size.IconeTabela} />}
+                                        />
                                         <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />
                                     </td>
                                 </tr>}
@@ -396,6 +437,14 @@ const Cclientes = () => {
                                             top={true}
                                             textButton={<FaUserEdit color='#fff' size={Size.IconeTabela} />}
                                         />
+                                        <ButtonTooltip
+                                            backgroundColor={'#ffa500'}
+                                            onClick={() => handleOpenModal(cliente)}
+                                            className='btn btn-danger button-container-item'
+                                            text={'Cancelar'}
+                                            top={true}
+                                            textButton={<FaSyncAlt color='#fff' size={Size.IconeTabela} />}
+                                        />
                                         <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />
                                     </td>
                                 </tr>}
@@ -412,6 +461,11 @@ const Cclientes = () => {
                 total={totalClientes}
                 setOffset={setOffset}
                 setCurrentPage={value => BuscarTodosClientes(null, null, value)}
+            />
+            <ExcluirCliente
+                show={ModalExcluir}
+                handleClose={() => setModalExcluir(false)}
+                handleConfirm={handleConfirmExclusion}
             />
         </NavBar >
     );

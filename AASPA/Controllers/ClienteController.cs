@@ -142,13 +142,13 @@ namespace AASPA.Host.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        [HttpPost("/ExcluirCliente")]
-        public async Task<ActionResult> ExcluirCliente([FromForm] ClienteRequest request, [FromForm] string motivoCancelamento)
+        [HttpPost("/CancelarClienteIntegraall")]
+        public async Task<ActionResult> CancelarClienteIntegraall([FromForm] AlterarStatusClientesIntegraallRequest request)
         {
             try
             {
                 string tokenIntegraall = await _service.GerarToken();
-                var retorno = await _service.InativarClienteIntegraall(request, motivoCancelamento, tokenIntegraall);
+                var retorno = await _service.CancelarClienteIntegraall(request, tokenIntegraall);
                 return Ok(retorno);
             }
             catch (Exception ex)

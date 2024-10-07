@@ -79,11 +79,11 @@ namespace AASPA.Controllers
 
         [HttpPost()]
         [Route("/AlterarStatusCliente")]
-        public async Task<ActionResult> AlterarStatusCliente([FromForm] AlterarStatusClienteRequest request)
+        public ActionResult AlterarStatusCliente([FromForm] AlterarStatusClienteRequest request)
         {
             try
             {
-                await _service.AlterarStatusCliente(request);
+                _service.AlterarStatusCliente(request);
                 return Ok();
             }
             catch (System.Exception ex)
