@@ -3,7 +3,7 @@ import { AuthContext } from '../../context/AuthContext';
 import { NavBar } from '../../components/Layout/layout';
 import { ButtonTooltip } from '../../components/Inputs/ButtonTooltip';
 import { RiChatHistoryLine } from "react-icons/ri";
-import { FaDownload, FaFilter, FaPlus, FaSearch, FaUserEdit, FaSyncAlt } from "react-icons/fa";
+import { FaDownload, FaFilter, FaPlus, FaSearch, FaUserEdit, FaTimes } from "react-icons/fa";
 import { Mascara } from '../../util/mascara';
 import { api } from '../../api/api';
 import ModalEditarStatusAtual from '../../components/Modal/editarStatusAtual';
@@ -389,12 +389,12 @@ const Cclientes = () => {
                                             textButton={<FaUserEdit color='#fff' size={Size.IconeTabela} />}
                                         />
                                         <ButtonTooltip
-                                            backgroundColor={'#ffa500'}
+                                            backgroundColor={'#ff0000'}
                                             onClick={() => handleOpenModal(cliente)}
                                             className='btn btn-danger button-container-item'
                                             text={'Cancelar'}
                                             top={true}
-                                            textButton={<FaSyncAlt color='#fff' size={Size.IconeTabela} />}
+                                            textButton={<FaTimes color='#fff' size={Size.IconeTabela} />}
                                         />
                                         <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />
                                     </td>
@@ -438,12 +438,12 @@ const Cclientes = () => {
                                             textButton={<FaUserEdit color='#fff' size={Size.IconeTabela} />}
                                         />
                                         <ButtonTooltip
-                                            backgroundColor={'#ffa500'}
+                                            backgroundColor={'#ff0000'}
                                             onClick={() => handleOpenModal(cliente)}
                                             className='btn btn-danger button-container-item'
                                             text={'Cancelar'}
                                             top={true}
-                                            textButton={<FaSyncAlt color='#fff' size={Size.IconeTabela} />}
+                                            textButton={<FaTimes color='#fff' size={Size.IconeTabela} />}
                                         />
                                         <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />
                                     </td>
