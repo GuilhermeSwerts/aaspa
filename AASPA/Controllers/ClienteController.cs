@@ -142,7 +142,20 @@ namespace AASPA.Host.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [HttpPost("/CancelarClienteIntegraall")]
+        public async Task<ActionResult> CancelarClienteIntegraall([FromForm] AlterarStatusClientesIntegraallRequest request)
+        {
+            try
+            {
+                string tokenIntegraall = await _service.GerarToken();
+                var retorno = await _service.CancelarClienteIntegraall(request, tokenIntegraall);
+                return Ok(retorno);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Erro ao excluir cliente: {ex.Message}");
+            }
+        }
         #endregion
-
     }
 }

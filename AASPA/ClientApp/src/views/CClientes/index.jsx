@@ -3,7 +3,7 @@ import { AuthContext } from '../../context/AuthContext';
 import { NavBar } from '../../components/Layout/layout';
 import { ButtonTooltip } from '../../components/Inputs/ButtonTooltip';
 import { RiChatHistoryLine } from "react-icons/ri";
-import { FaDownload, FaFilter, FaPlus, FaSearch, FaUserEdit } from "react-icons/fa";
+import { FaDownload, FaFilter, FaPlus, FaSearch, FaUserEdit, FaTimes } from "react-icons/fa";
 import { Mascara } from '../../util/mascara';
 import { api } from '../../api/api';
 import ModalEditarStatusAtual from '../../components/Modal/editarStatusAtual';
@@ -17,6 +17,7 @@ import { Collapse } from 'reactstrap'
 import { Paginacao } from '../../components/Paginacao/Paginacao';
 import { Size } from '../../util/size';
 import { GetParametro } from '../../util/parametro';
+import ExcluirCliente from '../../components/Modal/excluirCliente';
 
 const Cclientes = () => {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -38,6 +39,11 @@ const Cclientes = () => {
     const [cpf, setCpf] = useState('');
     const [qtdPaginas, setQtdPaginas] = useState(0);
     const [isSimples, setIsSimpes] = useState(false);
+    const [ModalExcluir, setModalExcluir] = useState(false);
+    const [clienteSelecionado, setClienteSelecionado] = useState(null);
+    const [statusClienteId, setStatusClienteId] = useState(0)
+    const [isLoading, setIsLoading] = useState(false);
+
 
     //**paginação**
     const [limit, setLimit] = useState(10);
@@ -101,6 +107,42 @@ const Cclientes = () => {
             default:
                 break;
         }
+    }
+
+    const handleOpenModal = (cliente) => {
+        setStatusClienteId(cliente.statusAtual.status_id)
+        setClienteSelecionado(cliente);
+        setModalExcluir(true);
+    };
+
+    const handleConfirmExclusion = ({ cancelamento = '', motivoCancelamento = '' } = {}) => {
+        var formData = new FormData();
+        addCampos(formData, cancelamento, motivoCancelamento, statusClienteId);
+
+        api.post("/CancelarClienteIntegraall", formData, res => {
+            if (res.data === "Proposta não encontrada!") {
+                Alert(res.data, false);
+            } else {
+                Alert(res.data, true);
+            }
+
+            setModalExcluir(false);
+        }, err => {
+            Alert(err.response ? err.response.data : 'Erro desconhecido', false);
+        });
+    };
+
+
+    const handleCloseModal = () => {
+        setModalExcluir(false);
+    }
+
+    const addCampos = (formData, cancelamento, motivoCancelamento, StatusId) => {
+        formData.append("clienteid", clienteSelecionado.cliente.cliente_id);
+        formData.append('cancelamento', cancelamento)
+        formData.append('motivoCancelamento', motivoCancelamento);
+        formData.append("status_id_antigo", StatusId);
+        formData.append("status_id_novo", 2);
     }
 
     const DownloadClienteFiltro = () => {
@@ -350,6 +392,14 @@ const Cclientes = () => {
                                             top={true}
                                             textButton={<FaUserEdit color='#fff' size={Size.IconeTabela} />}
                                         />
+                                        <ButtonTooltip
+                                            backgroundColor={'#ff0000'}
+                                            onClick={() => handleOpenModal(cliente)}
+                                            className='btn btn-danger button-container-item'
+                                            text={'Cancelar'}
+                                            top={true}
+                                            textButton={<FaTimes color='#fff' size={Size.IconeTabela}/>}
+                                        />
                                         <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />
                                     </td>
                                 </tr>}
@@ -391,6 +441,14 @@ const Cclientes = () => {
                                             top={true}
                                             textButton={<FaUserEdit color='#fff' size={Size.IconeTabela} />}
                                         />
+                                        <ButtonTooltip
+                                            backgroundColor={'#ff0000'}
+                                            onClick={() => handleOpenModal(cliente)}
+                                            className='btn btn-danger button-container-item'
+                                            text={'Cancelar'}
+                                            top={true}
+                                            textButton={<FaTimes color='#fff' size={Size.IconeTabela} />}
+                                        />
                                         <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />
                                     </td>
                                 </tr>}
@@ -407,6 +465,11 @@ const Cclientes = () => {
                 total={totalClientes}
                 setOffset={setOffset}
                 setCurrentPage={value => BuscarTodosClientes(null, null, value)}
+            />
+            <ExcluirCliente
+                show={ModalExcluir}
+                handleClose={() => setModalExcluir(false)}
+                handleConfirm={handleConfirmExclusion}
             />
         </NavBar >
     );

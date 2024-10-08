@@ -1,5 +1,6 @@
 ﻿using AASPA.Domain.CustonException;
 using AASPA.Domain.Interface;
+using AASPA.Models.Enum;
 using AASPA.Models.Requests;
 using AASPA.Models.Response;
 using AASPA.Repository;
@@ -28,16 +29,18 @@ namespace AASPA.Domain.Service
     {
         private readonly MysqlContexto _mysql;
         private readonly IHostEnvironment _env;
+        private readonly IStatus _status;
         private static readonly HttpClient _httpClient = new HttpClient();
         private string login = "AASPA";
         private string senha = "l@znNL,Lkc9x";
         private string captcha = "XD5V";
         private string token = "LWGb8VjYsZZkmJfA9JK9tQ==:E1huR9Q8It+WFpAES+pLsA==:0urZEQiqBcMNEGchHF8Elg==";
 
-        public ClienteService(MysqlContexto mysql, IHostEnvironment env)
+        public ClienteService(MysqlContexto mysql, IHostEnvironment env, IStatus status)
         {
             _mysql = mysql;
             _env = env;
+            _status = status;
         }
 
         public BuscarClienteByIdResponse BuscarClienteID(int clienteId)
@@ -706,11 +709,11 @@ namespace AASPA.Domain.Service
                 NovoCliente(cli, true, true);
             }
         }
-        private async Task<string> GerarToken()
+        public async Task<string> GerarToken()
         {
             try
             {
-                var requestUriLogin = "https://integraall.com/api/Login/validar";
+                var requestUriLogin = "https://hml.integraall.com/api/Login/validar";
                 var loginRequest = new
                 {
                     login,
@@ -760,6 +763,57 @@ namespace AASPA.Domain.Service
                     return 6;
                 default:
                     throw new ArgumentException("Estado civil não reconhecido.");
+            }
+        }        
+
+        public async Task<string> CancelarClienteIntegraall(AlterarStatusClientesIntegraallRequest request, string tokenIntegraall)
+        {
+            try
+            {
+                var cliente = _mysql.clientes.Where(x => x.cliente_id == request.clienteid).FirstOrDefault();
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenIntegraall);
+                var url = "https://hml.integraall.com/api/Proposta/CancelarPorCpfMatricula";
+
+                var data = new
+                {
+                    cpf = cliente.cliente_cpf,
+                    matricula = cliente.cliente_matriculaBeneficio,
+                    motivoCancelamento = request.motivocancelamento,
+                    tipoCancelamento = request.cancelamento
+                };
+                var jsonData = JsonConvert.SerializeObject(data);
+                var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync(url, content);
+                Console.WriteLine(response.StatusCode);
+                if (response.IsSuccessStatusCode)
+                {
+                    cliente.cliente_StatusIntegral = request.cancelamento;
+                    AlterarStatusClienteRequest cli = new AlterarStatusClienteRequest()
+                    {
+                        cliente_id = request.clienteid,
+                        status_id_antigo = request.status_id_antigo,
+                        status_id_novo = request.status_id_novo,
+                    };
+                    _status.AlterarStatusCliente(cli);
+                    if (!string.IsNullOrEmpty(request.motivocancelamento))
+                    {
+                        cliente.cliente_motivocancelamento = request.motivocancelamento.Trim();
+                    }
+                    _mysql.SaveChanges();
+                    throw new Exception("Cliente cancelado com sucesso!");
+                }
+                else if(response.Content.ReadAsStringAsync().Result.Contains("Proposta não encontrada!"))
+                {
+                    throw new Exception("Proposta não encontrada!");
+                }
+                else
+                {
+                    throw new Exception(response.StatusCode.ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
             }
         }
     }
