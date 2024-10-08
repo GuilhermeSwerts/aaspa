@@ -41,6 +41,7 @@ const Cclientes = () => {
     const [isSimples, setIsSimpes] = useState(false);
     const [ModalExcluir, setModalExcluir] = useState(false);
     const [clienteSelecionado, setClienteSelecionado] = useState(null);
+    const [statusClienteId, setStatusClienteId] = useState(0)
     const [isLoading, setIsLoading] = useState(false);
 
 
@@ -109,13 +110,14 @@ const Cclientes = () => {
     }
 
     const handleOpenModal = (cliente) => {
+        setStatusClienteId(cliente.statusAtual.status_id)
         setClienteSelecionado(cliente);
         setModalExcluir(true);
     };
 
     const handleConfirmExclusion = ({ cancelamento = '', motivoCancelamento = '' } = {}) => {
         var formData = new FormData();
-        addCampos(formData, cancelamento, motivoCancelamento);
+        addCampos(formData, cancelamento, motivoCancelamento, statusClienteId);
 
         api.post("/CancelarClienteIntegraall", formData, res => {
             if (res.data === "Proposta não encontrada!") {
@@ -135,10 +137,12 @@ const Cclientes = () => {
         setModalExcluir(false);
     }
 
-    const addCampos = (formData, cancelamento, motivoCancelamento) => {
+    const addCampos = (formData, cancelamento, motivoCancelamento, StatusId) => {
         formData.append("clienteid", clienteSelecionado.cliente.cliente_id);
         formData.append('cancelamento', cancelamento)
         formData.append('motivoCancelamento', motivoCancelamento);
+        formData.append("status_id_antigo", StatusId);
+        formData.append("status_id_novo", 2);
     }
 
     const DownloadClienteFiltro = () => {
@@ -394,7 +398,7 @@ const Cclientes = () => {
                                             className='btn btn-danger button-container-item'
                                             text={'Cancelar'}
                                             top={true}
-                                            textButton={<FaTimes color='#fff' size={Size.IconeTabela} />}
+                                            textButton={<FaTimes color='#fff' size={Size.IconeTabela}/>}
                                         />
                                         <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />
                                     </td>

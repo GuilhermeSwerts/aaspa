@@ -622,10 +622,14 @@ namespace AASPA.Domain.Service
                     {
                         cliente_id = query.log_status_cliente_id,
                         status_id_antigo = query.log_status_novo_id,
-                        status_id_novo = (int)EStatus.Inativo
+                        status_id_novo = (int)EStatus.Inativo,
                     };
 
                     _statusService.AlterarStatusCliente(novostatus);
+
+                    var cliente = _mysql.clientes.Where(x => x.cliente_matriculaBeneficio == matricula).FirstOrDefault();
+                    cliente.cliente_StatusIntegral = 14;
+                    _mysql.SaveChanges();
                 }
             }
         }

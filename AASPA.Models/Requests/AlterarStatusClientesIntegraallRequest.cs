@@ -11,5 +11,7 @@ namespace AASPA.Models.Requests
         public int clienteid { get; set; }
         public int cancelamento { get; set; }
         public string motivocancelamento { get; set; }
+        public int status_id_antigo { get; set; }
+        public int status_id_novo { get; set; }
     }
 }

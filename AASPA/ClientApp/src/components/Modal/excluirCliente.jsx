@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 
-const ExcluirCliente = ({ show, handleClose, handleConfirm}) => {
+const ExcluirCliente = ({ show, handleClose, handleConfirm, StatusId }) => {
     const [cancelamento, setCancelamento] = useState('');
     const [motivoCancelamento, setMotivoCancelamento] = useState('');
     const cancelamentoRef = useRef(null);
@@ -29,7 +29,7 @@ const ExcluirCliente = ({ show, handleClose, handleConfirm}) => {
 
         setIsProcessing(true);
 
-        handleConfirm({ cancelamento, motivoCancelamento });
+        handleConfirm({ cancelamento, motivoCancelamento, StatusId });
 
         setCancelamento('');
         setMotivoCancelamento('');
