@@ -160,7 +160,7 @@ const Cclientes = () => {
                 </div>}
                 <div className="col-md-6"></div>
                 <div className="col-md-2" style={{ display: 'flex', justifyContent: 'end' }}>
-                    <button type='button' onClick={() => window.location.href = '/cliente'} className='btn btn-primary'><FaPlus /></button>
+                    <button type='button' onClick={() => window.location.href = '/cliente'} className='btn btn-primary' title="Novo Cliente"><FaPlus /></button>
                 </div>
             </div>
             <br />
@@ -245,10 +245,10 @@ const Cclientes = () => {
                         </div>
                         <div className="col-md-8" />
                         <div className="col-md-1" style={{ marginTop: '1.5rem' }}>
-                            <button style={{ width: '100%' }} onClick={() => BuscarTodosClientes(statusCliente, statusRemessa, 1)} className='btn btn-primary'><FaSearch size={Size.IconeTabela} /></button>
+                            <button style={{ width: '100%' }} onClick={() => BuscarTodosClientes(statusCliente, statusRemessa, 1)} className='btn btn-primary' title="Buscar Cliente"><FaSearch size={Size.IconeTabela} /></button>
                         </div>
                         <div className="col-md-1" style={{ marginTop: '1.5rem' }}>
-                            <button style={{ width: '100%' }} onClick={DownloadClienteFiltro} className='btn btn-primary'><FaDownload size={Size.IconeTabela} /></button>
+                            <button style={{ width: '100%' }} onClick={DownloadClienteFiltro} className='btn btn-primary' title="Exportar"><FaDownload size={Size.IconeTabela} /></button>
                         </div>
                     </div>
                     <br />
@@ -313,10 +313,10 @@ const Cclientes = () => {
                     </div>
                     <div className="col-md-10" />
                     <div className="col-md-1" style={{ marginTop: '1.5rem' }}>
-                        <button style={{ width: '100%' }} onClick={() => BuscarTodosClientes(statusCliente, statusRemessa, 1)} className='btn btn-primary'><FaSearch size={Size.IconeTabela} /></button>
+                        <button style={{ width: '100%' }} onClick={() => BuscarTodosClientes(statusCliente, statusRemessa, 1)} className='btn btn-primary' title="Buscar Clientes"><FaSearch size={Size.IconeTabela} /></button>
                     </div>
                     <div className="col-md-1" style={{ marginTop: '1.5rem' }}>
-                        <button style={{ width: '100%' }} onClick={DownloadClienteFiltro} className='btn btn-primary'><FaDownload size={Size.IconeTabela} /></button>
+                        <button style={{ width: '100%' }} onClick={DownloadClienteFiltro} className='btn btn-primary' title="Exportar"><FaDownload size={Size.IconeTabela} /></button>
                     </div>
                 </div>}
             </Collapse>
