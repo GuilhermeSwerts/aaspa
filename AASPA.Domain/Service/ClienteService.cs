@@ -530,12 +530,12 @@ namespace AASPA.Domain.Service
                                  $"{cliente.Cliente.cliente_nomePai ?? ""};" +
                                  $"{fixo};" +
                                  $"{cliente.Cliente.cliente_telefoneCelular ?? ""};" +
-                                 $"{cliente.Cliente.cliente_possuiWhatsapp};" +
+                                 $"{(cliente.Cliente.cliente_possuiWhatsapp ? "Sim" : "Não")};" +
                                  $"{funcaoAaspa};" +
                                  $"{cliente.Cliente.cliente_email ?? ""};" +
-                                 $"{cliente.Cliente.cliente_situacao};" +
-                                 $"{cliente.Cliente.cliente_estado_civil};" +
-                                 $"{cliente.Cliente.cliente_sexo};" +
+                                 $"{(cliente.Cliente.cliente_situacao == true? "Ativo" : "Inativo")};" +
+                                 $"{(cliente.Cliente.cliente_estado_civil == 1? "Solteiro" : cliente.Cliente.cliente_estado_civil == 2? "Casado" : cliente.Cliente.cliente_estado_civil == 3? "Viúvo" : cliente.Cliente.cliente_estado_civil == 4? "Separado judiscialmente" : cliente.Cliente.cliente_estado_civil == 5? "União estável" : "Outros")};" +
+                                 $"{(cliente.Cliente.cliente_sexo == 1? "Masculino" : cliente.Cliente.cliente_sexo == 2? "Feminino" : "Outros")};" +
                                  $"{cliente.Cliente.cliente_remessa_id ?? 0};" +
                                  $"{cliente.Captador.captador_nome ?? ""};" +
                                  $"{cliente.Captador.captador_cpf_cnpj ?? ""};" +
