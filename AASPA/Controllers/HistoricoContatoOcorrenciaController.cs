@@ -100,7 +100,7 @@ namespace AASPA.Controllers
             {
                 request.PaginaAtual = null;
 
-                byte[] base64 = _historicoContato.DownloadContatoFiltro();
+                byte[] base64 = _historicoContato.DownloadContatoFiltro(request);
                 return File(base64, "application/csv;charset=utf-8", "FiltroClientes.csv");
             }
             catch (System.Exception ex)

@@ -16,6 +16,6 @@ namespace AASPA.Domain.Interface
         void EditarContatoOcorrencia(HistoricoContatosOcorrenciaRequest historicoContatos, int usuarioLogadoId);
         void NovoContatoOcorrencia(HistoricoContatosOcorrenciaRequest historicoContatos, int usuarioId);
         (List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) BuscarTodosClientes(ConsultaParametros request);
-        byte[] DownloadContatoFiltro();
+        byte[] DownloadContatoFiltro(ConsultaParametros request);
     }
 }

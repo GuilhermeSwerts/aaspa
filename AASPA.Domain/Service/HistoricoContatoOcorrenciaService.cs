@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -390,7 +391,7 @@ namespace AASPA.Domain.Service
 
             return CalcularPagina(todosClientes, request.PaginaAtual, totalClientes);
         }
-        public byte[] DownloadContatoFiltro()
+        public byte[] DownloadContatoFiltro(ConsultaParametros request)
         {
             var clientesData = (from cli in _mysql.clientes
                                 join hist in _mysql.historico_contatos_ocorrencia on cli.cliente_id equals hist.historico_contatos_ocorrencia_cliente_id
@@ -398,6 +399,12 @@ namespace AASPA.Domain.Service
                                 join ori in _mysql.origem on hist.historico_contatos_ocorrencia_origem_id equals ori.origem_id
                                 join vin in _mysql.vinculo_cliente_captador on cli.cliente_id equals vin.vinculo_cliente_id
                                 join cap in _mysql.captadores on vin.vinculo_captador_id equals cap.captador_id
+                                where 
+                                    (string.IsNullOrEmpty(request.Cpf) || cli.cliente_cpf == request.Cpf ) &&
+                                    (string.IsNullOrEmpty(request.Beneficio) || cli.cliente_matriculaBeneficio == request.Beneficio) &&
+                                    (!request.DataInitAtendimento.HasValue || hist.historico_contatos_ocorrencia_dt_ocorrencia >= request.DataInitAtendimento.Value) &&
+                                    (!request.DataEndAtendimento.HasValue || hist.historico_contatos_ocorrencia_dt_ocorrencia < request.DataEndAtendimento.Value.AddDays(1)) &&
+                                    (string.IsNullOrEmpty(request.SituacaoOcorrencia) || hist.historico_contatos_ocorrencia_situacao_ocorrencia == request.SituacaoOcorrencia)
                                 select new BuscarClienteByIdResponse
                                 {
                                     Cliente = cli,
@@ -418,7 +425,7 @@ namespace AASPA.Domain.Service
                 var motivoNome = cliente.Motivo != null ? cliente.Motivo.motivo_contato_nome : ";;";
                 var origem = (cliente.Origem != null && !string.IsNullOrEmpty(cliente.Origem.origem_nome)) ? cliente.Origem.origem_nome : ";;";
                 var remessa = cliente.Cliente.cliente_remessa_id ?? 0;
-            var historico = cliente.Historico != null ? $"{cliente.Historico.historico_contatos_ocorrencia_dt_ocorrencia};{cliente.Historico.historico_contatos_ocorrencia_descricao};{cliente.Historico.historico_contatos_ocorrencia_banco};{cliente.Historico.historico_contatos_ocorrencia_agencia};{cliente.Historico.historico_contatos_ocorrencia_conta};{cliente.Historico.historico_contatos_ocorrencia_digito};{cliente.Historico.historico_contatos_ocorrencia_chave_pix}" : ";;;;;;";
+                var historico = cliente.Historico != null ? $"{cliente.Historico.historico_contatos_ocorrencia_dt_ocorrencia:dd/MM/yyyy hh:mm:ss};{cliente.Historico.historico_contatos_ocorrencia_descricao};{cliente.Historico.historico_contatos_ocorrencia_banco};{cliente.Historico.historico_contatos_ocorrencia_agencia};{cliente.Historico.historico_contatos_ocorrencia_conta};{cliente.Historico.historico_contatos_ocorrencia_digito};{cliente.Historico.historico_contatos_ocorrencia_chave_pix}" : ";;;;;;";
                 builder.AppendLine(
                     $"{cliente.Cliente.cliente_id};" +
                     $"{cliente.Cliente.cliente_cpf};" +
