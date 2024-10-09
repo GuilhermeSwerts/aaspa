@@ -17,5 +17,8 @@ namespace AASPA.Domain.Interface
         byte[] DownloadFiltro(ConsultaParametros request);
         Task<List<ClienteRequest>> GetClientesIntegraall(string datacadastro, string dataCadastroFim);
         void SalvarNovoCliente(List<ClienteRequest> clientes);
+        Task<string> GerarToken();
+        Task<string> CancelarClienteIntegraall(AlterarStatusClientesIntegraallRequest request, string tokenIntegraall);
+
     }
 }
