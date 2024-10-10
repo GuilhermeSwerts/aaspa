@@ -713,7 +713,7 @@ namespace AASPA.Domain.Service
         {
             try
             {
-                var requestUriLogin = "https://hml.integraall.com/api/Login/validar";
+                var requestUriLogin = "https://integraall.com/api/Login/validar";
                 var loginRequest = new
                 {
                     login,
@@ -772,7 +772,7 @@ namespace AASPA.Domain.Service
             {
                 var cliente = _mysql.clientes.Where(x => x.cliente_id == request.clienteid).FirstOrDefault();
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenIntegraall);
-                var url = "https://hml.integraall.com/api/Proposta/CancelarPorCpfMatricula";
+                var url = "https://integraall.com/api/Proposta/CancelarPorCpfMatricula";
 
                 var data = new
                 {
