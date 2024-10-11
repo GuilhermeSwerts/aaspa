@@ -437,7 +437,7 @@ namespace AASPA.Domain.Service
                     $"{cliente.Cliente.cliente_uf};" +
                     $"{cliente.Cliente.cliente_numero.Replace(";", "")};" +
                     $"{cliente.Cliente.cliente_complemento};" +
-                    $"{cliente.Cliente.cliente_dataNasc};" +
+                    $"{cliente.Cliente.cliente_dataNasc.ToString("dd/MM/yyyy")};" +
                     $"{cliente.Cliente.cliente_dataCadastro};" +
                     $"{cliente.Cliente.cliente_nrDocto};" +
                     $"{cliente.Cliente.cliente_empregador};" +
@@ -446,12 +446,12 @@ namespace AASPA.Domain.Service
                     $"{cliente.Cliente.cliente_nomePai};" +
                     $"{cliente.Cliente.cliente_telefoneFixo};" +
                     $"{cliente.Cliente.cliente_telefoneCelular};" +
-                    $"{cliente.Cliente.cliente_possuiWhatsapp};" +
+                    $"{(cliente.Cliente.cliente_possuiWhatsapp ? "Sim" : "Não")};" +
                     $"{cliente.Cliente.cliente_funcaoAASPA};" +
                     $"{cliente.Cliente.cliente_email};" +
-                    $"{cliente.Cliente.cliente_situacao};" +
-                    $"{cliente.Cliente.cliente_estado_civil};" +
-                    $"{cliente.Cliente.cliente_sexo};" +
+                    $"{(cliente.Cliente.cliente_situacao ? "Ativo" : "Inativo")};" +
+                    $"{(cliente.Cliente.cliente_estado_civil switch { 1 => "Solteiro", 2 => "Casado", 3 => "Viúvo", 4 => "Separado judicialmente", 5 => "União estável", 6 => "Outros", _ => "Não especificado" })};" +
+                    $"{(cliente.Cliente.cliente_sexo == 1? "Masculino" : cliente.Cliente.cliente_sexo == 2? "Feminino" : "Outros")};" +
                     $"{remessa};" +
                     $"{cliente.Captador.captador_nome};" +
                     $"{cliente.Captador.captador_cpf_cnpj};" +

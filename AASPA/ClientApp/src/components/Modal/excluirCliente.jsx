@@ -42,6 +42,19 @@ const ExcluirCliente = ({ show, handleClose, handleConfirm, StatusId }) => {
         }
     }, [show]);
 
+    useEffect(() => {
+        if (cancelamento !== '14') {
+            const selectedStatus = statusCancelamento.find(status => status.value === cancelamento);
+            if (selectedStatus) {
+                setMotivoCancelamento(selectedStatus.label);
+            } else {
+                setMotivoCancelamento('');
+            }
+        } else {
+            setMotivoCancelamento('');
+        }
+    }, [cancelamento]);
+
     return (
         <Modal show={show} onHide={handleClose}>
             <Modal.Header closeButton>
