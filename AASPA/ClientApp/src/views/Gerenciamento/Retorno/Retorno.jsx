@@ -103,7 +103,7 @@ function Retorno() {
         <NavBar pagina_atual={'RETORNO'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
             <div className="row">
                 <div className="col-md-3" style={{ marginTop: '2rem', display: 'flex', gap: 10, justifyContent: 'space-between' }}>
-                    <button onClick={e => setIsOpen(!isOpen)} className='btn btn-danger'>Adicionar Novo Repasse {isOpen ? <FaChevronDown size={10} /> : <FaChevronUp size={10} />}</button>
+                    <button onClick={e => setIsOpen(!isOpen)} className='btn btn-danger'>Adicionar Novo Retorno {isOpen ? <FaChevronDown size={10} /> : <FaChevronUp size={10} />}</button>
                 </div>
             </div>
             <br />

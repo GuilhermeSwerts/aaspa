@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace AASPA.Controllers
 {
-    public class RemessaController : Controller
+    public class RemessaController : PrivateController
     {
         private readonly IRemessa _remessa;
         public RemessaController(IRemessa remessa)
@@ -108,7 +108,7 @@ namespace AASPA.Controllers
                 var retorno = "";
                 if (file.FileName.Contains("REP"))
                 {
-                     retorno = await _remessa.LerRetornoRepasse(file);
+                     retorno = await _remessa.LerRetornoRepasse(file,UsuarioLogadoId);
                 }
                 else
                 {

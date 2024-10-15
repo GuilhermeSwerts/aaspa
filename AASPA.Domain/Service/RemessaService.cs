@@ -31,17 +31,19 @@ namespace AASPA.Domain.Service
 {
     public class RemessaService : IRemessa
     {
+        private readonly IHistoricoContatoOcorrencia _historicoContato;
         private readonly MysqlContexto _mysql;
         private readonly IHostEnvironment _env;
         private readonly IStatus _statusService;
         private readonly ICliente _clienteService;
 
-        public RemessaService(MysqlContexto mysql, IHostEnvironment env, IStatus statusService, ICliente clienteService)
+        public RemessaService(MysqlContexto mysql, IHostEnvironment env, IStatus statusService, ICliente clienteService, IHistoricoContatoOcorrencia historicoContato)
         {
             _mysql = mysql;
             _env = env;
             _statusService = statusService;
             _clienteService = clienteService;
+            _historicoContato = historicoContato;
         }
 
         public void VincularRemessaCliente(int clienteId, int remessaId)
@@ -104,7 +106,7 @@ namespace AASPA.Domain.Service
 
         private void AtualizaStatusClienteGeradoRemessa(List<ClientesAtivosExcluidosResponse> clientes)
         {
-            var logStatus = clientes.Select(x=> new LogStatusDb
+            var logStatus = clientes.Select(x => new LogStatusDb
             {
                 log_status_antigo_id = x.LogStatusNovoId,
                 log_status_cliente_id = x.ClienteId,
@@ -245,7 +247,7 @@ namespace AASPA.Domain.Service
                     remessa_id = idRemessa
                 });
 
-                if (registros.Count >= batchSize || registros.Count == clientes.Count || maxBatchSize == registros.Count) 
+                if (registros.Count >= batchSize || registros.Count == clientes.Count || maxBatchSize == registros.Count)
                 {
                     InserirDaosRemessa(registros);
                     AtualizarRemessaCliente(clientes.Select(x => x.ClienteId).ToList(), idRemessa);
@@ -380,7 +382,7 @@ namespace AASPA.Domain.Service
             };
         }
 
-        public async Task<string> LerRetornoRepasse(IFormFile file)
+        public async Task<string> LerRetornoRepasse(IFormFile file, int usuarioLogadoId)
         {
             RetornoFinanceiroDb retorno_financeiro = new RetornoFinanceiroDb();
             string content;
@@ -415,7 +417,7 @@ namespace AASPA.Domain.Service
                 {
                     throw new Exception("Não existe nenhum retorno para o retorno financeiro importado!");
                 }
-                if(repasse != null)
+                if (repasse != null)
                 {
                     throw new Exception("Já existe um arquivo de repasse financeiro importado para o mês/ano competente!");
                 }
@@ -431,7 +433,7 @@ namespace AASPA.Domain.Service
                         content = await reader.ReadToEndAsync();
 
                         var linhas = content.Split('\n');
-
+                        List<RegistroRetornoFinanceiroDb> processados = new();
                         foreach (var line in linhas)
                         {
                             if (!string.IsNullOrWhiteSpace(line))
@@ -477,11 +479,16 @@ namespace AASPA.Domain.Service
                                     };
 
                                     _mysql.registro_retorno_financeiro.Add(registro_Financeiro);
+                                    processados.Add(registro_Financeiro);
                                     _mysql.SaveChanges();
                                 }
                             }
                         }
                         tran.Commit();
+
+                        AdicionarHistoricoPagamento(processados, usuarioLogadoId);
+
+
                         return anomes;
                     }
                 }
@@ -494,6 +501,43 @@ namespace AASPA.Domain.Service
 
             return "";
         }
+
+        private void AdicionarHistoricoPagamento(List<RegistroRetornoFinanceiroDb> processados, int usuarioLogadoId)
+        {
+            try
+            {
+                foreach (var repasse in processados)
+                {
+                    var cliente = _mysql.clientes.FirstOrDefault(x => x.cliente_matriculaBeneficio.PadLeft(10, '0') == repasse.numero_beneficio.PadLeft(10, '0'));
+                    if (cliente != null)
+                        _historicoContato.NovoContatoOcorrencia(new HistoricoContatosOcorrenciaRequest
+                        {
+                            HistoricoContatosOcorrenciaOrigemId = (int)EOrigem.ARQUIVO_REPASSE_FINANCEIRO,
+                            HistoricoContatosOcorrenciaDtOcorrencia = DateTime.Now,
+                            HistoricoContatosOcorrenciaClienteId = cliente.cliente_id,
+                            HistoricoContatosOcorrenciaMotivoContatoId = (int)EMotivo.ARQUIVO_INSS,
+                            HistoricoContatosOcorrenciaSituacaoOcorrencia = "EM PROCESSAMENTO",
+
+                            HistoricoContatosOcorrenciaDescricao = "",
+                            HistoricoContatosOcorrenciaAgencia = "",
+                            HistoricoContatosOcorrenciaPix = "",
+                            HistoricoContatosOcorrenciaBanco = "",
+                            HistoricoContatosOcorrenciaConta = "",
+                            HistoricoContatosOcorrenciaDigito = "",
+                            HistoricoContatosOcorrenciaTelefone = "",
+                            HistoricoContatosOcorrenciaTipoConta = "",
+                            HistoricoContatosOcorrenciaTipoChavePix = "",
+                            HistoricoContatosOcorrenciaAnexos = null,
+                            HistoricoContatosOcorrenciaId = 0
+                        }, usuarioLogadoId);
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
         public async Task<string> LerRetorno(IFormFile file)
         {
             string content;
@@ -522,7 +566,7 @@ namespace AASPA.Domain.Service
                 }
                 var retornoDb = _mysql.retornos_remessa.FirstAsync(x => x.AnoMes == anomes);
 
-                if(retornoDb != null)
+                if (retornoDb != null)
                 {
                     throw new Exception("Já existe um arquivo de retorno importado para o mês/ano competente!");
                 }
@@ -718,14 +762,14 @@ namespace AASPA.Domain.Service
                 try
                 {
                     var res = (from ret in _mysql.retornos_remessa
-                                     join rem in _mysql.remessa on ret.Remessa_Id equals rem.remessa_id
-                                     select new BuscarArquivosResponse
-                                     {
-                                         DataImportacao = ret.Data_Importacao.Value.ToString("dd/MM/yyyy hh:mm:ss"),
-                                         NomeRemessaCompetente = rem.nome_arquivo_remessa,
-                                         NomeRetornoCompetente = ret.Nome_Arquivo_Retorno,
-                                         RetornoId = ret.Retorno_Id
-                                     });
+                               join rem in _mysql.remessa on ret.Remessa_Id equals rem.remessa_id
+                               select new BuscarArquivosResponse
+                               {
+                                   DataImportacao = ret.Data_Importacao.Value.ToString("dd/MM/yyyy hh:mm:ss"),
+                                   NomeRemessaCompetente = rem.nome_arquivo_remessa,
+                                   NomeRetornoCompetente = ret.Nome_Arquivo_Retorno,
+                                   RetornoId = ret.Retorno_Id
+                               });
 
                     return res.ToList();
                 }
