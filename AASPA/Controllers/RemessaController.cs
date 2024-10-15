@@ -39,7 +39,7 @@ namespace AASPA.Controllers
         }
 
 
-            [HttpGet]
+        [HttpGet]
         [Route("/GerarRemessa")]
         public IActionResult GerarRemessa([FromQuery] int mes, [FromQuery] int ano, [FromQuery] DateTime dateInit, [FromQuery] DateTime dateEnd)
         {
@@ -121,13 +121,14 @@ namespace AASPA.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-        [HttpPost]
-        [Route("BuscarRetorno")]
+
+        [HttpGet]
+        [Route("BuscarRetornos")]
         public ActionResult BuscarRetorno([FromQuery] int mes, [FromQuery] int ano)
         {
             try
             {
-                BuscarRetornoResponse retorno = _remessa.BuscarRetorno(mes, ano);
+                List<BuscarArquivosResponse> retorno = _remessa.BuscarRetorno(mes, ano);
                 return Ok(retorno);
             }
             catch (Exception ex)

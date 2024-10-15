@@ -75,6 +75,7 @@ namespace AASPA
             services.AddScoped<ICaptador, CaptadorService>();
             services.AddScoped<IReembolso, ReembolsoService>();
             services.AddScoped<ILog, LogService>();
+            services.AddScoped<IRepasse, RepasseService>();
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>

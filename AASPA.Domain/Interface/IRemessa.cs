@@ -18,7 +18,7 @@ namespace AASPA.Domain.Interface
         BuscarArquivoResponse BuscarArquivo(int remessaId);
         Task<string> LerRetorno(IFormFile file);
         Task<string> LerRetornoRepasse(IFormFile file);
-        BuscarRetornoResponse BuscarRetorno(int mes, int ano);
+        List<BuscarArquivosResponse> BuscarRetorno(int mes, int ano);
         object GetBuscarRepasse(int? mes, int? ano);
         (List<ClienteDb> Clientes, int QtdPaginas, int TotalClientes) BuscarClientesElegivel(ConsultaParametros request);
     }
