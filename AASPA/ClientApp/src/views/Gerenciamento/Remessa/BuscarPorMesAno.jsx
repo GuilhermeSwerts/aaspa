@@ -34,11 +34,11 @@ const BuscarPorMesAno = ({
             <div className="row">
                 <div className="col-md-3" style={{ marginTop: '2rem', display: 'flex', gap: 10, justifyContent: 'space-between' }}>
                     <ModalNovaRemessa BuscarRemessas={BuscarRemessas} DownloadRemessa={DownloadRemessa} />
-                    <button onClick={e => setIsOpen(!isOpen)} className='btn btn-danger'>{isOpen ? 'Fechar' : 'Exibir'} Filtros<FaFilter /></button>
+                    {/* <button onClick={e => setIsOpen(!isOpen)} className='btn btn-danger'>{isOpen ? 'Fechar' : 'Exibir'} Filtros<FaFilter /></button> */}
                 </div>
             </div>
             <br />
-            <Collapse isOpen={isOpen}>
+            {/* <Collapse isOpen={isOpen}>
                 <>
                     <small>Filtro:</small>
                     <div className='row'>
@@ -69,7 +69,7 @@ const BuscarPorMesAno = ({
                         </div>
                     </div>
                 </>
-            </Collapse>
+            </Collapse> */}
         </div>
     );
 };

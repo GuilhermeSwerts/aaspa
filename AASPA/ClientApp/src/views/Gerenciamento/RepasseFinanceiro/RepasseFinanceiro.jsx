@@ -1,74 +1,65 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../../../context/AuthContext';
 import { NavBar } from '../../../components/Layout/layout';
-import { Col, Row, Button, Input, FormGroup, Label } from 'reactstrap';
+import { Col, Row, Button, Input, FormGroup, Label, Container } from 'reactstrap';
 import { api } from '../../../api/api';
-import BuscarPorMesAno from './BuscarRepassePorMesAno';
-import moment from 'moment';
-import axios from 'axios';
-import { format } from 'date-fns';
-import { ptBR, tr } from 'date-fns/locale';
-import { Alert } from '../../../util/alertas';
+import { Collapse } from 'reactstrap';
+import { Alert, Info } from '../../../util/alertas';
+import { useDropzone } from 'react-dropzone';
+import { FaChevronUp, FaChevronDown } from "react-icons/fa";
+import Paginacao from '../../../components/Paginacao/PaginacaoSimplificada';
 
 function RepasseFinanceiro() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
-    const [mesSelecionado, setMesSelecionado] = useState(null);
-    const [anoSelecionado, setAnoSelecionado] = useState(null);
+    const meses = [
+        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    const [isOpen, setIsOpen] = useState(false);
     const [file, setFile] = useState(null);
     const [fileName, setFileName] = useState('');
     const [importar, setImportar] = useState(false);
-
-    const [dadosRepasse, setDadosRepasse] = useState([]);
-
-    const [remessa, setRemessa] = useState({
-        remessa_id: "",
-        remessa_ano_mes: "",
-        nome_arquivo_remessa: "",
-        remessa_data_criacao: "",
-        remessa_periodo_de: "",
-        remessa_periodo_ate: ""
+    const [dataFile, setDataFile] = useState({
+        tipo: '',
+        mes: '',
+        ano: ''
+    })
+    const [repasses, setRepasses] = useState([]);
+    const [repassesData, setRepassesData] = useState([]);
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        onDrop: (acceptedFiles) => {
+            const selectedFile = acceptedFiles[0];
+            if (selectedFile) {
+                var name = selectedFile.name;
+                if (name.includes('D.SUB.GER.177.REP')) {
+                    const anoMes = name.slice(-6);
+                    const ano = anoMes.slice(0, 4);
+                    const mes = anoMes.slice(4);
+                    setDataFile({
+                        tipo: 'Repasse',
+                        mes: meses[parseInt(mes, 10) - 2],
+                        ano: ano
+                    })
+                    setFile(selectedFile);
+                    setFileName(name);
+                    setImportar(true);
+                } else {
+                    Info('Nome do arquivo incorreto.\nNome Base: D.SUB.GER.177.REP.[ANOMES]')
+                }
+            }
+        },
     });
-
-    const [retorno, setRetorno] = useState({
-        retorno_Id: "",
-        anoMes: "",
-        nome_Arquivo_Retorno: "",
-        remessa_Id: "",
-        data_Importacao: ""
-    });
-
-    const [repasse, setRepasse] = useState({
-        retorno_financeiro_id: "",
-        repasse: "",
-        competencia_Repasse: "",
-        remessa_id: "",
-        retorno_id: "",
-        ano_mes: "",
-        data_importacao: "",
-        nome_arquivo: "",
-    });
-
-    const handleFileChange = (event) => {
-        const selectedFile = event.target.files[0];
-        setFile(selectedFile);
-        setFileName(selectedFile ? selectedFile.name : '');
-    };
+    //**paginação**
+    const [limit, setLimit] = useState(10);
+    const [currentPage, setCurrentPage] = useState(1);
 
     const handleSubmit = () => {
         if (file) {
             EnviarRetorno(file);
-            setImportar(false);
+            HabilitarImportacao();
         } else {
             Alert('Por favor, selecione um arquivo antes de enviar.', false);
         }
-    };
-
-    const getMonthName = (monthNumber) => {
-        const monthNames = [
-            'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-        ];
-        return monthNames[monthNumber - 1];
     };
 
     const EnviarRetorno = (file) => {
@@ -76,134 +67,106 @@ function RepasseFinanceiro() {
         formData.append('file', file);
         api.post("LerRetornoRemessa", formData, res => {
             Alert("Arquivo do importado com sucesso!");
-            BuscarRetorno();
+            BuscarRepasses();
         }, err => {
             Alert(err.response.data, false)
         });
     };
 
     const HabilitarImportacao = () => {
-        setImportar(true);
+        setImportar(false);
+        setDataFile({
+            tipo: '',
+            mes: '',
+            ano: ''
+        })
+        setFile(null);
     };
 
-    const BuscarRetorno = () => {
-        const mesCorrente = moment().format('MM');
-        const anoCorrente = moment().format('YYYY');
-        let ano = anoSelecionado ? anoSelecionado : anoCorrente;
-        let mes = mesSelecionado ? mesSelecionado : mesCorrente;
-        setMesSelecionado(parseInt(mes));
-        setAnoSelecionado(ano);
-        api.get(`BuscarRepasse?mes=${mes}&ano=${ano}`, response => {
-            setRemessa(response.data.remessa);
-            setRetorno(response.data.retorno);
-            setRepasse(response.data.repasses);
-            setDadosRepasse(response.data.dadosRepasse);
+    const BuscarRepasses = () => {
+        api.get(`BuscarRepasses`, response => {
+            setRepasses(response.data);
+            setLimit(5);
         }, error => {
-            console.error('Erro ao buscar retorno:', error); // Log de erro no console para debug
-            Alert('Erro ao buscar retorno: ' + error.response.data, false);
+            console.error('Erro ao buscar repasses:', error); // Log de erro no console para debug
+            Alert('Erro ao buscar repasses: ' + error.response.data, false);
         })
     };
 
     useEffect(() => {
         handdleUsuarioLogado();
-        BuscarRetorno();
-        setImportar(false);
+        BuscarRepasses();
+        HabilitarImportacao(false);
     }, []);
 
     return (
         <NavBar pagina_atual={'REPASSE'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
-            <Row>
-                <Col md="6">
-                    <BuscarPorMesAno
-                        mesSelecionado={mesSelecionado}
-                        setMesSelecionado={setMesSelecionado}
-                        anoSelecionado={anoSelecionado}
-                        setAnoSelecionado={setAnoSelecionado}
-                        BuscarRemessas={BuscarRetorno}
-                        OnClick={BuscarRetorno}
-                    />
-                </Col>
-                <Col md="12" style={{ marginTop: '2rem' }}>
-                    {!importar && (
-                        <Button color="primary" onClick={HabilitarImportacao}>Importar Arquivo</Button>
-                    )}
-                    {importar === true && (
-                        <Col md="12">
-                            <Row>
-                                <Col md="6">
-                                    <Label for="fileID" className="btn btn-secondary" style={{ marginTop: '8px', marginRight: '10px' }}>
-                                        Selecionar Arquivo
-                                    </Label>
-                                    <Button color="primary" onClick={handleSubmit}>
-                                        Enviar Repasse
-                                    </Button>
-                                </Col>
-                                <Col md="6">
-                                    <Input
-                                        onChange={handleFileChange}
-                                        type="file"
-                                        id="fileID"
-                                        style={{ display: 'none' }}
-                                    />
-                                    {fileName && <p>Arquivo selecionado: {fileName}</p>}
-                                </Col>
-                            </Row>
+            <div className="row">
+                <div className="col-md-3" style={{ marginTop: '2rem', display: 'flex', gap: 10, justifyContent: 'space-between' }}>
+                    <button onClick={e => setIsOpen(!isOpen)} className='btn btn-danger'>Adicionar Novo Repasse {isOpen ? <FaChevronDown size={10} /> : <FaChevronUp size={10} />}</button>
+                </div>
+            </div>
+            <br />
+            <Collapse isOpen={isOpen}>
+                <Container>
+                    {!importar && <Row className="w-100">
+                        <Col {...getRootProps()} className="d-flex flex-column justify-content-center align-items-center border border-primary p-5" style={{ borderRadius: '8px' }}>
+                            <input {...getInputProps()} />
+                            {isDragActive ? (
+                                <p className="text-primary">Solte os arquivos aqui...</p>
+                            ) : (
+                                <p className="text-secondary">Arraste e solte um arquivo aqui ou clique para selecionar</p>
+                            )}
                         </Col>
-                    )}
-                </Col>
-            </Row>
+                    </Row>}
+                    {importar && <Row className="w-100">
+                        <Col
+                            className="d-flex flex-column justify-content-center align-items-center border border-primary p-5"
+                            style={{ borderRadius: '8px', borderStyle: 'dotted !important' }}
+                        >
+                            <ul>
+                                <li><span><strong>Arquivo:</strong> {fileName}</span></li>
+                                <li><span><strong>Tipo:</strong> {dataFile.tipo}</span> </li>
+                                <li><span><strong>Mês Competente:</strong> {dataFile.mes}</span> </li>
+                                <li><span><strong>Ano Competente:</strong> {dataFile.ano}</span> </li>
+                            </ul>
+                            <button className='btn btn-primary' onClick={handleSubmit}>Enviar Arquivo</button>
+                        </Col>
+                    </Row>}
+                </Container>
+            </Collapse>
             <br />
-            <br />
-            {retorno && (
-                <>
-                    <div className="p-3 border rounded">
-                        <Row>
-                            <Col md='4'>
-                                <h5>Dados Remessa:</h5>
-                                <h6>Id Remessa: {remessa.remessa_id}</h6>
-                                <h6>Nome Arquivo Remessa: {remessa.nome_arquivo_remessa}</h6>
-                                <h6>Data Geração Remessa: {remessa.remessa_data_criacao ? format(new Date(remessa.remessa_data_criacao), "dd-MM-yyyy hh:mm:ss", { locale: ptBR }) : ''}</h6>
-                            </Col>
-                            <Col md='4'>
-                                <h5>Dados Retorno:</h5>
-                                <h6>Id do Retorno: {retorno.retorno_Id}</h6>
-                                <h6>Nome Arquivo Retorno: {retorno.nome_Arquivo_Retorno}</h6>
-                                <h6>Data de Importação: {retorno.data_Importacao ? format(new Date(retorno.data_Importacao), "dd-MM-yyyy hh:mm:ss", { locale: ptBR }) : ''}</h6>
-                            </Col>
-                            <Col md='4'>
-                                <h5>Dados Repasse:</h5>
-                                <h6>Id Repasse: {repasse.retorno_financeiro_id}</h6>
-                                <h6>Nome Arquivo Remessa: {repasse.nome_arquivo}</h6>
-                                <h6>Data Geração Remessa: {repasse.data_importacao ? format(new Date(repasse.data_importacao), "dd-MM-yyyy hh:mm:ss", { locale: ptBR }) : ''}</h6>
-                            </Col>
-                        </Row>
-                    </div>
-                    <table className='table table-striped'>
-                        <thead>
-                            <tr>
-                                <th>Repasse/Financeiro ID</th>
-                                <th>Número Benefício</th>
-                                <th>Competencia Desconto</th>
-                                <th>Espécie</th>
-                                <th>Uf</th>
-                                <th>Desconto %</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {dadosRepasse.map((data, i) => (
-                                <tr>
-                                    <td>{data.id}</td>
-                                    <td>{data.numero_beneficio}</td>
-                                    <td>{data.competencia_desconto}</td>
-                                    <td>{data.especie}</td>
-                                    <td>{data.uf}</td>
-                                    <td>{`${data.desconto && ((data.desconto / 100).toFixed(2))}`}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </>
-            )}
+            <table className='table table-striped'>
+                <thead>
+                    <tr>
+                        <th>Repasse Id</th>
+                        <th>Nome Remessa Competente</th>
+                        <th>Nome Retorno Competente</th>
+                        <th>Nome Repasse Competente</th>
+                        <th>Data Importação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {repassesData.map(repasse => (
+                        <tr>
+                            <td>{repasse.repasseId}</td>
+                            <td>{repasse.nomeRemessaCompetente}</td>
+                            <td>{repasse.nomeRetornoCompetente}</td>
+                            <td>{repasse.nomeRepasseCompetente}</td>
+                            <td>{repasse.dataImportacao}</td>
+                        </tr>
+                    ))}
+                    {repasses.length === 0 && <tr><td colSpan={5}>Nenhum Repasse encontrado...</td></tr>}
+                </tbody>
+            </table>
+            <Paginacao
+                paginaAtual={currentPage} 
+                setPaginaAtual={setCurrentPage}
+                qtdPorPagina={limit} 
+                setQtdPorPagina={setLimit}
+                setData={setRepassesData} 
+                data={repasses} 
+            />
         </NavBar>
     );
 }

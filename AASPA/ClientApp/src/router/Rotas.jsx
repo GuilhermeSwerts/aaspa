@@ -46,11 +46,6 @@ export const PublicaRotas = [ /*PUBLICA PARA APARECER NO MENU*/
     { Icon: FaUsers, nome: 'Clientes (Busca Simplificada)', path: '/clientes?BuscaSimples=true', component: Cclientes },
     { Icon: FaUsers, nome: 'Clientes (Busca Avançada)', path: '/clientes', component: Cclientes },
 
-    { Icon: GiReceiveMoney, nome: 'Clientes Benefícios', path: '/beneficios', component: Beneficios },
-    { Icon: GiPayMoney, nome: 'Clientes Pagamentos', path: '/pagamentos', component: Pagamentos },
-    { Icon: MdHistory, nome: 'Clientes Histórico de Pagamentos', path: '/historicopagamento', component: HistoricoPagamento },
-    { Icon: RiChatHistoryLine, nome: 'Clientes Histórico de Contato', path: '/hstcocontatoocorrencia', component: HistoricoContatoOcorrencia },
-
     /*GERAÇÃO DE ARQUIVOS*/
     { Icon: FaFileImport, nome: 'Remessa', path: '/rremessa', component: Remessa },
     { Icon: FaFileDownload, nome: 'Retorno', path: '/rretorno', component: Retorno },
@@ -74,4 +69,8 @@ export const PrivateRotas = [ /*PUBLICA PARA NÃO APARECER NO MENU*/
     { nome: '', path: '/cliente', component: Cliente },
     { nome: '', path: '/historicoocorrenciacliente', component: HistoricoOcorrenciaCliente },
     { nome: '', path: '/teste', component: Teste },
+    { Icon: GiReceiveMoney, nome: 'Clientes Benefícios', path: '/beneficios', component: Beneficios },
+    { Icon: GiPayMoney, nome: 'Clientes Pagamentos', path: '/pagamentos', component: Pagamentos },
+    { Icon: MdHistory, nome: 'Clientes Histórico de Pagamentos', path: '/historicopagamento', component: HistoricoPagamento },
+    { Icon: RiChatHistoryLine, nome: 'Clientes Histórico de Contato', path: '/hstcocontatoocorrencia', component: HistoricoContatoOcorrencia },
 ]
