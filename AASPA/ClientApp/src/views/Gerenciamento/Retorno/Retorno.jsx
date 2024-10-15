@@ -4,7 +4,7 @@ import { NavBar } from '../../../components/Layout/layout';
 import { Col, Row, Button, Input, FormGroup, Label, Collapse, Container } from 'reactstrap';
 import { api } from '../../../api/api';
 import { useDropzone } from 'react-dropzone';
-import { Alert } from '../../../util/alertas';
+import { Alert,Info } from '../../../util/alertas';
 import Paginacao from '../../../components/Paginacao/PaginacaoSimplificada';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 
@@ -66,7 +66,7 @@ function Retorno() {
         const formData = new FormData();
         formData.append('file', file);
         api.post("LerRetornoRemessa", formData, res => {
-            Alert("Arquivo do mês " + mes + " de " + ano + " importado com sucesso!");
+            Alert("Retorno importado com sucesso!");
             BuscarRetorno();
         }, err => {
             Alert(err.response.data, false)
