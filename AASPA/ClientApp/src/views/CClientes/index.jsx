@@ -122,8 +122,11 @@ const Cclientes = () => {
         api.post("/CancelarClienteIntegraall", formData, res => {
             if (res.data === "Proposta não encontrada!") {
                 Alert(res.data, false);
-            } else {
-                Alert(res.data, true);
+            } else if (res.data === "Cliente cancelado no AASPA com sucesso!") {
+                Alert("Cliente cancelado no AASPA com sucesso! \r\n Proposta não encontrada no Integraall", true);
+            }
+            else {
+                Alert(res.data, true)
             }
 
             setModalExcluir(false);
