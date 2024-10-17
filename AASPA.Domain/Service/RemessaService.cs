@@ -510,6 +510,9 @@ namespace AASPA.Domain.Service
                 {
                     var cliente = _mysql.clientes.FirstOrDefault(x => x.cliente_matriculaBeneficio.PadLeft(10, '0') == repasse.numero_beneficio.PadLeft(10, '0'));
                     if (cliente != null)
+                    {
+                        var desconto = repasse.desconto.HasValue? repasse.desconto.Value.ToString("C", new System.Globalization.CultureInfo("pt-BR")) : "R$ 00,00";
+
                         _historicoContato.NovoContatoOcorrencia(new HistoricoContatosOcorrenciaRequest
                         {
                             HistoricoContatosOcorrenciaOrigemId = (int)EOrigem.ARQUIVO_REPASSE_FINANCEIRO,
@@ -518,7 +521,7 @@ namespace AASPA.Domain.Service
                             HistoricoContatosOcorrenciaMotivoContatoId = (int)EMotivo.ARQUIVO_INSS,
                             HistoricoContatosOcorrenciaSituacaoOcorrencia = "EM PROCESSAMENTO",
 
-                            HistoricoContatosOcorrenciaDescricao = "",
+                            HistoricoContatosOcorrenciaDescricao = $"Desconto do valor de {desconto}",
                             HistoricoContatosOcorrenciaAgencia = "",
                             HistoricoContatosOcorrenciaPix = "",
                             HistoricoContatosOcorrenciaBanco = "",
@@ -530,6 +533,7 @@ namespace AASPA.Domain.Service
                             HistoricoContatosOcorrenciaAnexos = null,
                             HistoricoContatosOcorrenciaId = 0
                         }, usuarioLogadoId);
+                    }
                 }
             }
             catch (Exception)
