@@ -24,7 +24,7 @@ namespace AASPA.Domain.Service
             {
                 var respasses = (from rep in _mysql.retorno_financeiro
                                  join ret in _mysql.retornos_remessa on rep.retorno_id equals ret.Retorno_Id
-                                 join rem in _mysql.remessa on ret.Remessa_Id equals rem.remessa_id
+                                 join rem in _mysql.remessa on rep.remessa_id equals rem.remessa_id
                                  select new BuscarArquivosResponse
                                  {
                                      DataImportacao = rep.data_importacao.ToString("dd/MM/yyyy hh:mm:ss"),
