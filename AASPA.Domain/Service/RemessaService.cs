@@ -386,7 +386,6 @@ namespace AASPA.Domain.Service
         {
             RetornoFinanceiroDb retorno_financeiro = new RetornoFinanceiroDb();
             string content;
-            ///var repasse = file.FileName.Substring(17, 2);
             var anomes = file.FileName.Substring(18, 6);
 
             var ano = file.FileName.Substring(18, 4);
@@ -533,6 +532,15 @@ namespace AASPA.Domain.Service
                             HistoricoContatosOcorrenciaAnexos = null,
                             HistoricoContatosOcorrenciaId = 0
                         }, usuarioLogadoId);
+
+                        _mysql.pagamentos.Add(new PagamentoDb
+                        {
+                            pagamento_cliente_id = cliente.cliente_id,
+                            pagamento_dt_cadastro = DateTime.Now,
+                            pagamento_dt_pagamento = DateTime.Now,
+                            pagamento_valor_pago = repasse.desconto.Value
+                        });
+                        _mysql.SaveChanges();
                     }
                 }
             }

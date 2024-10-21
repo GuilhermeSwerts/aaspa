@@ -124,6 +124,8 @@ function Atendimento() {
                             <option value="CANCELADA">CANCELADA</option>
                             <option value="FINALIZADO">FINALIZADO</option>
                             <option value="REEMBOLSO AGENDADO">REEMBOLSO AGENDADO</option>
+                            <option value="DADOS INVALIDOS">DADOS INVALIDOS</option>
+                            <option value="EM PROCESSAMENTO">EM PROCESSAMENTO</option>
                         </select>
                     </div>
                     <div className="col-md-1" style={{ marginTop: '1.5rem' }}>
