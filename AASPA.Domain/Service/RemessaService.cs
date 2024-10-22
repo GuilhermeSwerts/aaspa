@@ -464,7 +464,7 @@ namespace AASPA.Domain.Service
                                     var cd = int.Parse(line.Substring(11, 6));
                                     var ep = int.Parse(line.Substring(17, 2));
                                     var uf = line.Substring(19, 2);
-                                    var dc = decimal.Parse(line.Substring(21, 5));
+                                    var dc = GetValorDescontoArquivoRepasse(line.Substring(21, 5));
                                     var rId = retorno_financeiro.retorno_financeiro_id;
 
                                     var registro_Financeiro = new RegistroRetornoFinanceiroDb()
@@ -499,6 +499,14 @@ namespace AASPA.Domain.Service
             }
 
             return "";
+        }
+
+        private decimal GetValorDescontoArquivoRepasse(string valor)
+        {
+            var centena = valor.Substring(0,3);
+            var decimais = valor.Substring(3,2);
+            var valDesconto = decimal.Parse($"{centena},{decimais}");
+            return valDesconto;
         }
 
         private void AdicionarHistoricoPagamento(List<RegistroRetornoFinanceiroDb> processados, int usuarioLogadoId)
