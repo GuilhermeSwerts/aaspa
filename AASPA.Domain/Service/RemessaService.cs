@@ -647,7 +647,7 @@ namespace AASPA.Domain.Service
                                         Codigo_Operacao = int.Parse(line.Substring(11, 1)),
                                         Codigo_Resultado = int.Parse(line.Substring(12, 1)),
                                         Motivo_Rejeicao = int.Parse(line.Substring(13, 3)),
-                                        Valor_Desconto = decimal.Parse(line.Substring(16, 5)),
+                                        Valor_Desconto = GetValorDescontoArquivoRepasse(line.Substring(16, 5)),
                                         Data_Inicio_Desconto = line.Substring(21, 8) == "00000000" ? DateTime.ParseExact(DateTime.Now.ToString("yyyyMMdd", CultureInfo.InvariantCulture), "yyyyMMdd", CultureInfo.InvariantCulture) : DateTime.ParseExact(line.Substring(21, 8), "yyyyMMdd", CultureInfo.InvariantCulture),
                                         Codigo_Especie_Beneficio = int.Parse(line.Substring(29, 2)),
                                         Retorno_Remessa_Id = idRetorno
