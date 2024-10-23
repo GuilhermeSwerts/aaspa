@@ -40,7 +40,7 @@ function Retorno() {
                     const mes = anoMes.slice(4);
                     setDataFile({
                         tipo: 'Repasse',
-                        mes: meses[parseInt(mes, 10) - 2],
+                        mes: meses[parseInt(mes, 10) - 1],
                         ano: ano
                     })
                     setFile(selectedFile);
