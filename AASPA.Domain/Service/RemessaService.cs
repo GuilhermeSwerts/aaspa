@@ -584,7 +584,7 @@ namespace AASPA.Domain.Service
                 {
                     throw new Exception("Não existe nenhuma remessa para o retorno importado!");
                 }
-                var retornoDb = _mysql.retornos_remessa.FirstAsync(x => x.AnoMes == anomes);
+                var retornoDb = _mysql.retornos_remessa.FirstOrDefault(x => x.AnoMes == anomes);
 
                 if (retornoDb != null)
                 {
