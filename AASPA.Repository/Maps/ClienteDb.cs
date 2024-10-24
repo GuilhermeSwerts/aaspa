@@ -43,5 +43,6 @@ namespace AASPA.Repository.Maps
         public string? cliente_motivocancelamento { get; set; }
         public virtual ICollection<LogStatusDb> LogStatus { get; set; }
         public virtual ICollection<LogBeneficioDb> LogBeneficios { get; set; }
+        public string? cliente_token { get; set; }
     }
 }

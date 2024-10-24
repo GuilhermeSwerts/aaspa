@@ -43,6 +43,7 @@ const Cclientes = () => {
     const [clienteSelecionado, setClienteSelecionado] = useState(null);
     const [statusClienteId, setStatusClienteId] = useState(0)
     const [isLoading, setIsLoading] = useState(false);
+    const [tokenCliente, setTokenCliente] = useState('');
 
 
     //**paginação**
@@ -110,14 +111,24 @@ const Cclientes = () => {
     }
 
     const handleOpenModal = (cliente) => {
-        setStatusClienteId(cliente.statusAtual.status_id)
-        setClienteSelecionado(cliente);
-        setModalExcluir(true);
+
+        api.get(`/BuscarClienteID/${cliente.cliente.cliente_id}`, res => {
+            setTokenCliente(res.data.cliente.cliente_token);
+            if (res.data.cliente.cliente_token !== '' && res.data.cliente.cliente_token !== null) {
+                setStatusClienteId(cliente.statusAtual.status_id);
+                setClienteSelecionado(cliente);
+                setModalExcluir(true);
+            } else {
+                Alert('Cliente não possui token. Não será possível cancelar!', false);
+            }
+        }, err => {
+            Alert('Houve um erro ao buscar os dados do cliente', false)
+        })
     };
 
     const handleConfirmExclusion = ({ cancelamento = '', motivoCancelamento = '' } = {}) => {
         var formData = new FormData();
-        addCampos(formData, cancelamento, motivoCancelamento, statusClienteId);
+        addCampos(formData, cancelamento, motivoCancelamento, statusClienteId, tokenCliente);
 
         api.post("/CancelarClienteIntegraall", formData, res => {
             if (res.data === "Proposta não encontrada!") {
@@ -130,6 +141,7 @@ const Cclientes = () => {
             }
 
             setModalExcluir(false);
+            setTokenCliente('');
         }, err => {
             Alert(err.response ? err.response.data : 'Erro desconhecido', false);
         });
@@ -140,12 +152,13 @@ const Cclientes = () => {
         setModalExcluir(false);
     }
 
-    const addCampos = (formData, cancelamento, motivoCancelamento, StatusId) => {
+    const addCampos = (formData, cancelamento, motivoCancelamento, StatusId, tokencliente) => {
         formData.append("clienteid", clienteSelecionado.cliente.cliente_id);
         formData.append('cancelamento', cancelamento)
         formData.append('motivoCancelamento', motivoCancelamento);
         formData.append("status_id_antigo", StatusId);
         formData.append("status_id_novo", 2);
+        formData.append("token", tokencliente);
     }
 
     const DownloadClienteFiltro = () => {
@@ -473,6 +486,7 @@ const Cclientes = () => {
                 show={ModalExcluir}
                 handleClose={() => setModalExcluir(false)}
                 handleConfirm={handleConfirmExclusion}
+                token = {tokenCliente}
             />
         </NavBar >
     );

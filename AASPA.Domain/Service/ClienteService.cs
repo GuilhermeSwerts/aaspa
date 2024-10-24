@@ -7,6 +7,7 @@ using AASPA.Repository;
 using AASPA.Repository.Maps;
 using AASPA.Repository.Response;
 using Dapper;
+using DocumentFormat.OpenXml.Office2016.Excel;
 using DocumentFormat.OpenXml.Vml.Spreadsheet;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -768,16 +769,32 @@ namespace AASPA.Domain.Service
                 default:
                     throw new ArgumentException("Estado civil não reconhecido.");
             }
-        }        
+        }
+        public void CancelarCliente(AlterarStatusClientesIntegraallRequest request)
+        {
+            var cliente = _mysql.clientes.Where(x => x.cliente_id == request.clienteid).FirstOrDefault();
+            cliente.cliente_StatusIntegral = request.cancelamento;
+            AlterarStatusClienteRequest cli = new AlterarStatusClienteRequest()
+            {
+                cliente_id = request.clienteid,
+                status_id_antigo = request.status_id_antigo,
+                status_id_novo = request.status_id_novo,
+            };
+            _status.AlterarStatusCliente(cli);
+            if (!string.IsNullOrEmpty(request.motivocancelamento))
+            {
+                cliente.cliente_motivocancelamento = request.motivocancelamento.Trim();
+            }
+            _mysql.SaveChanges();
+        }
 
-        public async Task<string> CancelarClienteIntegraall(AlterarStatusClientesIntegraallRequest request, string tokenIntegraall)
+        public async Task CancelarClienteIntegraall(AlterarStatusClientesIntegraallRequest request, string tokenIntegraall)
         {
             try
             {
                 var cliente = _mysql.clientes.Where(x => x.cliente_id == request.clienteid).FirstOrDefault();
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenIntegraall);
                 var url = _configuration["IntegraallApi:BaseUrl"] + "Proposta/CancelarPorCpfMatricula";
-                //var url = "https://integraall.com/api/Proposta/CancelarPorCpfMatricula";
 
                 var data = new
                 {
@@ -789,49 +806,12 @@ namespace AASPA.Domain.Service
                 var jsonData = JsonConvert.SerializeObject(data);
                 var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync(url, content);
-                Console.WriteLine(response.StatusCode);
-                if (response.IsSuccessStatusCode)
-                {
-                    cliente.cliente_StatusIntegral = request.cancelamento;
-                    AlterarStatusClienteRequest cli = new AlterarStatusClienteRequest()
-                    {
-                        cliente_id = request.clienteid,
-                        status_id_antigo = request.status_id_antigo,
-                        status_id_novo = request.status_id_novo,
-                    };
-                    _status.AlterarStatusCliente(cli);
-                    if (!string.IsNullOrEmpty(request.motivocancelamento))
-                    {
-                        cliente.cliente_motivocancelamento = request.motivocancelamento.Trim();
-                    }
-                    _mysql.SaveChanges();
-                    throw new Exception("Cliente cancelado com sucesso!");
-                }
-                else if(response.Content.ReadAsStringAsync().Result.Contains("Proposta não encontrada!"))
-                {
-                    cliente.cliente_StatusIntegral = request.cancelamento;
-                    AlterarStatusClienteRequest cli = new AlterarStatusClienteRequest()
-                    {
-                        cliente_id = request.clienteid,
-                        status_id_antigo = request.status_id_antigo,
-                        status_id_novo = request.status_id_novo,
-                    };
-                    _status.AlterarStatusCliente(cli);
-                    if (!string.IsNullOrEmpty(request.motivocancelamento))
-                    {
-                        cliente.cliente_motivocancelamento = request.motivocancelamento.Trim();
-                    }
-                    _mysql.SaveChanges();
-                    throw new Exception("Cliente cancelado no AASPA com sucesso!");
-                }
-                else
-                {
-                    throw new Exception(response.StatusCode.ToString());
-                }
+                Console.WriteLine(response.StatusCode);               
+                
             }
             catch (Exception ex)
             {
-                return ex.Message;
+                Console.WriteLine(ex.Message);
             }
         }
     }
