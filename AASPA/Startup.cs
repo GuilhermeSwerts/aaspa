@@ -77,6 +77,7 @@ namespace AASPA
             services.AddScoped<ILog, LogService>();
             services.AddScoped<IRepasse, RepasseService>();
             services.AddScoped<IIntegracaoKompleto, IntegracaoKompletoService>();
+            services.AddScoped<ILogCancelamento, LogCancelamentoService>();
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>

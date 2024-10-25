@@ -61,5 +61,6 @@ namespace AASPA.Repository
         public DbSet<ElegivelReembolsoDb> elegivelreembolso { get; set; }
         public DbSet<AnexosDb> anexos { get; set; }
         public DbSet<LogAlteracaoDb> log_alteracao { get; set; }
+        public DbSet<LogCancelamentoClienteDb> log_cancelamento_cliente {  get; set; }
     }
 }

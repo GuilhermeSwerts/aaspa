@@ -12,6 +12,7 @@ using DocumentFormat.OpenXml.Vml.Spreadsheet;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using MySqlConnector;
 using Newtonsoft.Json;
 using System;
@@ -21,6 +22,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,17 +36,19 @@ namespace AASPA.Domain.Service
         private readonly IStatus _status;
         private static readonly HttpClient _httpClient = new HttpClient();
         private readonly IConfiguration _configuration;
+        private readonly ILogCancelamento _log;
         private string login = "AASPA";
         private string senha = "l@znNL,Lkc9x";
         private string captcha = "XD5V";
         private string token = "LWGb8VjYsZZkmJfA9JK9tQ==:E1huR9Q8It+WFpAES+pLsA==:0urZEQiqBcMNEGchHF8Elg==";
 
-        public ClienteService(MysqlContexto mysql, IHostEnvironment env, IStatus status, IConfiguration configuration)
+        public ClienteService(MysqlContexto mysql, IHostEnvironment env, IStatus status, IConfiguration configuration, ILogCancelamento log)
         {
             _mysql = mysql;
             _env = env;
             _status = status;
             _configuration = configuration;
+            _log = log;
         }
 
         public BuscarClienteByIdResponse BuscarClienteID(int clienteId)
@@ -770,7 +774,7 @@ namespace AASPA.Domain.Service
                     throw new ArgumentException("Estado civil não reconhecido.");
             }
         }
-        public void CancelarCliente(AlterarStatusClientesIntegraallRequest request)
+        public async Task CancelarCliente(AlterarStatusClientesIntegraallRequest request)
         {
             var cliente = _mysql.clientes.Where(x => x.cliente_id == request.clienteid).FirstOrDefault();
             cliente.cliente_StatusIntegral = request.cancelamento;
@@ -806,11 +810,20 @@ namespace AASPA.Domain.Service
                 var jsonData = JsonConvert.SerializeObject(data);
                 var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync(url, content);
-                Console.WriteLine(response.StatusCode);               
-                
+                var result = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _log.Logger(request, "Integraall", (int?)response.StatusCode, JsonDocument.Parse(result).RootElement.GetProperty("message").GetString());
+                }
+                else
+                {
+                    _log.Logger(request, "Integraall", (int?)response.StatusCode, "");
+                }                          
             }
             catch (Exception ex)
             {
+                _log.Logger(request, "Integraall", 500, ex.Message);
                 Console.WriteLine(ex.Message);
             }
         }

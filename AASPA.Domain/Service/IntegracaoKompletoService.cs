@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace AASPA.Domain.Service
@@ -16,9 +17,11 @@ namespace AASPA.Domain.Service
     {
         private static readonly HttpClient _httpClient = new HttpClient();
         private readonly IConfiguration _config;
-        public IntegracaoKompletoService(IConfiguration config)
+        private readonly ILogCancelamento _log;
+        public IntegracaoKompletoService(IConfiguration config, ILogCancelamento log)
         {
             _config = config;
+            _log = log;
         }
         public async Task<CancelarPropostaKompletoResponse> CancelarPropostaAsync(AlterarStatusClientesIntegraallRequest request)
         {
@@ -41,11 +44,19 @@ namespace AASPA.Domain.Service
                 var response = await _httpClient.PutAsync(url, content);
 
                 var result = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                {
+                    _log.Logger(request, "Kompleto", (int)response.StatusCode, JsonDocument.Parse(result).RootElement.GetProperty("message").GetString());
+                }
+                else
+                {
+                    _log.Logger(request, "Kompleto", (int)response.StatusCode, "");
+                }                
                 return JsonConvert.DeserializeObject<CancelarPropostaKompletoResponse>(result);
             }
             catch (Exception ex)
             {
-                //coreLogger.Register(new { mensagem = ex.Message, request }, LogType.Error, "ApiKompleto/CancelarProposta");
+                _log.Logger(request, "Kompleto", 500, ex.Message);
                 return new CancelarPropostaKompletoResponse()
                 {
                     Ok = false,

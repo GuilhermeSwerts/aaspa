@@ -128,16 +128,29 @@ const Cclientes = () => {
 
     const handleConfirmExclusion = ({ cancelamento = '', motivoCancelamento = '' } = {}) => {
         var formData = new FormData();
-        addCampos(formData, cancelamento, motivoCancelamento, statusClienteId, tokenCliente);
+        var usuario_logado = window.localStorage.getItem("usuario_logado");
+        var usuario = JSON.parse(usuario_logado);
+        const requestPayload = {
+            clienteid: clienteSelecionado.cliente.cliente_id,
+            cancelamento: cancelamento,
+            motivocancelamento: motivoCancelamento,
+            status_id_antigo: statusClienteId,
+            status_id_novo: 2,
+            token: tokenCliente,
+            usuario: {
+                Id: usuario.usuario_id,
+                Nome: usuario.usuario_nome,
+                Usuario: usuario.usuario_nome,
+                tipo: usuario.usuario_tipo
+            }
+        };
 
-        api.post("/CancelarClienteIntegraall", formData, res => {
-            if (res.data === "Proposta não encontrada!") {
-                Alert(res.data, false);
-            } else if (res.data === "Cliente cancelado no AASPA com sucesso!") {
-                Alert("Cliente cancelado no AASPA com sucesso! \r\n Proposta não encontrada no Integraall", true);
+        api.post("/CancelarClienteIntegraall", requestPayload, res => {
+            if (res.data.ok) {
+                Alert(res.data.message, true);
             }
             else {
-                Alert(res.data, true)
+                Alert("Não foi possível cancelar o cliente na Kompleto. Verifique!", false);
             }
 
             setModalExcluir(false);
@@ -152,13 +165,24 @@ const Cclientes = () => {
         setModalExcluir(false);
     }
 
-    const addCampos = (formData, cancelamento, motivoCancelamento, StatusId, tokencliente) => {
+    const addCampos = (formData, cancelamento, motivoCancelamento, StatusId, tokencliente, usuario_logado) => {
         formData.append("clienteid", clienteSelecionado.cliente.cliente_id);
         formData.append('cancelamento', cancelamento)
         formData.append('motivoCancelamento', motivoCancelamento);
         formData.append("status_id_antigo", StatusId);
         formData.append("status_id_novo", 2);
         formData.append("token", tokencliente);
+
+        var usuario = JSON.parse(usuario_logado);
+
+        const usuarioRequest = {
+            Id: usuario.usuario_id,
+            Nome: usuario.usuario_nome,
+            Usuario: usuario.usuario_nome,
+            tipo: usuario.usuario_tipo
+        };
+
+        formData.append("usuario", JSON.stringify(usuarioRequest))
     }
 
     const DownloadClienteFiltro = () => {

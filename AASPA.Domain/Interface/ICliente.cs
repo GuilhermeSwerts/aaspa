@@ -19,7 +19,7 @@ namespace AASPA.Domain.Interface
         void SalvarNovoCliente(List<ClienteRequest> clientes);
         Task<string> GerarToken();
         Task CancelarClienteIntegraall(AlterarStatusClientesIntegraallRequest request, string tokenIntegraall);
-        void CancelarCliente(AlterarStatusClientesIntegraallRequest request);
+        Task CancelarCliente(AlterarStatusClientesIntegraallRequest request);
 
     }
 }
