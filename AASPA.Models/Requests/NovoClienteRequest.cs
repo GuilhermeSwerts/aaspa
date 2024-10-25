@@ -40,6 +40,7 @@ namespace AASPA.Models.Requests
         public int? Sexo { get; set; }
         public DateTime? DataAverbacao { get; set; }
         public int StatusIntegral { get; set; }
+        public string? Token { get; set; }
     }
 
     public class NovoCaptador 

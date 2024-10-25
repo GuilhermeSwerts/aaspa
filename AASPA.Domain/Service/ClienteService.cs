@@ -185,6 +185,7 @@ namespace AASPA.Domain.Service
                         clienteCadastrado.clientes_cadastro_externo = cadastroExterno;
                         clienteCadastrado.cliente_DataAverbacao = novoCliente.Cliente.DataAverbacao;
                         clienteCadastrado.cliente_StatusIntegral = novoCliente.Cliente.StatusIntegral;
+                        clienteCadastrado.cliente_token = novoCliente.Cliente.Token;
 
                         _mysql.clientes.Update(clienteCadastrado);
                         _mysql.SaveChanges();
@@ -220,7 +221,8 @@ namespace AASPA.Domain.Service
                         cliente_sexo = novoCliente.Cliente.Sexo,
                         clientes_cadastro_externo = cadastroExterno,
                         cliente_DataAverbacao = novoCliente.Cliente.DataAverbacao,
-                        cliente_StatusIntegral = novoCliente.Cliente.StatusIntegral
+                        cliente_StatusIntegral = novoCliente.Cliente.StatusIntegral,
+                        cliente_token = novoCliente.Cliente.Token
                     };
 
                     if (novoCliente.Cliente.DataCad != default(DateTime))
