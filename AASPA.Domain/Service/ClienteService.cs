@@ -805,7 +805,8 @@ namespace AASPA.Domain.Service
                     cpf = cliente.cliente_cpf,
                     matricula = cliente.cliente_matriculaBeneficio,
                     motivoCancelamento = request.motivocancelamento,
-                    tipoCancelamento = request.cancelamento
+                    tipoCancelamento = request.cancelamento,
+                    token = request.token
                 };
                 var jsonData = JsonConvert.SerializeObject(data);
                 var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
