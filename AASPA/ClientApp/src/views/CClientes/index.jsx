@@ -119,7 +119,7 @@ const Cclientes = () => {
                 setClienteSelecionado(cliente);
                 setModalExcluir(true);
             } else {
-                Alert('Cliente não possui token. Não será possível cancelar!', false);
+                Alert('Cliente não possui token! Favor informar ao suporte para fazer a correção dos dados do cliente.', false);
             }
         }, err => {
             Alert('Houve um erro ao buscar os dados do cliente', false)
