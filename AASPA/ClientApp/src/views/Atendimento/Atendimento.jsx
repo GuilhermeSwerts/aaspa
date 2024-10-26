@@ -69,9 +69,17 @@ function Atendimento() {
     }, [])
 
     const DownloadFiltro = () => {
+        let situacoesOcorrencias = "";
 
-        console.log(api.ambiente);
-        window.open(`${api.ambiente}/DownloadContatoFiltro?cpf=${filtro.cpf}&beneficio=${filtro.matricula}&dataInitAtendimento=${dateInitAtendimento}&dataEndAtendimento=${dateEndAtendimento}&situacaoOcorrencia=${situacao}`)
+        if (selectedOptions.length > 0) {
+            selectedOptions.forEach((x, i) => {
+                situacoesOcorrencias += `SituacoesOcorrencias=${x}`
+                if (i !== selectedOptions.length - 1) {
+                    situacoesOcorrencias += '&';
+                }
+            })
+        }
+        window.open(`${api.ambiente}/DownloadContatoFiltro?cpf=${filtro.cpf}&beneficio=${filtro.matricula}&dataInitAtendimento=${dateInitAtendimento}&dataEndAtendimento=${dateEndAtendimento}&situacaoOcorrencia=${situacao}&${situacoesOcorrencias}`)
     }
 
     return (

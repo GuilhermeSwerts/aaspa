@@ -386,9 +386,9 @@ namespace AASPA.Domain.Service
                 }
                 if (request.SituacoesOcorrencias != null && request.SituacoesOcorrencias.Count > 0)
                 {
-                    filtros.Add(
-                        string.Join(" OR ", request.SituacoesOcorrencias
-                        .Select((n, index) => $"his.historico_contatos_ocorrencia_situacao_ocorrencia LIKE @SituacoesOcorrencias{index}")));
+                    var situacoes = string.Join(" OR ", request.SituacoesOcorrencias
+                        .Select((n, index) => $"his.historico_contatos_ocorrencia_situacao_ocorrencia LIKE @SituacoesOcorrencias{index}"));
+                    filtros.Add($"({situacoes})");
                 }
                 if (request.DataInitAtendimento.HasValue)
                 {

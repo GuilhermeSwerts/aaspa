@@ -62,13 +62,7 @@ namespace AASPA.Host.Controllers
         {
             try
             {
-                var (Clientes, QtdPaginas, TotalClientes) = _service.BuscarTodosClientes(request);
-                return Ok(new
-                {
-                    Clientes = Clientes.OrderByDescending(x => x.Cliente.cliente_dataCadastro).ToList(),
-                    QtdPaginas,
-                    TotalClientes
-                });
+                return Get(request);
             }
             catch (System.Exception ex)
             {
