@@ -10,10 +10,8 @@ const baseUrl = document.getElementsByTagName('base')[0].getAttribute('href');
 const rootElement = document.getElementById('root');
 
 ReactDOM.createRoot(rootElement).render(
-  <React.StrictMode>
-    <BrowserRouter basename={baseUrl}>
-      <Loader />
-      <Router />
-    </BrowserRouter>
-  </React.StrictMode>
+  <BrowserRouter basename={baseUrl}>
+    <Loader />
+    <Router />
+  </BrowserRouter>
 );

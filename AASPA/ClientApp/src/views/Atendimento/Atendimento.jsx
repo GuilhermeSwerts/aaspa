@@ -10,10 +10,12 @@ import { Alert } from '../../util/alertas';
 import CrudAtendimento from './CrudAtendimento';
 import { Size } from '../../util/size';
 import Captador from '../Gerenciamento/Captador/index';
+import Dropdown from '../../components/Inputs/Dropdown';
 
 function Atendimento() {
     const ref = useRef();
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext)
+    const [selectedOptions, setSelectedOptions] = useState([]);
     const [showFiltro, setShowFiltro] = useState(true);
     const [dateInitAtendimento, setDateInitAtendimento] = useState('');
     const [dateEndAtendimento, setDateEndAtendimento] = useState('');
@@ -41,7 +43,18 @@ function Atendimento() {
 
         if (!pPagina) pPagina = paginaAtual;
 
-        api.get(`BuscarFiltroClientes?&cpf=${filtro.cpf}&beneficio=${filtro.matricula}&dataInitAtendimento=${dateInitAtendimento}&dataEndAtendimento=${dateEndAtendimento}&situacaoOcorrencia=${situacao}&paginaAtual=${pPagina}&QtdPorPagina=${limit}`, res => {
+        let situacoesOcorrencias = "";
+        
+        if (selectedOptions.length > 0) {
+            selectedOptions.forEach((x, i) => {
+                situacoesOcorrencias += `SituacoesOcorrencias=${x}`
+                if (i !== selectedOptions.length - 1) {
+                    situacoesOcorrencias += '&';
+                }
+            })
+        }
+
+        api.get(`BuscarFiltroClientes?&cpf=${filtro.cpf}&beneficio=${filtro.matricula}&dataInitAtendimento=${dateInitAtendimento}&dataEndAtendimento=${dateEndAtendimento}&paginaAtual=${pPagina}&QtdPorPagina=${limit}&${situacoesOcorrencias}`, res => {
             setClientes([]);
             setClientes(res.data.clientes);
             setTotalClientes(res.data.totalClientes);
@@ -117,7 +130,19 @@ function Atendimento() {
                     </div>
                     <div className="col-md-2">
                         <span>Situação Ocorrencia</span>
-                        <select name='status' value={situacao} id="status" onChange={e => { setSituacao(e.target.value) }} required className='form-control'>
+                        <Dropdown options={[
+                            { value: 'ATENDIDA', text: 'ATENDIDA' },
+                            { value: 'EM TRATAMENTO', text: 'EM TRATAMENTO' },
+                            { value: 'CANCELADA', text: 'CANCELADA' },
+                            { value: 'FINALIZADO', text: 'FINALIZADO' },
+                            { value: 'REEMBOLSO AGENDADO', text: 'REEMBOLSO AGENDADO' },
+                            { value: 'DADOS INVALIDOS', text: 'DADOS INVALIDOS' },
+                            { value: 'EM PROCESSAMENTO', text: 'EM PROCESSAMENTO' },
+                        ]}
+                            selectedOptions={selectedOptions}
+                            setSelectedOptions={setSelectedOptions}
+                        />
+                        {/* <select name='status' value={situacao} id="status" onChange={e => { setSituacao(e.target.value) }} required className='form-control'>
                             <option value="TODOS">TODOS</option>
                             <option value="ATENDIDA">ATENDIDA</option>
                             <option value="EM TRATAMENTO">EM TRATAMENTO</option>
@@ -126,7 +151,7 @@ function Atendimento() {
                             <option value="REEMBOLSO AGENDADO">REEMBOLSO AGENDADO</option>
                             <option value="DADOS INVALIDOS">DADOS INVALIDOS</option>
                             <option value="EM PROCESSAMENTO">EM PROCESSAMENTO</option>
-                        </select>
+                        </select> */}
                     </div>
                     <div className="col-md-1" style={{ marginTop: '1.5rem' }}>
                         <button style={{ width: '100%' }} onClick={e => { BuscarTodosClientes(1) }} className='btn btn-primary'><FaSearch size={Size.IconeTabela} /></button>

@@ -7,6 +7,8 @@ using AASPA.Repository;
 using AASPA.Repository.Maps;
 using AASPA.Repository.Response;
 using Dapper;
+using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Vml.Spreadsheet;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -17,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -304,7 +307,12 @@ namespace AASPA.Domain.Service
 
             int totalPaginas = (TotalClientes / request.QtdPorPagina) ?? 1;
 
-            return (Clientes.Distinct().ToList(), totalPaginas, TotalClientes);
+            return (Clientes.GroupBy(x=> new { x.Cliente,x.Captador,x.StatusAtual }).Select(x=> new BuscarClienteByIdResponse
+            {
+                Cliente = x.Key.Cliente,
+                Captador = x.Key.Captador,
+                StatusAtual = x.Key.StatusAtual
+            }).ToList(), totalPaginas, TotalClientes);
         }
 
         private (List<BuscarClienteByIdResponse> Clientes, int TotalClientes) GetClientesByFiltro(ConsultaParametros request, bool isCount = false, bool isDownload = false)
@@ -322,7 +330,7 @@ namespace AASPA.Domain.Service
                 string colunas = "cli.*, cpt.*";
                 string coluns = isCount ? "count(*) as Qtd" : colunas;
                 string query = @$"
-                         SELECT {coluns}    
+                         SELECT distinct {coluns}    
     FROM clientes cli
     JOIN vinculo_cliente_captador vin ON cli.cliente_id = vin.vinculo_cliente_id
     JOIN captadores cpt ON vin.vinculo_captador_id = cpt.captador_id
@@ -375,6 +383,12 @@ namespace AASPA.Domain.Service
                 if (request.SituacaoOcorrencia != null)
                 {
                     filtros.Add("his.historico_contatos_ocorrencia_situacao_ocorrencia = @SituacaoOcorrencia");
+                }
+                if (request.SituacoesOcorrencias != null && request.SituacoesOcorrencias.Count > 0)
+                {
+                    filtros.Add(
+                        string.Join(" OR ", request.SituacoesOcorrencias
+                        .Select((n, index) => $"his.historico_contatos_ocorrencia_situacao_ocorrencia LIKE @SituacoesOcorrencias{index}")));
                 }
                 if (request.DataInitAtendimento.HasValue)
                 {
@@ -429,6 +443,11 @@ namespace AASPA.Domain.Service
                     parameters.Add("@DataInitAtendimento", request.DataInitAtendimento);
                 if (request.DataEndAtendimento.HasValue)
                     parameters.Add("@DataEndAtendimento", request.DataEndAtendimento.Value.AddDays(1));
+                if (request.SituacoesOcorrencias != null && request.SituacoesOcorrencias.Count > 0)
+                {
+                    for (int i = 0; i < request.SituacoesOcorrencias.Count; i++)
+                        parameters.Add($"@SituacoesOcorrencias{i}", request.SituacoesOcorrencias[i]);
+                }
 
                 if (!isCount)
                 {
@@ -450,9 +469,10 @@ namespace AASPA.Domain.Service
                     }
 
                     clientes.AddRange(data);
-                }else
+                }
+                else
                 {
-                    var data = connection.Query<QuantidadeResponse>(query,parameters).First();
+                    var data = connection.Query<QuantidadeResponse>(query, parameters).First();
                     qtd = data.Qtd;
                 }
             }
@@ -465,7 +485,18 @@ namespace AASPA.Domain.Service
             {
                 return (clientes, qtd);
             }
+        }
 
+        private string GetSituacoesOcorrencias(List<string> situacoesOcorrencias)
+        {
+            string stiuacoes = "";
+            bool first = true;
+            foreach (var situacao in situacoesOcorrencias)
+            {
+                stiuacoes += first ? $"'{situacao}'" : $",'{situacao}'";
+                first = false;
+            }
+            return stiuacoes;
         }
 
         private string RemoveZerosEsquerda(string cpf)
@@ -536,9 +567,9 @@ namespace AASPA.Domain.Service
                                  $"{(cliente.Cliente.cliente_possuiWhatsapp ? "Sim" : "Não")};" +
                                  $"{funcaoAaspa};" +
                                  $"{cliente.Cliente.cliente_email ?? ""};" +
-                                 $"{(cliente.Cliente.cliente_situacao == true? "Ativo" : "Inativo")};" +
-                                 $"{(cliente.Cliente.cliente_estado_civil == 1? "Solteiro" : cliente.Cliente.cliente_estado_civil == 2? "Casado" : cliente.Cliente.cliente_estado_civil == 3? "Viúvo" : cliente.Cliente.cliente_estado_civil == 4? "Separado judiscialmente" : cliente.Cliente.cliente_estado_civil == 5? "União estável" : "Outros")};" +
-                                 $"{(cliente.Cliente.cliente_sexo == 1? "Masculino" : cliente.Cliente.cliente_sexo == 2? "Feminino" : "Outros")};" +
+                                 $"{(cliente.Cliente.cliente_situacao == true ? "Ativo" : "Inativo")};" +
+                                 $"{(cliente.Cliente.cliente_estado_civil == 1 ? "Solteiro" : cliente.Cliente.cliente_estado_civil == 2 ? "Casado" : cliente.Cliente.cliente_estado_civil == 3 ? "Viúvo" : cliente.Cliente.cliente_estado_civil == 4 ? "Separado judiscialmente" : cliente.Cliente.cliente_estado_civil == 5 ? "União estável" : "Outros")};" +
+                                 $"{(cliente.Cliente.cliente_sexo == 1 ? "Masculino" : cliente.Cliente.cliente_sexo == 2 ? "Feminino" : "Outros")};" +
                                  $"{cliente.Cliente.cliente_remessa_id ?? 0};" +
                                  $"{cliente.Captador.captador_nome ?? ""};" +
                                  $"{cliente.Captador.captador_cpf_cnpj ?? ""};" +
@@ -768,7 +799,7 @@ namespace AASPA.Domain.Service
                 default:
                     throw new ArgumentException("Estado civil não reconhecido.");
             }
-        }        
+        }
 
         public async Task<string> CancelarClienteIntegraall(AlterarStatusClientesIntegraallRequest request, string tokenIntegraall)
         {
@@ -807,7 +838,7 @@ namespace AASPA.Domain.Service
                     _mysql.SaveChanges();
                     throw new Exception("Cliente cancelado com sucesso!");
                 }
-                else if(response.Content.ReadAsStringAsync().Result.Contains("Proposta não encontrada!"))
+                else if (response.Content.ReadAsStringAsync().Result.Contains("Proposta não encontrada!"))
                 {
                     cliente.cliente_StatusIntegral = request.cancelamento;
                     AlterarStatusClienteRequest cli = new AlterarStatusClienteRequest()

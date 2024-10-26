@@ -14,7 +14,7 @@ export const Paginacao = ({
     function onPageChange(page) {
         setOffset((page - 1) * limit)
         setCurrentPage(page + 1)
-        onChange();
+        onChange(page);
     }
 
     useEffect(() => {
