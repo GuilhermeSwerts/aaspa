@@ -398,6 +398,10 @@ namespace AASPA.Domain.Service
                 {
                     filtros.Add("his.historico_contatos_ocorrencia_dt_ocorrencia <= @DataEndAtendimento");
                 }
+                if(!string.IsNullOrEmpty(request.Captador))
+                {
+                    filtros.Add("cpt.captador_nome like CONCAT('%', @Captador, '%')");
+                }
 
                 if (filtros.Count > 0)
                 {
@@ -447,6 +451,10 @@ namespace AASPA.Domain.Service
                 {
                     for (int i = 0; i < request.SituacoesOcorrencias.Count; i++)
                         parameters.Add($"@SituacoesOcorrencias{i}", request.SituacoesOcorrencias[i]);
+                }
+                if (!string.IsNullOrEmpty(request.Captador))
+                {
+                    parameters.Add("@Captador", request.Captador);
                 }
 
                 if (!isCount)

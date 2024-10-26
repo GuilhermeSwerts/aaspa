@@ -43,7 +43,7 @@ const Cclientes = () => {
     const [clienteSelecionado, setClienteSelecionado] = useState(null);
     const [statusClienteId, setStatusClienteId] = useState(0)
     const [isLoading, setIsLoading] = useState(false);
-
+    const [captador, setCaptador] = useState('');
 
     //**paginação**
     const [limit, setLimit] = useState(10);
@@ -60,7 +60,7 @@ const Cclientes = () => {
             sRemessa = statusRemessa;
         }
 
-        api.get(`BuscarTodosClientes?QtdPorPagina=${limit}&PaginaAtual=${pPagina}&statusCliente=${sCliente}&statusRemessa=${sRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}&dateInitAverbacao=${dateInitAverbacao}&dateEndAverbacao=${dateEndAverbacao}&beneficio=${beneficio}&statusIntegraall=${statusIntegraall}`, res => {
+        api.get(`BuscarTodosClientes?QtdPorPagina=${limit}&PaginaAtual=${pPagina}&statusCliente=${sCliente}&statusRemessa=${sRemessa}&dateInit=${dateInit}&dateEnd=${dateEnd}&cadastroExterno=${cadastroExterno}&nome=${nome}&cpf=${cpf}&dateInitAverbacao=${dateInitAverbacao}&dateEndAverbacao=${dateEndAverbacao}&beneficio=${beneficio}&Captador=${captador}&statusIntegraall=${statusIntegraall}`, res => {
             setClientes([]);
 
             setClientes(res.data.clientes);
@@ -76,12 +76,7 @@ const Cclientes = () => {
 
     useEffect(() => {
         handdleUsuarioLogado()
-        const buscaSimples = GetParametro("BuscaSimples")
-        if (buscaSimples && buscaSimples !== null) {
-            setIsSimpes(true);
-        } else {
-            setIsSimpes(false);
-        }
+        setIsSimpes(true);
     }, [])
 
     const onChangeFiltro = ({ target }) => {
@@ -92,15 +87,15 @@ const Cclientes = () => {
             case 1:
                 setNome(value);
                 setCpf('');
-                setBeneficio('');
+                setCaptador('');
                 break;
             case 2:
                 setCpf(value)
                 setNome('');
-                setBeneficio('');
+                setCaptador('');
                 break;
             case 3:
-                setBeneficio(value);
+                setCaptador(value);
                 setNome('');
                 setCpf('');
                 break;
@@ -169,113 +164,29 @@ const Cclientes = () => {
             <br />
             <hr />
             <Collapse isOpen={showFiltro}>
-                {!isSimples && <>
-                    <div className='row'>
-                        <div className="col-md-2">
-                            <span>Tipo de Filtro</span>
-                            <select className='form-control' onChange={e => setFiltroNome(parseInt(e.target.value))}>
-                                <option value={1}>NOME</option>
-                                <option value={2}>CPF</option>
-                                <option value={3}>BENEFÍCIO</option>
-                            </select>
-                        </div>
-                        {<div className="col-md-6">
-                            <span>{filtroNome == 1 ? 'Pesquisar pelo nome' : filtroNome == 2 ? 'Pesquisar pelo CPF' : 'Pesquisar N° Benefício'} </span>
-                            <input type="text"
-                                onChange={onChangeFiltro}
-                                maxLength={filtroNome == 1 ? 255 : filtroNome == 2 ? 14 : 10}
-                                className='form-control'
-                                value={filtroNome === 1 ? nome : filtroNome === 2 ? Mascara.cpf(cpf) : beneficio}
-                                placeholder={filtroNome == 1 ? 'Nome do cliente' : filtroNome == 2 ? 'CPF do cliente' : 'Pesquisar N° Benefício'}
-
-                            />
-                        </div>}
-                        <div className="col-md-4">
-                            <span>FOI GERADO REMESSA:</span>
-                            <select className='form-control' onChange={e => { setStatusRemessa(e.target.value); BuscarTodosClientes(statusCliente, e.target.value) }}>
-                                <option value={0}>TODOS</option>
-                                <option value={1}>SIM</option>
-                                <option value={2}>NÃO</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div className="row">
-                        <div className="col-md-2">
-                            <span>Status:</span>
-                            <select className='form-control' onChange={e => { setStatusCliente(e.target.value); BuscarTodosClientes(e.target.value, statusRemessa) }}>
-                                <option value={0}>TODOS</option>
-                                <option value={1}>ATIVOS</option>
-                                <option value={2}>INATIVOS</option>
-                                <option value={3}>EXCLUIDOS</option>
-                            </select>
-                        </div>
-                        <div className="col-md-2">
-                            <span>Data De Cadastro De:</span>
-                            <input type="date" value={dateInit} onChange={e => setDateInit(e.target.value)} name="dateInit" id="dateInit" className='form-control' />
-                        </div>
-                        <div className="col-md-2">
-                            <span>Até:</span>
-                            <input type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)} name="dateEnd" id="dateEnd" className='form-control' />
-                        </div>
-                        <div className="col-md-2">
-                            <span>Cadastro Externo:</span>
-                            <select className='form-control' value={cadastroExterno} onChange={e => setcadastroExterno(e.target.value)}>
-                                <option value={0}>TODOS</option>
-                                <option value={1}>SIM</option>
-                                <option value={2}>NÃO</option>
-                            </select>
-                        </div>
-                        <div className="col-md-2">
-                            <span>Data Da Averbação De:</span>
-                            <input type="date" value={dateInitAverbacao} onChange={e => setDateInitAverbacao(e.target.value)} name="dateInitAverbacao" id="dateInitAverbacao" className='form-control' />
-                        </div>
-                        <div className="col-md-2">
-                            <span>Até:</span>
-                            <input type="date" value={dateEndAverbacao} onChange={e => setDateEndAverbacao(e.target.value)} name="dateEndAverbacao" id="dateEndAverbacao" className='form-control' />
-                        </div>
-                        <div className="col-md-2">
-                            <span>N° Benefício</span>
-                            <input placeholder='N° Benefício' type="text" value={beneficio} onChange={e => setBeneficio(e.target.value)} name="beneficio" id="beneficio" className='form-control' />
-                        </div>
-                        <div className="col-md-2">
-                            <span>Status Integraall</span>
-                            <select className='form-control' value={statusIntegraall} onChange={e => { setStatusIntegraall(e.target.value) }}>
-                                <option value={0}>Todos</option>
-                                <option value={11}>Aguardando Averbação</option>
-                                <option value={12}>Enviado Averbação</option>
-                                <option value={15}>Averbado</option>
-                            </select>
-                        </div>
-                        <div className="col-md-8" />
-                        <div className="col-md-1" style={{ marginTop: '1.5rem' }}>
-                            <button style={{ width: '100%' }} onClick={() => BuscarTodosClientes(statusCliente, statusRemessa, 1)} className='btn btn-primary' title="Buscar Cliente"><FaSearch size={Size.IconeTabela} /></button>
-                        </div>
-                        <div className="col-md-1" style={{ marginTop: '1.5rem' }}>
-                            <button style={{ width: '100%' }} onClick={DownloadClienteFiltro} className='btn btn-primary' title="Exportar"><FaDownload size={Size.IconeTabela} /></button>
-                        </div>
-                    </div>
-                    <br />
-                </>}
                 {isSimples && <div className="row">
                     <div className="col-md-2">
                         <span>Tipo de Filtro</span>
                         <select className='form-control' onChange={e => setFiltroNome(parseInt(e.target.value))}>
                             <option value={1}>NOME</option>
                             <option value={2}>CPF</option>
-                            <option value={3}>BENEFÍCIO</option>
+                            <option value={3}>CAPTADOR</option>
                         </select>
                     </div>
-                    {<div className="col-md-6">
-                        <span>{filtroNome == 1 ? 'Pesquisar pelo nome' : filtroNome == 2 ? 'Pesquisar pelo CPF' : 'Pesquisar N° Benefício'} </span>
+                    {<div className="col-md-4">
+                        <span>{filtroNome == 1 ? 'Pesquisar pelo nome' : filtroNome == 2 ? 'Pesquisar pelo CPF' : 'Pesquisar pelo Captador'} </span>
                         <input type="text"
                             onChange={onChangeFiltro}
                             maxLength={filtroNome == 1 ? 255 : filtroNome == 2 ? 14 : 10}
                             className='form-control'
-                            value={filtroNome === 1 ? nome : filtroNome === 2 ? Mascara.cpf(cpf) : beneficio}
-                            placeholder={filtroNome == 1 ? 'Nome do cliente' : filtroNome == 2 ? 'CPF do cliente' : 'Pesquisar N° Benefício'}
-
+                            value={filtroNome === 1 ? nome : filtroNome === 2 ? Mascara.cpf(cpf) : captador}
+                            placeholder={filtroNome == 1 ? 'Nome do cliente' : filtroNome == 2 ? 'CPF do cliente' : 'Pesquisar pelo Captador'}
                         />
                     </div>}
+                    <div className="col-md-2">
+                        <span>N° Benefício</span>
+                        <input placeholder='N° Benefício' type="text" value={beneficio} onChange={e => setBeneficio(e.target.value)} name="beneficio" id="beneficio" className='form-control' />
+                    </div>
                     <div className="col-md-4">
                         <span>Status:</span>
                         <select className='form-control' onChange={e => { setStatusCliente(e.target.value); BuscarTodosClientes(e.target.value, statusRemessa) }}>
@@ -300,10 +211,6 @@ const Cclientes = () => {
                     <div className="col-md-2">
                         <span>Até:</span>
                         <input type="date" value={dateEndAverbacao} onChange={e => setDateEndAverbacao(e.target.value)} name="dateEndAverbacao" id="dateEndAverbacao" className='form-control' />
-                    </div>
-                    <div className="col-md-2">
-                        <span>N° Benefício</span>
-                        <input placeholder='N° Benefício' type="text" value={beneficio} onChange={e => setBeneficio(e.target.value)} name="beneficio" id="beneficio" className='form-control' />
                     </div>
                     <div className="col-md-2">
                         <span>Status Integraall</span>
@@ -401,7 +308,7 @@ const Cclientes = () => {
                                             className='btn btn-danger button-container-item'
                                             text={'Cancelar'}
                                             top={true}
-                                            textButton={<FaTimes color='#fff' size={Size.IconeTabela}/>}
+                                            textButton={<FaTimes color='#fff' size={Size.IconeTabela} />}
                                         />
                                         <ModalEditarStatusAtual BuscarTodosClientes={BuscarTodosClientes} ClienteId={cliente.cliente.cliente_id} StatusId={cliente.statusAtual.status_id} />
                                     </td>
@@ -433,8 +340,8 @@ const Cclientes = () => {
                                             top={true}
                                             textButton={<RiChatHistoryLine size={Size.IconeTabela} />}
                                         />
-                                        <ModalLogStatus ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />
-                                        <ModalLogBeneficios ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />
+                                        {/* <ModalLogStatus ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />
+                                        <ModalLogBeneficios ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} /> */}
                                         <ModalVisualizarCliente Cliente={cliente.cliente} Captador={cliente.captador} />
                                         <ButtonTooltip
                                             backgroundColor={'#00b300'}

@@ -7,8 +7,8 @@ export default class Api {
 
         this.access_token = window.localStorage.getItem("access_token");
         let url = window.location.host;
-        //this.ambiente = 'https://adm.aaspa.org.br';
-        this.ambiente =  "https://localhost:44326"
+        this.ambiente = 'https://adm.aaspa.org.br';
+        //this.ambiente =  "https://localhost:44326"
 
         this.api = axios.create({
             baseURL: urlBase,
@@ -94,5 +94,5 @@ export default class Api {
     }
 }
 
-//export const api = new Api('https://adm.aaspa.org.br');
+// export const api = new Api('https://adm.aaspa.org.br');
    export const api = new Api('https://localhost:44326');

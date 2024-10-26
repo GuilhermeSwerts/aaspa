@@ -43,8 +43,7 @@ export const PublicaRotas = [ /*PUBLICA PARA APARECER NO MENU*/
     { Operador: true, Icon: BiSupport, nome: 'Atendimento', path: '/atendimento', component: Atendimento },
     { Icon: GiTakeMyMoney, nome: 'Reembolso', path: '/reembolso', component: SolicitacaoReembolso },
 
-    { Icon: FaUsers, nome: 'Clientes (Busca Simplificada)', path: '/clientes?BuscaSimples=true', component: Cclientes },
-    { Icon: FaUsers, nome: 'Clientes (Busca Avançada)', path: '/clientes', component: Cclientes },
+    { Icon: FaUsers, nome: 'Clientes', path: '/clientes', component: Cclientes },
 
     /*GERAÇÃO DE ARQUIVOS*/
     { Icon: FaFileImport, nome: 'Remessa', path: '/rremessa', component: Remessa },

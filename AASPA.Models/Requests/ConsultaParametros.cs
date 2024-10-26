@@ -17,6 +17,7 @@ namespace AASPA.Models.Requests
         public int? StatusIntegraall { get; set; } = 0;
         public int CadastroExterno { get; set; } = 0;
         public string Nome { get; set; } = "";
+        public string Captador { get; set; } = "";
         public string Cpf { get; set; } = "";
         public DateTime? DateInitAverbacao { get; set; } = null;
         public DateTime? DateEndAverbacao { get; set; } = null;
