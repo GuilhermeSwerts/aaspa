@@ -126,7 +126,7 @@ function Retorno() {
                         >
                             <ul>
                                 <li><span><strong>Arquivo:</strong> {fileName}</span></li>
-                                <li><span><strong>Tipo:</strong> {dataFile.tipo}</span> </li>
+                                <li><span><strong>Tipo:</strong> Retorno</span> </li>
                                 <li><span><strong>Mês Competente:</strong> {dataFile.mes}</span> </li>
                                 <li><span><strong>Ano Competente:</strong> {dataFile.ano}</span> </li>
                             </ul>

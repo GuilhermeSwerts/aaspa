@@ -7,6 +7,7 @@ using AASPA.Repository.Maps;
 using AASPA.Repository.Response;
 using Dapper;
 using DocumentFormat.OpenXml.ExtendedProperties;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Http;
@@ -476,15 +477,12 @@ namespace AASPA.Domain.Service
                                         desconto = dc,
                                         retorno_financeiro_id = rId,
                                     };
-
-                                    _mysql.registro_retorno_financeiro.Add(registro_Financeiro);
                                     processados.Add(registro_Financeiro);
-                                    _mysql.SaveChanges();
                                 }
                             }
                         }
                         tran.Commit();
-
+                        await InserirDadosRepasse(processados);
                         AdicionarHistoricoPagamento(processados, usuarioLogadoId);
 
 
@@ -501,10 +499,66 @@ namespace AASPA.Domain.Service
             return "";
         }
 
+        private async Task InserirDadosRepasse(List<RegistroRetornoFinanceiroDb> registros)
+        {
+            try
+            {
+                int batchSize = 10000;
+                int maxBatchSize = registros.Count;
+                var data = new List<RegistroRetornoFinanceiroDb>();
+                int count = 0;
+                foreach (var registro in registros)
+                {
+                    data.Add(registro);
+                    count++;
+                    if (data.Count == batchSize || count == registros.Count)
+                    {
+
+                        using (var connection = new MySqlConnection(_mysql.Database.GetConnectionString()))
+                        {
+                            var sqlBuilder = new StringBuilder();
+
+                            sqlBuilder.Append("INSERT INTO registro_retorno_financeiro (retorno_financeiro_id, numero_beneficio, competencia_desconto, especie, uf, desconto) VALUES ");
+
+                            var parameters = new DynamicParameters();
+                            int counter = 0;
+
+                            foreach (var reg in registros)
+                            {
+                                sqlBuilder.Append($"(@Repasse{counter}, @Nb{counter}, @CompDesc{counter}, @Esp{counter}, @Uf{counter},@Desc{counter}),");
+
+                                parameters.Add($"@Repasse{counter}", reg.retorno_financeiro_id);
+                                parameters.Add($"@Nb{counter}", reg.numero_beneficio);
+                                parameters.Add($"@CompDesc{counter}", reg.competencia_desconto);
+                                parameters.Add($"@Esp{counter}", reg.especie);
+                                parameters.Add($"@Uf{counter}", reg.uf);
+                                parameters.Add($"@Desc{counter}", reg.desconto);
+
+                                counter++;
+                            }
+
+                            sqlBuilder.Length--;
+                            sqlBuilder.Append(";");
+
+                            await connection.ExecuteAsync(sqlBuilder.ToString(), parameters);
+                        }
+
+                        maxBatchSize -= batchSize;
+                        data.Clear();
+                    }
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
         private decimal GetValorDescontoArquivoRepasse(string valor)
         {
-            var centena = valor.Substring(0,3);
-            var decimais = valor.Substring(3,2);
+            var centena = valor.Substring(0, 3);
+            var decimais = valor.Substring(3, 2);
             var valDesconto = decimal.Parse($"{centena},{decimais}");
             return valDesconto;
         }
@@ -518,7 +572,7 @@ namespace AASPA.Domain.Service
                     var cliente = _mysql.clientes.FirstOrDefault(x => x.cliente_matriculaBeneficio.PadLeft(10, '0') == repasse.numero_beneficio.PadLeft(10, '0'));
                     if (cliente != null)
                     {
-                        var desconto = repasse.desconto.HasValue? repasse.desconto.Value.ToString("C", new System.Globalization.CultureInfo("pt-BR")) : "R$ 00,00";
+                        var desconto = repasse.desconto.HasValue ? repasse.desconto.Value.ToString("C", new System.Globalization.CultureInfo("pt-BR")) : "R$ 00,00";
 
                         _historicoContato.NovoContatoOcorrencia(new HistoricoContatosOcorrenciaRequest
                         {
@@ -615,6 +669,8 @@ namespace AASPA.Domain.Service
 
                         var linhas = content.Split('\n');
 
+                        var registro = new List<RegistroRetornoRemessaDb>();
+
                         foreach (var line in linhas)
                         {
                             if (!string.IsNullOrWhiteSpace(line))
@@ -652,12 +708,12 @@ namespace AASPA.Domain.Service
                                         Codigo_Especie_Beneficio = int.Parse(line.Substring(29, 2)),
                                         Retorno_Remessa_Id = idRetorno
                                     };
-                                    _mysql.registros_retorno_remessa.Add(registroretorno);
-                                    _mysql.SaveChanges();
+                                    registro.Add(registroretorno);
                                 }
                             }
                         }
                         tran.Commit();
+                        await InserirDadosRetorno(registro);
                         InativarClienteRejeitado(clientesparainativar);
                         AtivarClienteRemessaEnviada(ClienteparaAtivar);
                         ExcluirClientesRemessa(ClienteparaExcluir);
@@ -668,6 +724,64 @@ namespace AASPA.Domain.Service
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
+            }
+        }
+
+        private async Task InserirDadosRetorno(List<RegistroRetornoRemessaDb> registros)
+        {
+            try
+            {
+                int batchSize = 10000;
+                int maxBatchSize = registros.Count;
+                var data = new List<RegistroRetornoRemessaDb>();
+                int count = 0;
+                foreach (var registro in registros)
+                {
+                    data.Add(registro);
+                    count++;
+                    if (data.Count == batchSize || count == registros.Count)
+                    {
+                        
+                        using (var connection = new MySqlConnection(_mysql.Database.GetConnectionString()))
+                        {
+                            var sqlBuilder = new StringBuilder();
+
+                            sqlBuilder.Append("INSERT INTO registros_retorno_remessa (numero_beneficio, codigo_operacao, codigo_resultado, motivo_rejeicao, valor_desconto, data_inicio_desconto, codigo_especie_beneficio, retorno_remessa_id) VALUES ");
+
+                            var parameters = new DynamicParameters();
+                            int counter = 0;
+
+                            foreach (var reg in registros)
+                            {
+                                sqlBuilder.Append($"(@Nb{counter}, @CodOp{counter}, @CodRes{counter}, @Mot{counter}, @Val{counter},@DataInicio{counter},@CodEsp{counter},@Remessa{counter}),");
+
+                                parameters.Add($"@Nb{counter}", reg.Numero_Beneficio);
+                                parameters.Add($"@CodOp{counter}", reg.Codigo_Operacao);
+                                parameters.Add($"@CodRes{counter}", reg.Codigo_Resultado);
+                                parameters.Add($"@Mot{counter}", reg.Motivo_Rejeicao);
+                                parameters.Add($"@Val{counter}", reg.Valor_Desconto);
+                                parameters.Add($"@DataInicio{counter}", reg.Data_Inicio_Desconto);
+                                parameters.Add($"@CodEsp{counter}", reg.Codigo_Especie_Beneficio);
+                                parameters.Add($"@Remessa{counter}", reg.Retorno_Remessa_Id);
+
+                                counter++;
+                            }
+
+                            sqlBuilder.Length--;
+                            sqlBuilder.Append(";");
+
+                            await connection.ExecuteAsync(sqlBuilder.ToString(), parameters);
+                        }
+
+                        maxBatchSize -= batchSize;
+                        data.Clear();
+                    }
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
             }
         }
 
