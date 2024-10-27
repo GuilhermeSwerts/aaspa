@@ -5,7 +5,9 @@ using AASPA.Models.Response;
 using AASPA.Repository;
 using AASPA.Repository.Maps;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.ExtendedProperties;
+using DocumentFormat.OpenXml.InkML;
 using DocumentFormat.OpenXml.Office.CustomUI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
@@ -17,6 +19,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Schema;
+using Path = System.IO.Path;
 
 namespace AASPA.Domain.Service
 {
@@ -29,22 +32,123 @@ namespace AASPA.Domain.Service
             _mysql = mysql;
             _env = env;
         }
-        public GerarRelatoriResponse GerarRelatorioAverbacao(string anomes, int captadorId)
+
+        public List<RelatorioAverbacaoResponse> BuscarClientesRelatorio(string anomes)
+        {
+            var codRetornos = _mysql.codigo_retorno.ToList();
+            var retorno = _mysql.retornos_remessa.FirstOrDefault(x => x.AnoMes == anomes)
+                   ?? throw new Exception("Não existe retorno para mês/ano competente");
+            var clientes = (
+                                from ret in _mysql.registros_retorno_remessa
+                                join cli in _mysql.clientes
+                                    on ret.Numero_Beneficio equals cli.cliente_matriculaBeneficio into cliGroup
+                                from cli in cliGroup.DefaultIfEmpty()
+                                join rrf in _mysql.registro_retorno_financeiro
+                                    on cli.cliente_matriculaBeneficio equals rrf.numero_beneficio into rrfGroup
+                                from rrf in rrfGroup.DefaultIfEmpty()
+                                where ret.Retorno_Remessa_Id == retorno.Retorno_Id
+                                select new
+                                {
+                                    Clientes = cli ?? new ClienteDb
+                                    {
+                                        cliente_matriculaBeneficio = ret.Numero_Beneficio,
+                                        cliente_cpf = "-",
+                                        cliente_nome = "CLIENTE NAO ENCONTRADO NA BASE",
+                                    },
+                                    Retorno = ret,
+                                    Pago = rrf != null
+                                }).ToList();
+
+            return clientes.Select(x => new RelatorioAverbacaoResponse
+            {
+                Status = x.Pago ? "Pago" : x.Retorno.Codigo_Operacao == 5 && x.Retorno.Codigo_Resultado == 1 ? "Excluido" : x.Retorno.Codigo_Resultado > 1 ? "Sem desconto" : "Aguardando Pagamento",
+                RemessaId = x.Retorno.Retorno_Remessa_Id,
+                ClienteCpf = x.Clientes.cliente_cpf,
+                ClienteNome = x.Clientes.cliente_nome,
+                CodExterno = x.Clientes.cliente_matriculaBeneficio,
+                CodigoOperacao = x.Retorno.Codigo_Operacao,
+                CodigoResultado = x.Retorno.Codigo_Resultado,
+                DataInicioDesconto = x.Retorno.Data_Inicio_Desconto,
+                ValorDesconto = x.Retorno.Valor_Desconto,
+                DescricaoErro = codRetornos
+                .FirstOrDefault(c => c.CodigoErro == x.Retorno.Motivo_Rejeicao.ToString().PadLeft(3, '0') && c.CodigoOperacao == x.Retorno.Codigo_Operacao)
+                != null ? codRetornos
+                .FirstOrDefault(c => c.CodigoErro == x.Retorno.Motivo_Rejeicao.ToString().PadLeft(3, '0') && c.CodigoOperacao == x.Retorno.Codigo_Operacao)
+                .DescricaoErro : $"Codigo de erro {x.Retorno.Motivo_Rejeicao.ToString().PadLeft(3, '0')} ou Codigo da operação {x.Retorno.Codigo_Operacao} nao encontrados",
+            }).ToList();
+        }
+
+        public GerarRelatoriResponse GerarRelatorioRetorno(string anomes, int captadorId)
         {
             try
             {
-                var retorno = _mysql.retornos_remessa.FirstOrDefault(x => x.AnoMes == anomes);
-                if (retorno == null) throw new Exception("Não existe retorno para mês/ano competente");
-                
-                var clientes = (from cli in _mysql.clientes
-                                join ret in _mysql.registros_retorno_remessa
-                                on cli.cliente_matriculaBeneficio equals ret.Numero_Beneficio into gj
-                                from subRet in gj.DefaultIfEmpty() // Isso faz o left join
-                                where subRet == null || subRet.Retorno_Remessa_Id == retorno.Retorno_Id
-                                select cli).ToList();
+                var relatorio = BuscarClientesRelatorio(anomes);
 
+                List<RelatorioAverbacaoResponse> relatorioData = new();
 
-                return null;
+                var totalRemessa = relatorio.Count;
+                var totalNaoAverbada = relatorio.Count(x => x.CodigoResultado == 2 || x.CodigoResultado == 0);
+                var totalAverbada = relatorio.Count(x => x.CodigoResultado == 1);
+
+                var motivoNaoAverbada = (from c in relatorio
+                                         join r in _mysql.registros_retorno_remessa on c.CodExterno equals r.Numero_Beneficio
+                                         join cr in _mysql.codigo_retorno
+                                          on new { CodigoErro = r.Motivo_Rejeicao.ToString().PadLeft(3, '0'), CodigoOperacao = r.Codigo_Operacao }
+                                          equals new { CodigoErro = cr.CodigoErro, CodigoOperacao = cr.CodigoOperacao }
+                                         where r.Codigo_Resultado == 2
+                                         group cr by new { cr.CodigoErro, cr.DescricaoErro } into g
+                                         select new MotivoNaoAverbacaoResponse
+                                         {
+                                             TotalPorCodigoErro = g.Count(),
+                                             CodigoErro = g.Key.CodigoErro,
+                                             DescricaoErro = g.Key.DescricaoErro
+                                         }).ToList();
+
+                var numeroRemessa = relatorio.Count > 0 ? relatorio.FirstOrDefault().RemessaId : 0;
+
+                var taxaaverbacao = 0;
+                if (totalAverbada != 0 && totalRemessa != 0)
+                {
+                    taxaaverbacao = (totalAverbada * 100) / totalRemessa;
+                }
+
+                var detalhes = new Detalhes
+                {
+                    Competencia = $"{anomes.Substring(0, 4)}{anomes.Substring(4, 2)}",
+                    Averbados = totalAverbada,
+                    //Corretora = captador.captador_nome,
+                    Remessa = numeroRemessa,
+                    TaxaAverbacao = taxaaverbacao,
+                };
+
+                var resumoAverbacao = new ResumoAverbacaoResponse
+                {
+                    TotalRemessa = totalRemessa,
+                    TotalNaoAverbada = totalNaoAverbada
+                };
+
+                var taxanaoaverbacao = 0;
+                if (totalNaoAverbada != 0 && totalRemessa != 0)
+                {
+                    taxanaoaverbacao = (resumoAverbacao.TotalNaoAverbada * 100) / totalRemessa;
+                }
+
+                foreach (var item in motivoNaoAverbada)
+                {
+                    if (resumoAverbacao.TotalNaoAverbada != 0)
+                    {
+                        item.TotalPorcentagem = (item.TotalPorCodigoErro * 100) / resumoAverbacao.TotalNaoAverbada;
+                    }
+                }
+
+                return new GerarRelatoriResponse
+                {
+                    Detalhes = detalhes,
+                    TaxaNaoAverbado = taxanaoaverbacao,
+                    Relatorio = relatorio,
+                    Resumo = resumoAverbacao,
+                    MotivosNaoAverbada = motivoNaoAverbada
+                }; ;
             }
             catch (Exception)
             {
@@ -190,7 +294,7 @@ namespace AASPA.Domain.Service
             string caminhoArquivoSaida = Path.Combine(diretorioBase, "Relatorio", $"RelAverbacao.{anomes}.xlsx");
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Relatorio")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Relatorio"))); }
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Imagens")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Imagens"))); }
-            var dados = GerarRelatorioAverbacao(anomes, captadorId);
+            var dados = GerarRelatorioRetorno(anomes, captadorId);
 
             if (File.Exists(caminhoArquivoSaida))
                 File.Delete(caminhoArquivoSaida);
@@ -378,7 +482,7 @@ namespace AASPA.Domain.Service
             string caminhoArquivoSaida = Path.Combine(diretorioBase, "Relatorio", $"RelCarteira.{anomes}.xlsx");
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Relatorio")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Relatorio"))); }
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Imagens")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Imagens"))); }
-            var dados = GerarRelatorioAverbacao(anomes, captadorId);
+            var dados = GerarRelatorioRetorno(anomes, captadorId);
 
             if (File.Exists(caminhoArquivoSaida))
                 File.Delete(caminhoArquivoSaida);

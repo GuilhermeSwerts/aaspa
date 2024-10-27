@@ -128,10 +128,10 @@ function Relatorio() {
 
     return (
         <NavBar pagina_atual={'AVERBAÇÃO'} usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome}>
-            <h1>Relatório de averbação</h1>
+            <h1>Relatório de Repasse</h1>
             <small>FILTRO:</small>
             <div className='row'>
-                <div className="col-md-4">
+                {/* <div className="col-md-4">
                     <label htmlFor="">Selecione a corretora:</label>
                     <select className='form-control' value={captadoreSelecionado} onChange={(e) => setCaptadoreSelecionado(e.target.value)}>
                         <option value={0}>TODOS</option>
@@ -141,7 +141,7 @@ function Relatorio() {
                             </option>
                         ))}
                     </select>
-                </div>
+                </div> */}
                 <div className="col-md-2">
                     <label htmlFor="">Selecione o mês:</label>
                     <select className='form-control' value={mesSelecionado} onChange={(e) => setMesSelecionado(e.target.value)}>
@@ -222,8 +222,8 @@ function ResumoProducao({ motivosNaoAverbada,
                     <h4>Detalhes</h4>
                     <ul className='container-motivo-nao-verbados'>
                         <li>Competencia: {mesSelecionado}/{anoSelecionado}</li>
-                        <li>Corretora: {resumo.corretora}</li>
-                        <li>Id Da Remessa: {resumo.remessa}</li>
+                        {/* <li>Corretora: {resumo.corretora}</li> */}
+                        {/* <li>Id Da Remessa: {resumo.remessa}</li> */}
                         <li>Total Remessa: {resumoTotal.totalRemessa}</li>
                         <li>Total Averbados: {resumo.averbados}</li>
                     </ul>
@@ -244,7 +244,60 @@ function ResumoProducao({ motivosNaoAverbada,
 }
 
 function DetalheProducao({ detalhes, DownloadAverbacao }) {
+    const [paginaAtual, setPaginaAtual] = useState(1);
+    const itensPorPagina = 10;
 
+    const totalPaginas = Math.ceil(detalhes.length / itensPorPagina);
+
+    const indexInicial = (paginaAtual - 1) * itensPorPagina;
+    const indexFinal = indexInicial + itensPorPagina;
+    const itensAtuais = detalhes.slice(indexInicial, indexFinal);
+
+    const handlePageChange = (numeroPagina) => {
+        setPaginaAtual(numeroPagina);
+    };
+
+    const renderizarPaginas = () => {
+        const paginas = [];
+        const range = 2;
+
+        let start = Math.max(1, paginaAtual - range);
+        let end = Math.min(totalPaginas, paginaAtual + range);
+
+        if (start > 1) {
+            paginas.push(
+                <button key={1} onClick={() => handlePageChange(1)}>1</button>
+            );
+            if (start > 2) {
+                paginas.push(<span key="ellipsis-start">...</span>);
+            }
+        }
+
+        for (let i = start; i <= end; i++) {
+            paginas.push(
+                <button
+                    key={i}
+                    onClick={() => handlePageChange(i)}
+                    disabled={i === paginaAtual}
+                >
+                    {i}
+                </button>
+            );
+        }
+
+        if (end < totalPaginas) {
+            if (end < totalPaginas - 1) {
+                paginas.push(<span key="ellipsis-end">...</span>);
+            }
+            paginas.push(
+                <button key={totalPaginas} onClick={() => handlePageChange(totalPaginas)}>
+                    {totalPaginas}
+                </button>
+            );
+        }
+
+        return paginas;
+    };
 
     return (
         <div className="detalhe-producao">
@@ -269,12 +322,12 @@ function DetalheProducao({ detalhes, DownloadAverbacao }) {
                             <th>Nome</th>
                             <th>Data Adesão</th>
                             <th>Taxa Associativa</th>
-                            <th>Status</th> 
+                            <th>Status</th>
                             <th>Motivo</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {detalhes && detalhes.map((detalhe, index) => (
+                        {itensAtuais && itensAtuais.map((detalhe, index) => (
                             <tr key={index}>
                                 <td>{detalhe.codExterno}</td>
                                 <td>{Mascara.cpf(detalhe.clienteCpf)}</td>
@@ -287,6 +340,15 @@ function DetalheProducao({ detalhes, DownloadAverbacao }) {
                         ))}
                     </tbody>
                 </table>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10 }}>
+                    {paginaAtual > 1 && (
+                        <button className='btn btn-primary' onClick={() => handlePageChange(paginaAtual - 1)}>Anterior</button>
+                    )}
+                    {renderizarPaginas()}
+                    {paginaAtual < totalPaginas && (
+                        <button className='btn btn-primary' onClick={() => handlePageChange(paginaAtual + 1)}>Próximo</button>
+                    )}
+                </div>
             </div>
         </div>
     );

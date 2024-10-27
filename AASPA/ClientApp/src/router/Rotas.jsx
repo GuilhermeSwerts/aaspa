@@ -51,8 +51,8 @@ export const PublicaRotas = [ /*PUBLICA PARA APARECER NO MENU*/
     { Icon: FaFileInvoiceDollar, nome: 'Repasse', path: '/rrepassefinanceiro', component: RepasseFinanceiro },
 
     /*RELATÓRIOS*/
-    { Icon: FaChartArea, nome: 'Relatório de Carteira', path: '/relatoriocarteira', component: RelatorioCarteira },
-    { Icon: FaChartPie, nome: 'Relatório de Remessa', path: '/rrelatorio', component: Relatorio },
+    { Icon: FaChartArea, nome: 'Relatório Retorno', path: '/relatorioretorno', component: RelatorioCarteira },
+    { Icon: FaChartPie, nome: 'Relatório Repasse', path: '/relatoriorepasse', component: Relatorio },
 
     /*GERENCIAMENTO*/
     { Icon: FaUsersGear, nome: 'Gerenciar Usuários', path: '/gusuarios', component: Usuarios },
