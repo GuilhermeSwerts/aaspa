@@ -8,6 +8,7 @@ using AASPA.Repository.Response;
 using Dapper;
 using DocumentFormat.OpenXml.ExtendedProperties;
 using DocumentFormat.OpenXml.Office2010.Excel;
+using DocumentFormat.OpenXml.Office2016.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Http;
@@ -713,10 +714,10 @@ namespace AASPA.Domain.Service
                             }
                         }
                         tran.Commit();
-                        await InserirDadosRetorno(registro);
-                        InativarClienteRejeitado(clientesparainativar);
-                        AtivarClienteRemessaEnviada(ClienteparaAtivar);
-                        ExcluirClientesRemessa(ClienteparaExcluir);
+                        await InserirDadosRetorno(registro); 
+                        await AlterarStatusClienteRemessaEnviada(ClienteparaAtivar,EStatus.AtivoAguardandoAverbacao,EStatus.Ativo);
+                        await AlterarStatusClienteRemessaEnviada(clientesparainativar, EStatus.AtivoAguardandoAverbacao,EStatus.Inativo);
+                        await AlterarStatusClienteRemessaEnviada(ClienteparaExcluir, EStatus.ExcluidoAguardandoEnvio,EStatus.Deletado);
                         return anomes;
                     }
                 }
@@ -741,7 +742,7 @@ namespace AASPA.Domain.Service
                     count++;
                     if (data.Count == batchSize || count == registros.Count)
                     {
-                        
+
                         using (var connection = new MySqlConnection(_mysql.Database.GetConnectionString()))
                         {
                             var sqlBuilder = new StringBuilder();
@@ -751,7 +752,7 @@ namespace AASPA.Domain.Service
                             var parameters = new DynamicParameters();
                             int counter = 0;
 
-                            foreach (var reg in registros)
+                            foreach (var reg in data)
                             {
                                 sqlBuilder.Append($"(@Nb{counter}, @CodOp{counter}, @CodRes{counter}, @Mot{counter}, @Val{counter},@DataInicio{counter},@CodEsp{counter},@Remessa{counter}),");
 
@@ -813,30 +814,53 @@ namespace AASPA.Domain.Service
             }
         }
 
-        private void AtivarClienteRemessaEnviada(List<string> lines)
+        private async Task AlterarStatusClienteRemessaEnviada(List<string> lines, EStatus antigo, EStatus novo)
         {
-            foreach (string line in lines)
+            try
             {
-                var matricula = line.Substring(1, 10);
-
-                var query = (from c in _mysql.clientes
-                             join l in _mysql.log_status on c.cliente_id equals l.log_status_cliente_id
-                             select new { c, l }).AsEnumerable()
-                             .Where(ti => ti.c.cliente_matriculaBeneficio == matricula)
-                             .Select(ti => ti.l)
-                             .FirstOrDefault();
-
-                if (query != null)
+                int batchSize = 10000;
+                int maxBatchSize = lines.Count;
+                var data = new List<string>();
+                int count = 0;
+                foreach (var line in lines)
                 {
-                    AlterarStatusClienteRequest novostatus = new AlterarStatusClienteRequest()
+                    data.Add(line.Substring(1, 10));
+                    count++;
+                    if (data.Count == batchSize || count == lines.Count)
                     {
-                        cliente_id = query.log_status_cliente_id,
-                        status_id_antigo = query.log_status_novo_id,
-                        status_id_novo = (int)EStatus.Ativo
-                    };
+                        using (var connection = new MySqlConnection(_mysql.Database.GetConnectionString()))
+                        {
+                            var sqlBuilder = new StringBuilder();
 
-                    _statusService.AlterarStatusCliente(novostatus);
+                            sqlBuilder.Append("insert ignore into log_status(log_status_antigo_id,log_status_dt_cadastro,log_status_cliente_id,log_status_novo_id) values ");
+
+                            var parameters = new DynamicParameters();
+                            int counter = 0;
+
+                            foreach (var nb in data)
+                            {
+                                sqlBuilder.Append($"({(int)antigo},NOW(),(select cliente_matriculaBeneficio from clientes where lpad(cliente_matriculaBeneficio,10,'0') like concat('%',@Nb,'%')),{(int)novo}),");
+                                parameters.Add($"@Nb{counter}", nb);
+                                counter++;
+                            }
+
+                            sqlBuilder.Length--;
+                            sqlBuilder.Append(";");
+
+                            await connection.ExecuteAsync(sqlBuilder.ToString(), parameters);
+                        }
+
+                        maxBatchSize -= batchSize;
+                        data.Clear();
+                    }
                 }
+                //var nbs = lines.Select(line => $"()");
+                //var sql = $"insert ignore into log_status(log_status_antigo_id,log_status_dt_cadastro,log_status_cliente_id,log_status_novo_id) values {string.Join(",", nbs)}";
+                //using (var connection = new MySqlConnection(_mysql.Database.GetConnectionString()))
+                //    await connection.ExecuteAsync(sql);
+            }
+            catch (Exception ex)
+            {
             }
         }
 
