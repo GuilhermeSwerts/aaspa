@@ -43,7 +43,7 @@ const Cclientes = () => {
     const [clienteSelecionado, setClienteSelecionado] = useState(null);
     const [statusClienteId, setStatusClienteId] = useState(0)
     const [isLoading, setIsLoading] = useState(false);
-    const [captador, setCaptador] = useState('');
+    const [tokenCliente, setTokenCliente] = useState('');
 
     //**paginação**
     const [limit, setLimit] = useState(10);
@@ -105,26 +105,50 @@ const Cclientes = () => {
     }
 
     const handleOpenModal = (cliente) => {
-        setStatusClienteId(cliente.statusAtual.status_id)
-        setClienteSelecionado(cliente);
-        setModalExcluir(true);
+
+        api.get(`/BuscarClienteID/${cliente.cliente.cliente_id}`, res => {
+            setTokenCliente(res.data.cliente.cliente_token);
+            if (res.data.cliente.cliente_token !== '' && res.data.cliente.cliente_token !== null) {
+                setStatusClienteId(cliente.statusAtual.status_id);
+                setClienteSelecionado(cliente);
+                setModalExcluir(true);
+            } else {
+                Alert('Cliente não possui token! Favor informar ao suporte para fazer a correção dos dados do cliente.', false);
+            }
+        }, err => {
+            Alert('Houve um erro ao buscar os dados do cliente', false)
+        })
     };
 
     const handleConfirmExclusion = ({ cancelamento = '', motivoCancelamento = '' } = {}) => {
         var formData = new FormData();
-        addCampos(formData, cancelamento, motivoCancelamento, statusClienteId);
+        var usuario_logado = window.localStorage.getItem("usuario_logado");
+        var usuario = JSON.parse(usuario_logado);
+        const requestPayload = {
+            clienteid: clienteSelecionado.cliente.cliente_id,
+            cancelamento: cancelamento,
+            motivocancelamento: motivoCancelamento,
+            status_id_antigo: statusClienteId,
+            status_id_novo: 2,
+            token: tokenCliente,
+            usuario: {
+                Id: usuario.usuario_id,
+                Nome: usuario.usuario_nome,
+                Usuario: usuario.usuario_nome,
+                tipo: usuario.usuario_tipo
+            }
+        };
 
-        api.post("/CancelarClienteIntegraall", formData, res => {
-            if (res.data === "Proposta não encontrada!") {
-                Alert(res.data, false);
-            } else if (res.data === "Cliente cancelado no AASPA com sucesso!") {
-                Alert("Cliente cancelado no AASPA com sucesso! \r\n Proposta não encontrada no Integraall", true);
+        api.post("/CancelarClienteIntegraall", requestPayload, res => {
+            if (res.data.ok) {
+                Alert(res.data.message, true);
             }
             else {
-                Alert(res.data, true)
+                Alert("Não foi possível cancelar o cliente na Kompleto. Verifique!", false);
             }
 
             setModalExcluir(false);
+            setTokenCliente('');
         }, err => {
             Alert(err.response ? err.response.data : 'Erro desconhecido', false);
         });
@@ -135,12 +159,24 @@ const Cclientes = () => {
         setModalExcluir(false);
     }
 
-    const addCampos = (formData, cancelamento, motivoCancelamento, StatusId) => {
+    const addCampos = (formData, cancelamento, motivoCancelamento, StatusId, tokencliente, usuario_logado) => {
         formData.append("clienteid", clienteSelecionado.cliente.cliente_id);
         formData.append('cancelamento', cancelamento)
         formData.append('motivoCancelamento', motivoCancelamento);
         formData.append("status_id_antigo", StatusId);
         formData.append("status_id_novo", 2);
+        formData.append("token", tokencliente);
+
+        var usuario = JSON.parse(usuario_logado);
+
+        const usuarioRequest = {
+            Id: usuario.usuario_id,
+            Nome: usuario.usuario_nome,
+            Usuario: usuario.usuario_nome,
+            tipo: usuario.usuario_tipo
+        };
+
+        formData.append("usuario", JSON.stringify(usuarioRequest))
     }
 
     const DownloadClienteFiltro = () => {
@@ -380,6 +416,7 @@ const Cclientes = () => {
                 show={ModalExcluir}
                 handleClose={() => setModalExcluir(false)}
                 handleConfirm={handleConfirmExclusion}
+                token = {tokenCliente}
             />
         </NavBar >
     );

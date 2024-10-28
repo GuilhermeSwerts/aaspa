@@ -13,5 +13,7 @@ namespace AASPA.Models.Requests
         public string motivocancelamento { get; set; }
         public int status_id_antigo { get; set; }
         public int status_id_novo { get; set; }
+        public string token { get; set; }
+        public UsuarioRequest usuario { get; set; }
     }
 }

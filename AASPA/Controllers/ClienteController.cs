@@ -13,10 +13,12 @@ namespace AASPA.Host.Controllers
     public class ClienteController : PrivateController
     {
         private readonly ICliente _service;
+        private readonly IIntegracaoKompleto _kompleto;
 
-        public ClienteController(ICliente service)
+        public ClienteController(ICliente service, IIntegracaoKompleto kompleto)
         {
             _service = service;
+            _kompleto = kompleto;
         }
 
         #region [HTTPGET]
@@ -85,7 +87,7 @@ namespace AASPA.Host.Controllers
             {
                 return BadRequest(ex.Message);
             }
-        }
+        } 
 
         #endregion
 
@@ -137,12 +139,14 @@ namespace AASPA.Host.Controllers
             }
         }
         [HttpPost("/CancelarClienteIntegraall")]
-        public async Task<ActionResult> CancelarClienteIntegraall([FromForm] AlterarStatusClientesIntegraallRequest request)
+        public async Task<ActionResult> CancelarClienteIntegraall([FromBody] AlterarStatusClientesIntegraallRequest request)
         {
             try
             {
                 string tokenIntegraall = await _service.GerarToken();
-                var retorno = await _service.CancelarClienteIntegraall(request, tokenIntegraall);
+                await _service.CancelarClienteIntegraall(request, tokenIntegraall);
+                var retorno = await _kompleto.CancelarPropostaAsync(request);
+                if (retorno.Ok) { await _service.CancelarCliente(request); }
                 return Ok(retorno);
             }
             catch (Exception ex)
