@@ -1,4 +1,5 @@
-﻿using AASPA.Domain.Interface;
+﻿using AASPA.Controllers;
+using AASPA.Domain.Interface;
 using AASPA.Models.Enum;
 using AASPA.Models.Requests;
 using AASPA.Models.Response;
@@ -10,6 +11,7 @@ using DocumentFormat.OpenXml.ExtendedProperties;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using DocumentFormat.OpenXml.Office2016.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.Vml;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +30,7 @@ using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
+using Path = System.IO.Path;
 
 namespace AASPA.Domain.Service
 {
@@ -613,7 +616,7 @@ namespace AASPA.Domain.Service
             }
         }
 
-        public async Task<string> LerRetorno(IFormFile file)
+        public async Task<string> LerRetorno(IFormFile file, int usuarioLogadoId)
         {
             string content;
             List<string> clientesparainativar = new List<string>();
@@ -714,10 +717,11 @@ namespace AASPA.Domain.Service
                             }
                         }
                         tran.Commit();
-                        await InserirDadosRetorno(registro); 
-                        await AlterarStatusClienteRemessaEnviada(ClienteparaAtivar,EStatus.AtivoAguardandoAverbacao,EStatus.Ativo);
-                        await AlterarStatusClienteRemessaEnviada(clientesparainativar, EStatus.AtivoAguardandoAverbacao,EStatus.Inativo);
-                        await AlterarStatusClienteRemessaEnviada(ClienteparaExcluir, EStatus.ExcluidoAguardandoEnvio,EStatus.Deletado);
+                        await InserirDadosRetorno(registro);
+                        await InserirDadosHistorico(registro, usuarioLogadoId);
+                        await AlterarStatusClienteRemessaEnviada(ClienteparaAtivar, EStatus.AtivoAguardandoAverbacao, EStatus.Ativo);
+                        await AlterarStatusClienteRemessaEnviada(clientesparainativar, EStatus.AtivoAguardandoAverbacao, EStatus.Inativo);
+                        await AlterarStatusClienteRemessaEnviada(ClienteparaExcluir, EStatus.ExcluidoAguardandoEnvio, EStatus.Deletado);
                         return anomes;
                     }
                 }
@@ -725,6 +729,83 @@ namespace AASPA.Domain.Service
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
+            }
+        }
+
+        private async Task InserirDadosHistorico(List<RegistroRetornoRemessaDb> registros, int usuarioLogadoId)
+        {
+            var codigoRetorno = _mysql.codigo_retorno.ToList();
+
+            int batchSize = 10000;
+            int maxBatchSize = registros.Count;
+            var data = new List<HistoricoContatosOcorrenciaRequest>();
+            int count = 0;
+            foreach (var registro in registros)
+            {
+                var cliente = _mysql.clientes.FirstOrDefault(x => x.cliente_matriculaBeneficio.PadLeft(10, '0') == registro.Numero_Beneficio.PadLeft(10, '0'));
+                if (cliente == null) continue;
+
+                var descricao = codigoRetorno
+                .FirstOrDefault(c => c.CodigoErro == registro.Motivo_Rejeicao.ToString().PadLeft(3, '0') && c.CodigoOperacao == registro.Codigo_Operacao)
+                != null ? codigoRetorno
+                .FirstOrDefault(c => c.CodigoErro == registro.Motivo_Rejeicao.ToString().PadLeft(3, '0') && c.CodigoOperacao == registro.Codigo_Operacao)
+                .DescricaoErro : $"Codigo de erro {registro.Motivo_Rejeicao.ToString().PadLeft(3, '0')} ou Codigo da operação {registro.Codigo_Operacao} nao encontrados";
+
+                data.Add(new HistoricoContatosOcorrenciaRequest
+                {
+                    HistoricoContatosOcorrenciaOrigemId = (int)EOrigem.ARQUIVO_REPASSE_FINANCEIRO,
+                    HistoricoContatosOcorrenciaDtOcorrencia = DateTime.Now,
+                    HistoricoContatosOcorrenciaClienteId = cliente.cliente_id,
+                    HistoricoContatosOcorrenciaMotivoContatoId = (int)EMotivo.ARQUIVO_INSS,
+                    HistoricoContatosOcorrenciaSituacaoOcorrencia = "EM PROCESSAMENTO",
+                    HistoricoContatosOcorrenciaDescricao = descricao,
+                    
+                    HistoricoContatosOcorrenciaAgencia = "",
+                    HistoricoContatosOcorrenciaPix = "",
+                    HistoricoContatosOcorrenciaBanco = "",
+                    HistoricoContatosOcorrenciaConta = "",
+                    HistoricoContatosOcorrenciaDigito = "",
+                    HistoricoContatosOcorrenciaTelefone = "",
+                    HistoricoContatosOcorrenciaTipoConta = "",
+                    HistoricoContatosOcorrenciaTipoChavePix = "",
+                    HistoricoContatosOcorrenciaAnexos = null,
+                    HistoricoContatosOcorrenciaId = 0
+                });
+                count++;
+
+                if (data.Count == batchSize || count == registros.Count)
+                {
+                    using (var connection = new MySqlConnection(_mysql.Database.GetConnectionString()))
+                    {
+                        var sqlBuilder = new StringBuilder();
+
+                        sqlBuilder.Append("INSERT INTO historico_contatos_ocorrencia (historico_contatos_ocorrencia_origem_id, historico_contatos_ocorrencia_cliente_id, historico_contatos_ocorrencia_motivo_contato_id, historico_contatos_ocorrencia_dt_ocorrencia, historico_contatos_ocorrencia_descricao, historico_contatos_ocorrencia_situacao_ocorrencia, historico_contatos_ocorrencia_dt_cadastro, historico_contatos_ocorrencia_banco, historico_contatos_ocorrencia_agencia, historico_contatos_ocorrencia_conta, historico_contatos_ocorrencia_digito, historico_contatos_ocorrencia_chave_pix, historico_contatos_ocorrencia_tipo_chave_pix, historico_contatos_ocorrencia_telefone, historico_contatos_ocorrencia_usuario_fk, historico_contatos_ocorrencia_tipo_conta) VALUES ");
+
+                        var parameters = new DynamicParameters();
+                        int counter = 0;
+
+                        foreach (var reg in data)
+                        {
+                            sqlBuilder.Append($"(@Origem{counter}, @ClienteId{counter}, @Motivo{counter}, NOW(), @Desc{counter},@Situacao{counter},NOW(),'','','','','','','',@Usuario{counter},''),");
+
+                            parameters.Add($"@Origem{counter}", reg.HistoricoContatosOcorrenciaOrigemId);
+                            parameters.Add($"@ClienteId{counter}", reg.HistoricoContatosOcorrenciaClienteId);
+                            parameters.Add($"@Motivo{counter}", reg.HistoricoContatosOcorrenciaMotivoContatoId);
+                            parameters.Add($"@Desc{counter}", reg.HistoricoContatosOcorrenciaDescricao);
+                            parameters.Add($"@Situacao{counter}", reg.HistoricoContatosOcorrenciaSituacaoOcorrencia);
+                            parameters.Add($"@Usuario{counter}", usuarioLogadoId);
+                            counter++;
+                        }
+
+                        sqlBuilder.Length--;
+                        sqlBuilder.Append(";");
+
+                        await connection.ExecuteAsync(sqlBuilder.ToString(), parameters);
+                    }
+
+                    maxBatchSize -= batchSize;
+                    data.Clear();
+                }
             }
         }
 
@@ -854,10 +935,6 @@ namespace AASPA.Domain.Service
                         data.Clear();
                     }
                 }
-                //var nbs = lines.Select(line => $"()");
-                //var sql = $"insert ignore into log_status(log_status_antigo_id,log_status_dt_cadastro,log_status_cliente_id,log_status_novo_id) values {string.Join(",", nbs)}";
-                //using (var connection = new MySqlConnection(_mysql.Database.GetConnectionString()))
-                //    await connection.ExecuteAsync(sql);
             }
             catch (Exception ex)
             {

@@ -112,7 +112,7 @@ namespace AASPA.Controllers
                 }
                 else
                 {
-                    retorno = await _remessa.LerRetorno(file);
+                    retorno = await _remessa.LerRetorno(file, UsuarioLogadoId);
                 }
                 return Ok(retorno);
             }
