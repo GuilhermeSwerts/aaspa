@@ -16,7 +16,7 @@ namespace AASPA.Domain.Interface
         RetornoRemessaResponse GerarRemessa(int mes, int ano, DateTime dateInit, DateTime dateEnd);
         string GerarArquivoRemessa(int idRegistro, int mes, int ano, string nomeArquivo);
         BuscarArquivoResponse BuscarArquivo(int remessaId);
-        Task<string> LerRetorno(IFormFile file);
+        Task<string> LerRetorno(IFormFile file, int usuarioLogadoId);
         Task<string> LerRetornoRepasse(IFormFile file, int usuarioLogadoId);
         List<BuscarArquivosResponse> BuscarRetorno(int mes, int ano);
         object GetBuscarRepasse(int? mes, int? ano);

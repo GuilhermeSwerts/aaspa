@@ -5,7 +5,9 @@ using AASPA.Models.Response;
 using AASPA.Repository;
 using AASPA.Repository.Maps;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.ExtendedProperties;
+using DocumentFormat.OpenXml.InkML;
 using DocumentFormat.OpenXml.Office.CustomUI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
@@ -17,6 +19,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Schema;
+using Path = System.IO.Path;
 
 namespace AASPA.Domain.Service
 {
@@ -30,64 +33,64 @@ namespace AASPA.Domain.Service
             _env = env;
         }
 
-        public GerarRelatoriResponse GerarRelatorioAverbacao(string anomes, int captadorId)
+        public List<RelatorioAverbacaoResponse> BuscarClientesRelatorio(string anomes)
+        {
+            var codRetornos = _mysql.codigo_retorno.ToList();
+            var retorno = _mysql.retornos_remessa.FirstOrDefault(x => x.AnoMes == anomes)
+                   ?? throw new Exception("Não existe retorno para mês/ano competente");
+            var clientes = (
+                                from ret in _mysql.registros_retorno_remessa
+                                join cli in _mysql.clientes
+                                    on ret.Numero_Beneficio equals cli.cliente_matriculaBeneficio into cliGroup
+                                from cli in cliGroup.DefaultIfEmpty()
+                                join rrf in _mysql.registro_retorno_financeiro
+                                    on cli.cliente_matriculaBeneficio equals rrf.numero_beneficio into rrfGroup
+                                from rrf in rrfGroup.DefaultIfEmpty()
+                                where ret.Retorno_Remessa_Id == retorno.Retorno_Id
+                                select new
+                                {
+                                    Clientes = cli ?? new ClienteDb
+                                    {
+                                        cliente_matriculaBeneficio = ret.Numero_Beneficio,
+                                        cliente_cpf = "-",
+                                        cliente_nome = "CLIENTE NAO ENCONTRADO NA BASE",
+                                    },
+                                    Retorno = ret,
+                                    Pago = rrf != null
+                                }).ToList();
+
+            return clientes.Select(x => new RelatorioAverbacaoResponse
+            {
+                Status = x.Pago ? "Pago" : x.Retorno.Codigo_Operacao == 5 && x.Retorno.Codigo_Resultado == 1 ? "Excluido" : x.Retorno.Codigo_Resultado > 1 ? "Sem desconto" : "Aguardando Pagamento",
+                RemessaId = x.Retorno.Retorno_Remessa_Id,
+                ClienteCpf = x.Clientes.cliente_cpf,
+                ClienteNome = x.Clientes.cliente_nome,
+                CodExterno = x.Clientes.cliente_matriculaBeneficio,
+                CodigoOperacao = x.Retorno.Codigo_Operacao,
+                CodigoResultado = x.Retorno.Codigo_Resultado,
+                DataInicioDesconto = x.Retorno.Data_Inicio_Desconto,
+                ValorDesconto = x.Retorno.Valor_Desconto,
+                DescricaoErro = codRetornos
+                .FirstOrDefault(c => c.CodigoErro == x.Retorno.Motivo_Rejeicao.ToString().PadLeft(3, '0') && c.CodigoOperacao == x.Retorno.Codigo_Operacao)
+                != null ? codRetornos
+                .FirstOrDefault(c => c.CodigoErro == x.Retorno.Motivo_Rejeicao.ToString().PadLeft(3, '0') && c.CodigoOperacao == x.Retorno.Codigo_Operacao)
+                .DescricaoErro : $"Codigo de erro {x.Retorno.Motivo_Rejeicao.ToString().PadLeft(3, '0')} ou Codigo da operação {x.Retorno.Codigo_Operacao} nao encontrados",
+            }).ToList();
+        }
+
+        public GerarRelatoriResponse GerarRelatorioRetorno(string anomes, int captadorId)
         {
             try
             {
-                var captador = captadorId > 0 ? _mysql.captadores.First(x => x.captador_id == captadorId) : new() { captador_nome = "TODOS" };
+                var relatorio = BuscarClientesRelatorio(anomes);
 
-                var corporelatorio = (from c in _mysql.clientes
-                                      join vin in _mysql.vinculo_cliente_captador on c.cliente_id equals vin.vinculo_cliente_id
-                                      join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
-                                      join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
-                                      join cr in _mysql.codigo_retorno on
-                                                 new { CodigoErro = r.Motivo_Rejeicao.ToString().PadLeft(3, '0'), CodigoOperacao = r.Codigo_Operacao }
-                                          equals new { CodigoErro = cr.CodigoErro, CodigoOperacao = cr.CodigoOperacao }
-                                      join rrf in _mysql.registro_retorno_financeiro on c.cliente_matriculaBeneficio equals rrf.numero_beneficio into rrfGroup
-                                      from rrf in rrfGroup.DefaultIfEmpty()
-                                      join p in _mysql.pagamentos on c.cliente_id equals p.pagamento_cliente_id into pGroup
-                                      from p in pGroup.DefaultIfEmpty()
-                                      where rr.AnoMes == anomes && (captadorId == 0 || vin.vinculo_captador_id == captadorId)
-                                      group new { c, r, cr, p, rrf } by new
-                                      {
-                                          c.cliente_remessa_id,
-                                          c.cliente_matriculaBeneficio,
-                                          c.cliente_cpf,
-                                          c.cliente_nome,
-                                          r.Data_Inicio_Desconto,
-                                          r.Valor_Desconto,
-                                          r.Codigo_Resultado,
-                                          cr.DescricaoErro,
-                                          rrf.id,
-                                          r.Codigo_Operacao
-                                      } into g
-                                      orderby g.Count(x => x.p != null) descending,
-                                              g.Max(x => x.p.pagamento_dt_pagamento)
-                                      select new RelatorioAverbacaoResponse
-                                      {
-                                          RemessaId = g.Key.cliente_remessa_id,
-                                          CodExterno = g.Key.cliente_matriculaBeneficio,
-                                          ClienteCpf = g.Key.cliente_cpf,
-                                          ClienteNome = g.Key.cliente_nome,
-                                          DataInicioDesconto = g.Key.Data_Inicio_Desconto,
-                                          ValorDesconto = g.Key.Valor_Desconto,
-                                          CodigoResultado = g.Key.Codigo_Resultado,
-                                          CodigoOperacao = g.Key.Codigo_Operacao,
-                                          DescricaoErro = g.Key.DescricaoErro,
-                                          QuantidadeParcelas = g.Count(x => x.p != null),
-                                          DataPagamento = g.Max(x => x.p.pagamento_dt_pagamento),
-                                          Status = g.Key.Codigo_Operacao == 5 && g.Key.Codigo_Resultado == 1 ? "Excluido"
-                                                   : g.Key.id != null && g.Key.Codigo_Resultado == 1 ? "Pago"
-                                                   : g.Key.id == null && g.Key.Codigo_Resultado > 1 ? "Sem desconto"
-                                                   : "Erro automático"
-                                      }
-                            ).Distinct().ToList();
+                List<RelatorioAverbacaoResponse> relatorioData = new();
 
-                var totalRemessa = corporelatorio.Count;
-                var totalNaoAverbada = corporelatorio.Count(x => x.CodigoResultado == 2 || x.CodigoResultado == 0);
-                var totalAverbada = corporelatorio.Count(x => x.CodigoResultado == 1);
+                var totalRemessa = relatorio.Count;
+                var totalNaoAverbada = relatorio.Count(x => x.CodigoResultado == 2 || x.CodigoResultado == 0);
+                var totalAverbada = relatorio.Count(x => x.CodigoResultado == 1);
 
-                var motivoNaoAverbada = (from c in corporelatorio
+                var motivoNaoAverbada = (from c in relatorio
                                          join r in _mysql.registros_retorno_remessa on c.CodExterno equals r.Numero_Beneficio
                                          join cr in _mysql.codigo_retorno
                                           on new { CodigoErro = r.Motivo_Rejeicao.ToString().PadLeft(3, '0'), CodigoOperacao = r.Codigo_Operacao }
@@ -101,7 +104,7 @@ namespace AASPA.Domain.Service
                                              DescricaoErro = g.Key.DescricaoErro
                                          }).ToList();
 
-                var numeroRemessa = corporelatorio.Count > 0 ? corporelatorio.FirstOrDefault().RemessaId : 0;
+                var numeroRemessa = relatorio.Count > 0 ? relatorio.FirstOrDefault().RemessaId : 0;
 
                 var taxaaverbacao = 0;
                 if (totalAverbada != 0 && totalRemessa != 0)
@@ -113,7 +116,7 @@ namespace AASPA.Domain.Service
                 {
                     Competencia = $"{anomes.Substring(0, 4)}{anomes.Substring(4, 2)}",
                     Averbados = totalAverbada,
-                    Corretora = captador.captador_nome,
+                    //Corretora = captador.captador_nome,
                     Remessa = numeroRemessa,
                     TaxaAverbacao = taxaaverbacao,
                 };
@@ -138,22 +141,151 @@ namespace AASPA.Domain.Service
                     }
                 }
 
-                var resultado = new GerarRelatoriResponse
+                return new GerarRelatoriResponse
                 {
                     Detalhes = detalhes,
                     TaxaNaoAverbado = taxanaoaverbacao,
-                    Relatorio = corporelatorio,
+                    Relatorio = relatorio,
                     Resumo = resumoAverbacao,
                     MotivosNaoAverbada = motivoNaoAverbada
-                };
-
-                return resultado;
+                }; ;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 throw;
             }
         }
+
+        #region old
+
+        //public GerarRelatoriResponse GerarRelatorioAverbacao(string anomes, int captadorId)
+        //{
+        //    try
+        //    {
+        //        var captador = captadorId > 0 ? _mysql.captadores.First(x => x.captador_id == captadorId) : new() { captador_nome = "TODOS" };
+
+        //        var corporelatorio = (from c in _mysql.clientes
+        //                              join vin in _mysql.vinculo_cliente_captador on c.cliente_id equals vin.vinculo_cliente_id
+        //                              join r in _mysql.registros_retorno_remessa on c.cliente_matriculaBeneficio equals r.Numero_Beneficio
+        //                              join rr in _mysql.retornos_remessa on r.Retorno_Remessa_Id equals rr.Retorno_Id
+        //                              join cr in _mysql.codigo_retorno on
+        //                                         new { CodigoErro = r.Motivo_Rejeicao.ToString().PadLeft(3, '0'), CodigoOperacao = r.Codigo_Operacao }
+        //                                  equals new { CodigoErro = cr.CodigoErro, CodigoOperacao = cr.CodigoOperacao }
+        //                              join rrf in _mysql.registro_retorno_financeiro on c.cliente_matriculaBeneficio equals rrf.numero_beneficio into rrfGroup
+        //                              from rrf in rrfGroup.DefaultIfEmpty()
+        //                              join p in _mysql.pagamentos on c.cliente_id equals p.pagamento_cliente_id into pGroup
+        //                              from p in pGroup.DefaultIfEmpty()
+        //                              where rr.AnoMes == anomes && (captadorId == 0 || vin.vinculo_captador_id == captadorId)
+        //                              group new { c, r, cr, p, rrf } by new
+        //                              {
+        //                                  c.cliente_remessa_id,
+        //                                  c.cliente_matriculaBeneficio,
+        //                                  c.cliente_cpf,
+        //                                  c.cliente_nome,
+        //                                  r.Data_Inicio_Desconto,
+        //                                  r.Valor_Desconto,
+        //                                  r.Codigo_Resultado,
+        //                                  cr.DescricaoErro,
+        //                                  rrf.id,
+        //                                  r.Codigo_Operacao
+        //                              } into g
+        //                              orderby g.Count(x => x.p != null) descending,
+        //                                      g.Max(x => x.p.pagamento_dt_pagamento)
+        //                              select new RelatorioAverbacaoResponse
+        //                              {
+        //                                  RemessaId = g.Key.cliente_remessa_id,
+        //                                  CodExterno = g.Key.cliente_matriculaBeneficio,
+        //                                  ClienteCpf = g.Key.cliente_cpf,
+        //                                  ClienteNome = g.Key.cliente_nome,
+        //                                  DataInicioDesconto = g.Key.Data_Inicio_Desconto,
+        //                                  ValorDesconto = g.Key.Valor_Desconto,
+        //                                  CodigoResultado = g.Key.Codigo_Resultado,
+        //                                  CodigoOperacao = g.Key.Codigo_Operacao,
+        //                                  DescricaoErro = g.Key.DescricaoErro,
+        //                                  QuantidadeParcelas = g.Count(x => x.p != null),
+        //                                  DataPagamento = g.Max(x => x.p.pagamento_dt_pagamento),
+        //                                  Status = g.Key.Codigo_Operacao == 5 && g.Key.Codigo_Resultado == 1 ? "Excluido"
+        //                                           : g.Key.id != null && g.Key.Codigo_Resultado == 1 ? "Pago"
+        //                                           : g.Key.id == null && g.Key.Codigo_Resultado > 1 ? "Sem desconto"
+        //                                           : "Erro automático"
+        //                              }
+        //                    ).Distinct().ToList();
+
+        //        var totalRemessa = corporelatorio.Count;
+        //        var totalNaoAverbada = corporelatorio.Count(x => x.CodigoResultado == 2 || x.CodigoResultado == 0);
+        //        var totalAverbada = corporelatorio.Count(x => x.CodigoResultado == 1);
+
+        //        var motivoNaoAverbada = (from c in corporelatorio
+        //                                 join r in _mysql.registros_retorno_remessa on c.CodExterno equals r.Numero_Beneficio
+        //                                 join cr in _mysql.codigo_retorno
+        //                                  on new { CodigoErro = r.Motivo_Rejeicao.ToString().PadLeft(3, '0'), CodigoOperacao = r.Codigo_Operacao }
+        //                                  equals new { CodigoErro = cr.CodigoErro, CodigoOperacao = cr.CodigoOperacao }
+        //                                 where r.Codigo_Resultado == 2
+        //                                 group cr by new { cr.CodigoErro, cr.DescricaoErro } into g
+        //                                 select new MotivoNaoAverbacaoResponse
+        //                                 {
+        //                                     TotalPorCodigoErro = g.Count(),
+        //                                     CodigoErro = g.Key.CodigoErro,
+        //                                     DescricaoErro = g.Key.DescricaoErro
+        //                                 }).ToList();
+
+        //        var numeroRemessa = corporelatorio.Count > 0 ? corporelatorio.FirstOrDefault().RemessaId : 0;
+
+        //        var taxaaverbacao = 0;
+        //        if (totalAverbada != 0 && totalRemessa != 0)
+        //        {
+        //            taxaaverbacao = (totalAverbada * 100) / totalRemessa;
+        //        }
+
+        //        var detalhes = new Detalhes
+        //        {
+        //            Competencia = $"{anomes.Substring(0, 4)}{anomes.Substring(4, 2)}",
+        //            Averbados = totalAverbada,
+        //            Corretora = captador.captador_nome,
+        //            Remessa = numeroRemessa,
+        //            TaxaAverbacao = taxaaverbacao,
+        //        };
+
+        //        var resumoAverbacao = new ResumoAverbacaoResponse
+        //        {
+        //            TotalRemessa = totalRemessa,
+        //            TotalNaoAverbada = totalNaoAverbada
+        //        };
+
+        //        var taxanaoaverbacao = 0;
+        //        if (totalNaoAverbada != 0 && totalRemessa != 0)
+        //        {
+        //            taxanaoaverbacao = (resumoAverbacao.TotalNaoAverbada * 100) / totalRemessa;
+        //        }
+
+        //        foreach (var item in motivoNaoAverbada)
+        //        {
+        //            if (resumoAverbacao.TotalNaoAverbada != 0)
+        //            {
+        //                item.TotalPorcentagem = (item.TotalPorCodigoErro * 100) / resumoAverbacao.TotalNaoAverbada;
+        //            }
+        //        }
+
+        //        var resultado = new GerarRelatoriResponse
+        //        {
+        //            Detalhes = detalhes,
+        //            TaxaNaoAverbado = taxanaoaverbacao,
+        //            Relatorio = corporelatorio,
+        //            Resumo = resumoAverbacao,
+        //            MotivosNaoAverbada = motivoNaoAverbada
+        //        };
+
+        //        return resultado;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw;
+        //    }
+        //}
+
+        #endregion
+
+
         public void GerarArquivoRelatorioAverbacao(string anomes, int captadorId)
         {
             var captador = captadorId > 0 ? _mysql.captadores.First(x => x.captador_id == captadorId) : new() { captador_nome = "TODOS" };
@@ -162,7 +294,7 @@ namespace AASPA.Domain.Service
             string caminhoArquivoSaida = Path.Combine(diretorioBase, "Relatorio", $"RelAverbacao.{anomes}.xlsx");
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Relatorio")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Relatorio"))); }
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Imagens")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Imagens"))); }
-            var dados = GerarRelatorioAverbacao(anomes, captadorId);
+            var dados = GerarRelatorioRetorno(anomes, captadorId);
 
             if (File.Exists(caminhoArquivoSaida))
                 File.Delete(caminhoArquivoSaida);
@@ -350,7 +482,7 @@ namespace AASPA.Domain.Service
             string caminhoArquivoSaida = Path.Combine(diretorioBase, "Relatorio", $"RelCarteira.{anomes}.xlsx");
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Relatorio")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Relatorio"))); }
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Imagens")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Imagens"))); }
-            var dados = GerarRelatorioAverbacao(anomes, captadorId);
+            var dados = GerarRelatorioRetorno(anomes, captadorId);
 
             if (File.Exists(caminhoArquivoSaida))
                 File.Delete(caminhoArquivoSaida);

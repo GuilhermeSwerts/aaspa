@@ -29,7 +29,7 @@ namespace AASPA.Controllers
         {
             try
             {
-                var response = _relatorios.GerarRelatorioAverbacao($"{ano}{mes.ToString().PadLeft(2, '0')}", captadorId);
+                var response = _relatorios.GerarRelatorioRetorno($"{ano}{mes.ToString().PadLeft(2, '0')}", captadorId);
 
                 _relatorios.GerarArquivoRelatorioAverbacao($"{ano}{mes.ToString().PadLeft(2, '0')}", captadorId);
 
@@ -62,7 +62,7 @@ namespace AASPA.Controllers
         {
             try
             {
-                var response = _relatorios.GerarRelatorioAverbacao($"{ano}{mes.ToString().PadLeft(2, '0')}", captadorId);
+                var response = _relatorios.GerarRelatorioRetorno($"{ano}{mes.ToString().PadLeft(2, '0')}", captadorId);
                 _relatorios.GerarArquivoRelatorioCarteiras($"{ano}{mes.ToString().PadLeft(2, '0')}", captadorId);
                 return Ok(response);
             }
