@@ -410,17 +410,20 @@ namespace AASPA.Domain.Service
             try
             {
 
-                var remessa = _mysql.remessa.FirstOrDefault(x => x.remessa_ano_mes == anomes);
-                var retorno = _mysql.retornos_remessa.FirstOrDefault(x => x.AnoMes == anomes);
+                var remessa = _mysql.remessa.FirstOrDefault(x => x.remessa_ano_mes == anomes) ??
+                    new RemessaDb
+                    {
+                        remessa_id = 0
+                    };
+
+                var retorno = _mysql.retornos_remessa.FirstOrDefault(x => x.AnoMes == anomes) ?? 
+                    new RetornoRemessaDb
+                    {
+                        Retorno_Id = 0
+                    };
+
                 var repasse = _mysql.retorno_financeiro.FirstOrDefault(x => x.ano_mes == anomes);
-                if (remessa == null)
-                {
-                    throw new Exception("Não existe nenhuma remessa para o retorno financeiro importado!");
-                }
-                else if (retorno == null)
-                {
-                    throw new Exception("Não existe nenhum retorno para o retorno financeiro importado!");
-                }
+                
                 if (repasse != null)
                 {
                     throw new Exception("Já existe um arquivo de repasse financeiro importado para o mês/ano competente!");
@@ -637,17 +640,18 @@ namespace AASPA.Domain.Service
             {
                 using var tran = _mysql.Database.BeginTransaction();
 
-                var remessa = _mysql.remessa.FirstOrDefault(x => x.remessa_ano_mes == anomes && x.remessa_status == true);
-                if (remessa == null)
-                {
-                    throw new Exception("Não existe nenhuma remessa para o retorno importado!");
-                }
                 var retornoDb = _mysql.retornos_remessa.FirstOrDefault(x => x.AnoMes == anomes);
 
                 if (retornoDb != null)
                 {
                     throw new Exception("Já existe um arquivo de retorno importado para o mês/ano competente!");
                 }
+
+                var remessa = _mysql.remessa.FirstOrDefault(x => x.remessa_ano_mes == anomes && x.remessa_status == true)
+                    ?? new RemessaDb()
+                    {
+                        remessa_id = 0
+                    };
 
                 RetornoRemessaDb retorno = new()
                 {
@@ -759,7 +763,7 @@ namespace AASPA.Domain.Service
                     HistoricoContatosOcorrenciaMotivoContatoId = (int)EMotivo.ARQUIVO_INSS,
                     HistoricoContatosOcorrenciaSituacaoOcorrencia = "EM PROCESSAMENTO",
                     HistoricoContatosOcorrenciaDescricao = descricao,
-                    
+
                     HistoricoContatosOcorrenciaAgencia = "",
                     HistoricoContatosOcorrenciaPix = "",
                     HistoricoContatosOcorrenciaBanco = "",
@@ -996,15 +1000,17 @@ namespace AASPA.Domain.Service
             {
                 try
                 {
-                    var res = (from ret in _mysql.retornos_remessa
-                               join rem in _mysql.remessa on ret.Remessa_Id equals rem.remessa_id
-                               select new BuscarArquivosResponse
-                               {
-                                   DataImportacao = ret.Data_Importacao.Value.ToString("dd/MM/yyyy hh:mm:ss"),
-                                   NomeRemessaCompetente = rem.nome_arquivo_remessa,
-                                   NomeRetornoCompetente = ret.Nome_Arquivo_Retorno,
-                                   RetornoId = ret.Retorno_Id
-                               });
+                    var res = from ret in _mysql.retornos_remessa
+                              join rem in _mysql.remessa on ret.Remessa_Id equals rem.remessa_id into remGroup
+                              from rem in remGroup.DefaultIfEmpty() // Isso faz o LEFT JOIN
+                              select new BuscarArquivosResponse
+                              {
+                                  DataImportacao = ret.Data_Importacao.Value.ToString("dd/MM/yyyy hh:mm:ss"),
+                                  NomeRemessaCompetente = rem != null ? rem.nome_arquivo_remessa : null, // Verifica se rem é nulo
+                                  NomeRetornoCompetente = ret.Nome_Arquivo_Retorno,
+                                  RetornoId = ret.Retorno_Id
+                              };
+
 
                     return res.ToList();
                 }
