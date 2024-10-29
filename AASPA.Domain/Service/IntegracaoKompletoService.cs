@@ -34,6 +34,7 @@ namespace AASPA.Domain.Service
                 var cancKompleto = new CancelarPropostaKompletoRequest
                 {
                     cpfSolicitante = cpfSolicitante,
+                    origem = 1,
                     token = request.token,
                     motivoCancelamento = request.motivocancelamento
                 };
