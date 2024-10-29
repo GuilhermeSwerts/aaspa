@@ -44,7 +44,7 @@ const Cclientes = () => {
     const [statusClienteId, setStatusClienteId] = useState(0)
     const [isLoading, setIsLoading] = useState(false);
     const [tokenCliente, setTokenCliente] = useState('');
-
+    const [captador, setCaptador] = useState('');
     //**paginação**
     const [limit, setLimit] = useState(10);
     const [offset, setOffset] = useState(0);
