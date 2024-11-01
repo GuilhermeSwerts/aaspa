@@ -313,7 +313,7 @@ namespace AASPA.Domain.Service
 
             int totalPaginas = (TotalClientes / request.QtdPorPagina) ?? 1;
 
-            return (Clientes.GroupBy(x=> new { x.Cliente,x.Captador,x.StatusAtual }).Select(x=> new BuscarClienteByIdResponse
+            return (Clientes.GroupBy(x => new { x.Cliente, x.Captador, x.StatusAtual }).Select(x => new BuscarClienteByIdResponse
             {
                 Cliente = x.Key.Cliente,
                 Captador = x.Key.Captador,
@@ -404,7 +404,7 @@ namespace AASPA.Domain.Service
                 {
                     filtros.Add("his.historico_contatos_ocorrencia_dt_ocorrencia <= @DataEndAtendimento");
                 }
-                if(!string.IsNullOrEmpty(request.Captador))
+                if (!string.IsNullOrEmpty(request.Captador))
                 {
                     filtros.Add("cpt.captador_nome like CONCAT('%', @Captador, '%')");
                 }
@@ -446,7 +446,17 @@ namespace AASPA.Domain.Service
                 if (request.StatusIntegraall > 0)
                     parameters.Add("@StatusIntegraall", request.StatusIntegraall);
                 if (!string.IsNullOrEmpty(request.Beneficio))
-                    parameters.Add("@Nb", request.Beneficio.Replace(".", "").Replace("-", ""));
+                {
+                    string nb = request.Beneficio.Replace(".", "").Replace("-", "");
+                    do
+                    {
+                        if (nb.StartsWith("0"))
+                            nb = nb.Substring(1);
+
+                    } while (nb.StartsWith("0"));
+
+                    parameters.Add("@Nb", nb);
+                }
                 if (!string.IsNullOrEmpty(request.SituacaoOcorrencia))
                     parameters.Add("@SituacaoOcorrencia", request.SituacaoOcorrencia);
                 if (request.DataInitAtendimento.HasValue)
@@ -860,7 +870,7 @@ namespace AASPA.Domain.Service
                 else
                 {
                     _log.Logger(request, "Integraall", (int?)response.StatusCode, "");
-                }                          
+                }
             }
             catch (Exception ex)
             {
