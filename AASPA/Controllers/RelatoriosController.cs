@@ -24,14 +24,31 @@ namespace AASPA.Controllers
         }
 
         [HttpGet]
-        [Route("/RelatorioAverbacao")]
+        [Route("/RelatorioRetorno")]
+        public ActionResult RelatorioRetorno([FromQuery] int mes, int ano, int captadorId)
+        {
+            try
+            {
+                var response = _relatorios.GerarRelatorioRetorno($"{ano}{mes.ToString().PadLeft(2, '0')}", captadorId);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+
+            }
+        }
+
+        [HttpGet]
+        [Route("/RelatorioAverbacao")]  
         public ActionResult RelatorioAvebacao([FromQuery] int mes, int ano, int captadorId)
         {
             try
             {
                 var response = _relatorios.GerarRelatorioRetorno($"{ano}{mes.ToString().PadLeft(2, '0')}", captadorId);
 
-                _relatorios.GerarArquivoRelatorioAverbacao($"{ano}{mes.ToString().PadLeft(2, '0')}", captadorId);
+                //_relatorios.GerarArquivoRelatorioAverbacao($"{ano}{mes.ToString().PadLeft(2, '0')}", captadorId);
 
                 return Ok(response);
             }
@@ -40,6 +57,7 @@ namespace AASPA.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
         [HttpGet]
         [Route("/DownloadRelatorio")]
         public ActionResult DownloadRelatorio(int ano, int mes, int tiporel)

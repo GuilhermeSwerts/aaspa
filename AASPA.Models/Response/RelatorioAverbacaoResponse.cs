@@ -20,5 +20,8 @@ namespace AASPA.Models.Response
         public DateTime? DataPagamento { get; set; }
         public int CodigoOperacao { get; set; }
         public int? RemessaId { get; set; }
+        public int? CodOperacao { get; set; }
+        public int? CodResultado { get; set; }
+        public int CodErro { get; set; }
     }
 }
