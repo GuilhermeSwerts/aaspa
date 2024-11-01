@@ -15,7 +15,7 @@ namespace AASPA.Domain.Service
 {
     public class IntegracaoKompletoService : IIntegracaoKompleto
     {
-        private static readonly HttpClient _httpClient = new HttpClient();
+        private readonly HttpClient _httpClient = new HttpClient();
         private readonly IConfiguration _config;
         private readonly ILogCancelamento _log;
         public IntegracaoKompletoService(IConfiguration config, ILogCancelamento log)
