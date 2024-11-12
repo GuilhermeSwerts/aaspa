@@ -483,6 +483,7 @@ namespace AASPA.Domain.Service
                                         uf = uf,
                                         desconto = dc,
                                         retorno_financeiro_id = rId,
+                                        parcela = _mysql.registro_retorno_financeiro.Where(x=> x.numero_beneficio == nb).Select(x=> x.retorno_financeiro_id).Distinct().Count()+1
                                     };
                                     processados.Add(registro_Financeiro);
                                 }

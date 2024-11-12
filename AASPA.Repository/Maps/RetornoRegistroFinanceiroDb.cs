@@ -18,5 +18,6 @@ namespace AASPA.Repository.Maps
         public int? especie { get; set; }
         public string uf { get; set; }
         public decimal? desconto { get; set; }
+        public int parcela { get; set; }
     }
 }

@@ -16,6 +16,7 @@ import RepasseFinanceiro from '../views/Gerenciamento/RepasseFinanceiro/RepasseF
 import Relatorio from '../views/Gerenciamento/Relatorio/Relatorio';
 import Captador from '../views/Gerenciamento/Captador/index';
 import RelatorioRetorno from '../views/Gerenciamento/RelatorioRetorno/RelatorioRetorno';
+import RelatorioRepasse from '../views/Gerenciamento/RelatorioRepasse/RelatorioRepasse';
 import Cclientes from '../views/CClientes/index';
 import Atendimento from '../views/Atendimento/Atendimento';
 import SolicitacaoReembolso from '../views/SolicitacaoReembolso/SolicitacaoReembolso';
@@ -52,7 +53,7 @@ export const PublicaRotas = [ /*PUBLICA PARA APARECER NO MENU*/
 
     /*RELATÓRIOS*/
     { Icon: FaChartArea, nome: 'Relatório Retorno', path: '/rrelatorioretorno', component: RelatorioRetorno },
-    { Icon: FaChartPie, nome: 'Relatório Repasse', path: '/rrelatoriorepasse', component: Relatorio },
+    { Icon: FaChartPie, nome: 'Relatório Repasse', path: '/rrelatoriorepasse', component: RelatorioRepasse },
 
     /*GERENCIAMENTO*/
     { Icon: FaUsersGear, nome: 'Gerenciar Usuários', path: '/gusuarios', component: Usuarios },

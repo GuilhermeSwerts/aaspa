@@ -1,6 +1,7 @@
 ﻿using AASPA.Controllers;
 using AASPA.Domain.Interface;
 using AASPA.Models.Model.RelatorioAverbacao;
+using AASPA.Models.Model.RelatorioRepasse;
 using AASPA.Models.Response;
 using AASPA.Repository;
 using AASPA.Repository.Maps;
@@ -9,11 +10,15 @@ using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.ExtendedProperties;
 using DocumentFormat.OpenXml.InkML;
 using DocumentFormat.OpenXml.Office.CustomUI;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -433,9 +438,9 @@ namespace AASPA.Domain.Service
                 worksheet.Cell($"D6").Value = "Total Não averbados:";
                 worksheet.Cell($"E6").Value = dados.QtdNaoAverbados;
 
-                for (int i = 7; i < dados.MotivoNaoAverbada.Count+7; i++)
+                for (int i = 7; i < dados.MotivoNaoAverbada.Count + 7; i++)
                 {
-                    var naoAverbada = dados.MotivoNaoAverbada[i-7];
+                    var naoAverbada = dados.MotivoNaoAverbada[i - 7];
 
                     worksheet.Cell($"D{i}").Value = $"({naoAverbada.CodigoErro} - {naoAverbada.DescricaoErro}):";
                     worksheet.Cell($"E{i}").Value = $"{naoAverbada.TotalPorCodigoErro} ({naoAverbada.TotalPorcentagem}%)";
@@ -509,6 +514,119 @@ namespace AASPA.Domain.Service
             }
         }
 
+        public void GerarArquivoRelatorioRepasse(GerarRelatorioRepasseResponse dados, string anomes)
+        {
+            string diretorioBase = _env.ContentRootPath;
+            string caminhoArquivoSaida = Path.Combine(diretorioBase, "Relatorio", $"RelRepasse.{anomes}.xlsx");
+            if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Relatorio")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Relatorio"))); }
+            if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Imagens")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Imagens"))); }
+
+            if (File.Exists(caminhoArquivoSaida))
+                File.Delete(caminhoArquivoSaida);
+
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("Relatório Retorno");
+
+                int lastRow = 15 + dados.Relatorio.Count;
+
+                var title = worksheet.Range("A1:H4");
+                title.Merge();
+                title.Value = "EXTRATO DE REPASSE INSS";
+                title.Style.Font.Bold = true;
+                title.Style.Font.FontSize = 16;
+                title.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                title.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+
+                string caminhoImagem = Path.Combine(diretorioBase, "Imagens", "logo.png");
+                if (Directory.GetFiles(Path.Combine(_env.ContentRootPath, "Imagens")).Any(file => Path.GetFileName(file).Contains($"logo.png")))
+                {
+                    var imagem = worksheet.AddPicture(caminhoImagem ?? "")
+                                .MoveTo(worksheet.Cell("G1"))
+                                .WithSize((int)(8.16 * 28.3465), (int)(2.83 * 28.3465));
+                }
+
+                worksheet.Range("A5:H5").Merge();
+                worksheet.Cell("A5").Value = "Resumo de Produção";
+                worksheet.Cell("A5").Style.Fill.BackgroundColor = XLColor.FromArgb(221, 235, 247);
+                worksheet.Cell("A5").Style.Font.Bold = true;
+                worksheet.Cell("A5").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                var rangeA6C13 = worksheet.Range("A6:C13");
+                rangeA6C13.Style.Border.LeftBorder = XLBorderStyleValues.None;
+                rangeA6C13.Style.Border.RightBorder = XLBorderStyleValues.None;
+                rangeA6C13.Style.Border.TopBorder = XLBorderStyleValues.None;
+                rangeA6C13.Style.Border.BottomBorder = XLBorderStyleValues.None;
+
+                worksheet.Cell("A6").Value = "COMPETENCIA:";
+                worksheet.Cell("B6").Value = $"{dados.Cabecalho.Competencia}";
+
+                worksheet.Cell("A7").Value = "MÊS REPASSE:";
+                worksheet.Cell("B7").Value = dados.Cabecalho.MesRepasse;
+
+                worksheet.Cell("A8").Value = "Total Descontos";
+                worksheet.Cell("B8").Value = dados.Cabecalho.TotalDescontos;
+
+                worksheet.Cell("A9").Value = "Valor Total Repasse:";
+                worksheet.Cell("B9").Value = dados.Cabecalho.ValorTotalRepasse;
+
+                var rangeD6G13 = worksheet.Range("D6:G13");
+                rangeD6G13.Style.Border.LeftBorder = XLBorderStyleValues.None;
+                rangeD6G13.Style.Border.RightBorder = XLBorderStyleValues.None;
+                rangeD6G13.Style.Border.TopBorder = XLBorderStyleValues.None;
+                rangeD6G13.Style.Border.BottomBorder = XLBorderStyleValues.None;
+                var rangeF6G13 = worksheet.Range("F6:G13");
+                rangeF6G13.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                worksheet.Cell("A12").Value = "Detalhe de Produção";
+                worksheet.Range("A12:H12").Merge();
+                worksheet.Cell("A12").Style.Fill.BackgroundColor = XLColor.FromArgb(221, 235, 247);
+                worksheet.Cell("A12").Style.Font.Bold = true;
+                worksheet.Cell("A12").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                worksheet.Cell("A13").Value = "N. Beneficio";
+                worksheet.Cell("B13").Value = "CPF";
+                worksheet.Cell("C13").Value = "Nome";
+                worksheet.Cell("D13").Value = "Data Adesão";
+                worksheet.Cell("E13").Value = "Taxa Associativa";
+                worksheet.Cell("F13").Value = "Parcela";
+
+                int row = 13;
+                foreach (var item in dados.Relatorio)
+                {
+                    worksheet.Cell(row, 1).Value = long.TryParse(item.CodExterno, out long codexterno) ? codexterno : item.CodExterno;
+                    worksheet.Cell(row, 2).Value = long.TryParse(item.Cpf, out long cpfNumber) ? cpfNumber : item.Cpf;
+                    worksheet.Cell(row, 3).Value = item.Nome;
+                    worksheet.Cell(row, 4).Value = item.DataAdesao;
+                    worksheet.Cell(row, 5).Value = item.TaxaAssociativa;
+                    worksheet.Cell(row, 6).Value = item.Parcela;
+                    row++;
+                }
+
+                var range = worksheet.Range("A14:H" + row);
+                range.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                var outlineRange = worksheet.Range("A1:H" + row);
+                outlineRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thick;
+                outlineRange.Style.Border.OutsideBorderColor = XLColor.Blue;
+
+                worksheet.Columns().AdjustToContents();
+                worksheet.Column("A").Width = 18;
+                worksheet.Column("B").Width = 15;
+                worksheet.Column("C").Width = 40;
+                worksheet.Column("D").Width = 18;
+                worksheet.Column("E").Width = 18;
+                worksheet.Column("F").Width = 18;
+                worksheet.Column("G").Width = 38;
+
+                worksheet.PageSetup.PageOrientation = XLPageOrientation.Landscape;
+                worksheet.PageSetup.PrintAreas.Add("A1:I" + row);
+                worksheet.PageSetup.SetRowsToRepeatAtTop(1, 4);
+
+                workbook.SaveAs(caminhoArquivoSaida);
+            }
+        }
+
         public BuscarArquivoResponse BuscarArquivoRelatorio(string anomes, int tiporel)
         {
             if (tiporel == 1)
@@ -516,6 +634,11 @@ namespace AASPA.Domain.Service
                 var relatorio = GerarRelatorioRetorno(anomes, 0);
 
                 GerarArquivoRelatorioRetorno(relatorio, anomes);
+            }else
+            {   
+                var relatorio = (GerarRelatorioRepasseResponse)GerarRelatorioRepasse(anomes, 0);
+
+                GerarArquivoRelatorioRepasse(relatorio, anomes);
             }
 
             if (!Directory.Exists(Path.Combine(string.Join(_env.ContentRootPath, "Remessa")))) { Directory.CreateDirectory(Path.Combine(string.Join(_env.ContentRootPath, "Remessa"))); }
@@ -529,7 +652,7 @@ namespace AASPA.Domain.Service
             }
             else
             {
-                path = todosLogs.FirstOrDefault(arquivo => Path.GetFileName(arquivo).Contains($"RelCarteira.{anomes}.xlsx"));
+                path = todosLogs.FirstOrDefault(arquivo => Path.GetFileName(arquivo).Contains($"RelRepasse.{anomes}.xlsx"));
             }
 
             if (!File.Exists(path)) throw new Exception("Arquivo não encontrado");
@@ -715,5 +838,85 @@ namespace AASPA.Domain.Service
             //    workbook.SaveAs(caminhoArquivoSaida);
             //}
         }
+
+        public object GerarRelatorioRepasse(string anomes, int captadorId)
+        {
+            try
+            {
+                var repasse = _mysql.retorno_financeiro.FirstOrDefault(x => x.ano_mes == anomes)
+                    ?? throw new Exception("Não existe repasse para mês/ano competente");
+
+                var clientes = from ret in _mysql.registro_retorno_financeiro
+                               join cli in _mysql.clientes
+                                   on ret.numero_beneficio equals cli.cliente_matriculaBeneficio into cliGroup
+                               from cli in cliGroup.DefaultIfEmpty()
+                               join rr in _mysql.registros_retorno_remessa
+                                   on repasse.retorno_id equals rr.Id into retornoGroup
+                               from rr in retornoGroup.DefaultIfEmpty()
+                               where ret.retorno_financeiro_id == repasse.retorno_financeiro_id
+                               select new
+                               {
+                                   Cliente = cli ?? new ClienteDb
+                                   {
+                                       cliente_matriculaBeneficio = ret.numero_beneficio,
+                                       cliente_cpf = "-",
+                                       cliente_nome = "CLIENTE NAO ENCONTRADO NA BASE",
+                                   },
+                                   Registro = ret,
+                                   Retorno = rr
+                               };
+
+                var relatorio = clientes.ToList().Select(x => new RelatorioRepasse
+                {
+                    CodExterno = x.Cliente.cliente_matriculaBeneficio,
+                    Cpf = x.Cliente.cliente_cpf,
+                    Nome = x.Cliente.cliente_nome,
+                    DataAdesao = x.Retorno?.Data_Inicio_Desconto,
+                    Valor = FormatarValorDescontado(x.Registro.desconto.Value),
+                    TaxaAssociativa = FormatarValorDescontado(x.Registro.desconto.Value).ToString("C", new CultureInfo("pt-BR")),
+                    Parcela = x.Registro.parcela
+                }).ToList();
+
+                var mesRepasse = repasse.nome_arquivo.Replace("D.SUB.GER.177.REP.", "");
+
+                DateTime data = DateTime.ParseExact(mesRepasse, "yyyyMM", CultureInfo.InvariantCulture);
+
+                string dataFormatada = data.ToString("MMM/yy", new CultureInfo("pt-BR"));
+
+                var cabecalho = new CabecalhoRepasse
+                {
+                    Competencia = $"{repasse.ano_mes.Substring(4, 2)}/{repasse.ano_mes.Substring(0, 4)}",
+                    MesRepasse = dataFormatada,
+                    TotalDescontos = relatorio.Count(),
+                    ValorTotalRepasse = relatorio.Sum(x => x.Valor).ToString("C", new CultureInfo("pt-BR"))
+                };
+
+                return new GerarRelatorioRepasseResponse
+                {
+                    Relatorio = relatorio,
+                    Cabecalho = cabecalho
+                };
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+        private decimal FormatarValorDescontado(decimal desconto)
+        {
+            if (desconto.ToString().Split(",")[0].Length > 5)
+            {
+                var desc = desconto.ToString().Split(".")[0];
+
+                return decimal.Parse($"{desc.Substring(0, 2)},{desc.Substring(2, 2)}");
+            }
+            else
+            {
+                return decimal.Parse($"{desconto.ToString().Replace(".", ",").PadRight(5, '0')}");
+            }
+        }
+
     }
 }
