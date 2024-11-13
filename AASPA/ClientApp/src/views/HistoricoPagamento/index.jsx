@@ -9,7 +9,7 @@ import { FaPencil, FaTrash } from 'react-icons/fa6';
 import NovoPagamento from '../../components/Modal/NovoPagamento';
 import EditarPagamento from '../../components/Modal/editarPagamento';
 import * as Enum from '../../util/enum';
-import { Alert,Pergunta } from '../../util/alertas';
+import { Alert, Pergunta } from '../../util/alertas';
 
 function HistoricoPagamento() {
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext);
@@ -80,13 +80,13 @@ function HistoricoPagamento() {
                     </tr>
                 </thead>
                 <tbody>
-                    {pagamentos.map(pagamento => (
+                    {pagamentos.map((pagamento, parcela) => (
                         <tr>
                             <td>{pagamento.valorPago}</td>
                             <td>{pagamento.competenciaRepasse}</td>
-                            <td>{pagamento.CompetenciaPagamento}</td>
-                            <td>{pagamento.dt_Cadastro}</td>
-                            <td>{pagamento.parcela}</td>
+                            <td>{pagamento.competenciaPagamento}</td>
+                            <td>{pagamento.dtPagamento}</td>
+                            <td>{parcela + 1}</td>
                             <td style={{ display: 'flex', gap: 5 }}>
                                 <EditarPagamento
                                     BuscarPagamentos={BuscarPagamentos}
