@@ -578,7 +578,11 @@ namespace AASPA.Domain.Service
             var integerPart = desc.Length > 2 ? desc.Substring(0, 2) : desc.PadLeft(2, '0');
             var fractionalPart = desc.Length > 4 ? desc.Substring(2, 2) : "00";
 
-            return decimal.Parse($"{integerPart},{fractionalPart}");
+            var valorFormatado = $"{integerPart}.{fractionalPart}";
+
+            decimal valorConvertido = decimal.Parse(valorFormatado, CultureInfo.InvariantCulture);
+
+            return valorConvertido;
         }
 
         private void AdicionarHistoricoPagamento(List<RegistroRetornoFinanceiroDb> processados, int usuarioLogadoId, RetornoFinanceiroDb retorno_financeiro)
