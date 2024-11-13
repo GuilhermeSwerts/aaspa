@@ -491,7 +491,7 @@ namespace AASPA.Domain.Service
                         }
                         tran.Commit();
                         await InserirDadosRepasse(processados);
-                        AdicionarHistoricoPagamento(processados, usuarioLogadoId);
+                        AdicionarHistoricoPagamento(processados, usuarioLogadoId, retorno_financeiro);
 
 
                         return anomes;
@@ -571,7 +571,21 @@ namespace AASPA.Domain.Service
             return valDesconto;
         }
 
-        private void AdicionarHistoricoPagamento(List<RegistroRetornoFinanceiroDb> processados, int usuarioLogadoId)
+        private decimal FormatarValorDescontado(decimal desconto)
+        {
+            if (desconto.ToString().Split(",")[0].Length > 5)
+            {
+                var desc = desconto.ToString().Split(".")[0];
+
+                return decimal.Parse($"{desc.Substring(0, 2)},{desc.Substring(2, 2)}");
+            }
+            else
+            {
+                return decimal.Parse($"{desconto.ToString().Replace(".", ",").PadRight(5, '0')}");
+            }
+        }
+
+        private void AdicionarHistoricoPagamento(List<RegistroRetornoFinanceiroDb> processados, int usuarioLogadoId, RetornoFinanceiroDb retorno_financeiro)
         {
             try
             {
@@ -580,7 +594,7 @@ namespace AASPA.Domain.Service
                     var cliente = _mysql.clientes.FirstOrDefault(x => x.cliente_matriculaBeneficio.PadLeft(10, '0') == repasse.numero_beneficio.PadLeft(10, '0'));
                     if (cliente != null)
                     {
-                        var desconto = repasse.desconto.HasValue ? repasse.desconto.Value.ToString("C", new System.Globalization.CultureInfo("pt-BR")) : "R$ 00,00";
+                        var desconto = repasse.desconto.HasValue ? FormatarValorDescontado(repasse.desconto.Value).ToString("C", new System.Globalization.CultureInfo("pt-BR")) : "R$ 00,00";
 
                         _historicoContato.NovoContatoOcorrencia(new HistoricoContatosOcorrenciaRequest
                         {
@@ -590,7 +604,7 @@ namespace AASPA.Domain.Service
                             HistoricoContatosOcorrenciaMotivoContatoId = (int)EMotivo.ARQUIVO_INSS,
                             HistoricoContatosOcorrenciaSituacaoOcorrencia = "EM PROCESSAMENTO",
 
-                            HistoricoContatosOcorrenciaDescricao = $"Desconto do valor de {desconto}",
+                            HistoricoContatosOcorrenciaDescricao = $"Desconto do valor de {desconto} da parcela {repasse.parcela}",
                             HistoricoContatosOcorrenciaAgencia = "",
                             HistoricoContatosOcorrenciaPix = "",
                             HistoricoContatosOcorrenciaBanco = "",
@@ -608,7 +622,10 @@ namespace AASPA.Domain.Service
                             pagamento_cliente_id = cliente.cliente_id,
                             pagamento_dt_cadastro = DateTime.Now,
                             pagamento_dt_pagamento = DateTime.Now,
-                            pagamento_valor_pago = repasse.desconto.Value
+                            pagamento_valor_pago = repasse.desconto.Value,
+                            pagamento_competencia_pagamento = $"{retorno_financeiro.competencia_Repasse.ToString().Substring(4, 2)}/{retorno_financeiro.competencia_Repasse.ToString().Substring(0, 4)}" ,
+                            pagamento_competencia_repasse = $"{retorno_financeiro.ano_mes.Substring(4, 2)}/{retorno_financeiro.ano_mes.Substring(0, 4)}",
+                            pagamento_parcela = repasse.parcela
                         });
                         _mysql.SaveChanges();
                     }

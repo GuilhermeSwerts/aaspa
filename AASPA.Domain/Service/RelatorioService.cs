@@ -74,7 +74,7 @@ namespace AASPA.Domain.Service
                 CodigoOperacao = x.Registro.Codigo_Operacao,
                 CodigoResultado = x.Registro.Codigo_Resultado,
                 DataInicioDesconto = x.Registro.Data_Inicio_Desconto,
-                ValorDesconto = x.Registro.Valor_Desconto,
+                ValorDesconto = FormatarValorDescontado(x.Registro.Valor_Desconto).ToString("C", new CultureInfo("pt-BR")),
                 DescricaoErro = codRetornos
                 .FirstOrDefault(c => c.CodigoErro == x.Registro.Motivo_Rejeicao.ToString().PadLeft(3, '0') && c.CodigoOperacao == x.Registro.Codigo_Operacao)
                 != null ? codRetornos
@@ -484,7 +484,7 @@ namespace AASPA.Domain.Service
                     worksheet.Cell(row, 2).Value = long.TryParse(item.ClienteCpf, out long cpfNumber) ? cpfNumber : item.ClienteCpf;
                     worksheet.Cell(row, 3).Value = item.ClienteNome;
                     worksheet.Cell(row, 4).Value = item.DataInicioDesconto;
-                    worksheet.Cell(row, 5).Value = decimal.TryParse(item.ValorDesconto.ToString("C"), out decimal valordesconto) ? valordesconto : item.ValorDesconto;
+                    worksheet.Cell(row, 5).Value = item.ValorDesconto;
                     worksheet.Cell(row, 6).Value = item.CodigoResultado == 1 ? "Averbado" : "Não Averbado";
                     worksheet.Cell(row, 7).Value = item.DescricaoErro;
                     row++;

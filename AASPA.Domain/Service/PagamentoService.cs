@@ -28,7 +28,10 @@ namespace AASPA.Domain.Service
                     DtPagamento = x.pagamento_dt_pagamento.HasValue ? x.pagamento_dt_pagamento.Value.ToString("dd/MM/yyyy") : null,
                     Dt_Cadastro = x.pagamento_dt_cadastro.ToString("dd/MM/yyyy HH:mm:ss"),
                     PagamentoId = x.pagamento_id,
-                    ValorPago = x.pagamento_valor_pago
+                    ValorPago = x.pagamento_valor_pago.ToString("C", new System.Globalization.CultureInfo("pt-BR")),
+                    Parcela = x.pagamento_parcela,
+                    CompetenciaPagamento = x.pagamento_competencia_pagamento,
+                    CompetenciaRepasse   = x.pagamento_competencia_repasse
                 }).ToList();
         }
 
@@ -40,7 +43,10 @@ namespace AASPA.Domain.Service
             {
                 DtPagamento = pagamento.pagamento_dt_pagamento.HasValue ? pagamento.pagamento_dt_pagamento.Value.ToString("dd/MM/yyyy") : null,
                 PagamentoId = pagamento.pagamento_id,
-                ValorPago = pagamento.pagamento_valor_pago
+                ValorPago = pagamento.pagamento_valor_pago.ToString(),
+                Parcela = pagamento.pagamento_parcela,
+                CompetenciaPagamento = pagamento.pagamento_competencia_pagamento,
+                CompetenciaRepasse = pagamento.pagamento_competencia_repasse
             };
         }
 

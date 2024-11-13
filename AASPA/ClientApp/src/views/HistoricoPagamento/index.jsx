@@ -72,17 +72,21 @@ function HistoricoPagamento() {
                 <thead>
                     <tr>
                         <th>Valor Pago</th>
-                        <th>Data Do Pagamento</th>
+                        <th>Competência de repasse</th>
+                        <th>Data de Pagamento</th>
                         <th>Data Cadastro</th>
+                        <th>Parcela</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody>
                     {pagamentos.map(pagamento => (
                         <tr>
-                            <td>R$ {pagamento.valorPago.toFixed(2).replace(".", ",")}</td>
-                            <td>{pagamento.dtPagamento}</td>
+                            <td>{pagamento.valorPago}</td>
+                            <td>{pagamento.competenciaRepasse}</td>
+                            <td>{pagamento.CompetenciaPagamento}</td>
                             <td>{pagamento.dt_Cadastro}</td>
+                            <td>{pagamento.parcela}</td>
                             <td style={{ display: 'flex', gap: 5 }}>
                                 <EditarPagamento
                                     BuscarPagamentos={BuscarPagamentos}

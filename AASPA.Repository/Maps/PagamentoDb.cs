@@ -15,6 +15,8 @@ namespace AASPA.Repository.Maps
         public DateTime? pagamento_dt_pagamento { get; set; }
         public DateTime pagamento_dt_cadastro { get; set; } = DateTime.Now;
         public int pagamento_cliente_id { get; set; }
-
+        public string pagamento_competencia_repasse { get; set; }
+        public string pagamento_competencia_pagamento { get; set; }
+        public int pagamento_parcela { get; set; }
     }
 }

@@ -12,7 +12,7 @@ namespace AASPA.Models.Response
         public string ClienteCpf { get; set; }
         public string ClienteNome { get; set; }
         public DateTime DataInicioDesconto { get; set; }
-        public decimal ValorDesconto { get; set; }
+        public string ValorDesconto { get; set; }
         public int CodigoResultado { get; set; }
         public string DescricaoErro { get; set; }
         public string Status { get; set; }

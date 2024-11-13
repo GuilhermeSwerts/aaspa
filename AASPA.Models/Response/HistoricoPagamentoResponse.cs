@@ -9,8 +9,11 @@ namespace AASPA.Models.Response
     public class HistoricoPagamentoResponse
     {
         public decimal PagamentoId { get; set; }
-        public decimal ValorPago { get; set; }
+        public string ValorPago { get; set; }
         public string DtPagamento { get; set; }
         public string Dt_Cadastro { get; set; }
+        public string CompetenciaRepasse { get; set; }
+        public string CompetenciaPagamento { get; set; }
+        public int Parcela { get; set; }
     }
 }

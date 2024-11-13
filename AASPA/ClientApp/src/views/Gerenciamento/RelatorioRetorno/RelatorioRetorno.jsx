@@ -149,7 +149,7 @@ function RelatorioCarteira() {
                             <li>Total Erro Automático: {qtdAutomatico}</li>
                             {qtdAutomatico > 0 &&
                                 motivoAutomatico.map((item, index) => (
-                                    <li key={index}>({item.codigoErro} - {item.descricaoErro}): {item.totalPorCodigoErro} ({item.totalPorcentagem}%)</li>
+                                    <li key={index}>{item.codigoErro} - {item.descricaoErro}: {item.totalPorCodigoErro} ({item.totalPorcentagem}%)</li>
                                 ))
                             }
                         </ul>
@@ -160,7 +160,7 @@ function RelatorioCarteira() {
                         <ul className='container-motivo-nao-verbados'>
                             <li>Total Não averbados: {qtdNaoAverbados}</li>
                             {motivoNaoAverbada.map((item, index) => (
-                                <li key={index}>({item.codigoErro} - {item.descricaoErro}): {item.totalPorCodigoErro} ({item.totalPorcentagem}%)</li>
+                                <li key={index}>{item.codigoErro} - {item.descricaoErro}: {item.totalPorCodigoErro} ({item.totalPorcentagem}%)</li>
                             ))}
                         </ul>
                         <p>Taxa Não averbado: {taxaNaoAverbacao}%</p>
@@ -171,7 +171,7 @@ function RelatorioCarteira() {
                         <ul className='container-motivo-nao-verbados'>
                             <li>Total Não excluídos: {qtdNaoExcluidos}</li>
                             {motivoNaoExclusao.map((item, index) => (
-                                <li key={index}>({item.codigoErro} - {item.descricaoErro}): {item.totalPorCodigoErro} ({item.totalPorcentagem}%)</li>
+                                <li key={index}>{item.codigoErro} - {item.descricaoErro}: {item.totalPorCodigoErro} ({item.totalPorcentagem}%)</li>
                             ))}
                         </ul>
                         <p>Taxa Não Exclusão: {taxaNaoExcluido}%</p>
@@ -255,7 +255,7 @@ function RelatorioCarteira() {
                     <table className='table table-striped'>
                         <thead>
                             <tr>
-                                <th>Cod Externo</th>
+                                <th>NR.BENEFICIO</th>
                                 <th>CPF</th>
                                 <th>Nome</th>
                                 <th>Data Adesão</th>
@@ -271,7 +271,7 @@ function RelatorioCarteira() {
                                     <td>{Mascara.cpf(detalhe.clienteCpf)}</td>
                                     <td>{detalhe.clienteNome}</td>
                                     <td>{(Mascara.data(detalhe.dataInicioDesconto)).split(' ')[0]}</td>
-                                    <td>R$ {detalhe.valorDesconto.toFixed(2)}</td>
+                                    <td>{detalhe.valorDesconto}</td>
                                     <td>{detalhe.status}</td>
                                     <td>{detalhe.descricaoErro}</td>
                                 </tr>
