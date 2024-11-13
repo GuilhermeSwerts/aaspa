@@ -634,8 +634,9 @@ namespace AASPA.Domain.Service
                 var relatorio = GerarRelatorioRetorno(anomes, 0);
 
                 GerarArquivoRelatorioRetorno(relatorio, anomes);
-            }else
-            {   
+            }
+            else
+            {
                 var relatorio = (GerarRelatorioRepasseResponse)GerarRelatorioRepasse(anomes, 0);
 
                 GerarArquivoRelatorioRepasse(relatorio, anomes);
@@ -906,16 +907,12 @@ namespace AASPA.Domain.Service
 
         private decimal FormatarValorDescontado(decimal desconto)
         {
-            if (desconto.ToString().Split(",")[0].Length > 5)
-            {
-                var desc = desconto.ToString().Split(".")[0];
+            var desc = desconto.ToString().Replace(".", "").Replace(",", "");
 
-                return decimal.Parse($"{desc.Substring(0, 2)},{desc.Substring(2, 2)}");
-            }
-            else
-            {
-                return decimal.Parse($"{desconto.ToString().Replace(".", ",").PadRight(5, '0')}");
-            }
+            var integerPart = desc.Length > 2 ? desc.Substring(0, 2) : desc.PadLeft(2, '0');
+            var fractionalPart = desc.Length > 4 ? desc.Substring(2, 2) : "00";
+
+            return decimal.Parse($"{integerPart},{fractionalPart}");
         }
 
     }

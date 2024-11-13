@@ -416,14 +416,14 @@ namespace AASPA.Domain.Service
                         remessa_id = 0
                     };
 
-                var retorno = _mysql.retornos_remessa.FirstOrDefault(x => x.AnoMes == anomes) ?? 
+                var retorno = _mysql.retornos_remessa.FirstOrDefault(x => x.AnoMes == anomes) ??
                     new RetornoRemessaDb
                     {
                         Retorno_Id = 0
                     };
 
                 var repasse = _mysql.retorno_financeiro.FirstOrDefault(x => x.ano_mes == anomes);
-                
+
                 if (repasse != null)
                 {
                     throw new Exception("Já existe um arquivo de repasse financeiro importado para o mês/ano competente!");
@@ -483,7 +483,7 @@ namespace AASPA.Domain.Service
                                         uf = uf,
                                         desconto = dc,
                                         retorno_financeiro_id = rId,
-                                        parcela = _mysql.registro_retorno_financeiro.Where(x=> x.numero_beneficio == nb).Select(x=> x.retorno_financeiro_id).Distinct().Count()+1
+                                        parcela = _mysql.registro_retorno_financeiro.Where(x => x.numero_beneficio == nb).Select(x => x.retorno_financeiro_id).Distinct().Count() + 1
                                     };
                                     processados.Add(registro_Financeiro);
                                 }
@@ -568,21 +568,17 @@ namespace AASPA.Domain.Service
             var centena = valor.Substring(0, 3);
             var decimais = valor.Substring(3, 2);
             var valDesconto = decimal.Parse($"{centena},{decimais}");
-            return valDesconto;
+            return FormatarValorDescontado(valDesconto);
         }
 
         private decimal FormatarValorDescontado(decimal desconto)
         {
-            if (desconto.ToString().Split(",")[0].Length > 5)
-            {
-                var desc = desconto.ToString().Split(".")[0];
+            var desc = desconto.ToString().Replace(".", "").Replace(",", "");
 
-                return decimal.Parse($"{desc.Substring(0, 2)},{desc.Substring(2, 2)}");
-            }
-            else
-            {
-                return decimal.Parse($"{desconto.ToString().Replace(".", ",").PadRight(5, '0')}");
-            }
+            var integerPart = desc.Length > 2 ? desc.Substring(0, 2) : desc.PadLeft(2, '0');
+            var fractionalPart = desc.Length > 4 ? desc.Substring(2, 2) : "00";
+
+            return decimal.Parse($"{integerPart},{fractionalPart}");
         }
 
         private void AdicionarHistoricoPagamento(List<RegistroRetornoFinanceiroDb> processados, int usuarioLogadoId, RetornoFinanceiroDb retorno_financeiro)
@@ -623,7 +619,7 @@ namespace AASPA.Domain.Service
                             pagamento_dt_cadastro = DateTime.Now,
                             pagamento_dt_pagamento = DateTime.Now,
                             pagamento_valor_pago = repasse.desconto.Value,
-                            pagamento_competencia_pagamento = $"{retorno_financeiro.competencia_Repasse.ToString().Substring(4, 2)}/{retorno_financeiro.competencia_Repasse.ToString().Substring(0, 4)}" ,
+                            pagamento_competencia_pagamento = $"{retorno_financeiro.competencia_Repasse.ToString().Substring(4, 2)}/{retorno_financeiro.competencia_Repasse.ToString().Substring(0, 4)}",
                             pagamento_competencia_repasse = $"{retorno_financeiro.ano_mes.Substring(4, 2)}/{retorno_financeiro.ano_mes.Substring(0, 4)}",
                             pagamento_parcela = repasse.parcela
                         });
