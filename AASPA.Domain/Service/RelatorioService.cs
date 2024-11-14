@@ -100,7 +100,7 @@ namespace AASPA.Domain.Service
                 int qtdNaoExcluidos = relatorio.Count(x => x.CodOperacao == 5 && x.CodResultado == 2);
                 int qtdExcluidos = relatorio.Count(x => x.CodOperacao == 5 && x.CodResultado == 1);
                 int qtdAutomatico = relatorio.Count(x => x.CodOperacao == 7 && x.CodResultado == 0);
-                int qtdNaoAverbados = relatorio.Count(x => !(x.CodOperacao == 1 && x.CodResultado == 1));
+                int qtdNaoAverbados = relatorio.Count(x => x.CodOperacao == 1 && x.CodResultado == 2);
 
                 var motivoNaoAverbada = relatorio.Where(x => x.CodigoOperacao == 1 && x.CodigoResultado == 2)
                     .GroupBy(x => new
