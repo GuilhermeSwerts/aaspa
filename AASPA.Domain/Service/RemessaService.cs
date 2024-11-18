@@ -531,7 +531,7 @@ namespace AASPA.Domain.Service
                             var parameters = new DynamicParameters();
                             int counter = 0;
 
-                            foreach (var reg in registros)
+                            foreach (var reg in data)
                             {
                                 sqlBuilder.Append($"(@Repasse{counter}, @Nb{counter}, @CompDesc{counter}, @Esp{counter}, @Uf{counter},@Desc{counter}),");
 
