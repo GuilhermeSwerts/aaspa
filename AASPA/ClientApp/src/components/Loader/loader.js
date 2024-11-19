@@ -1,7 +1,7 @@
 import React from 'react';
 import './loader.css';
 import { FaGear } from 'react-icons/fa6';
-import Logo from '../../assets/logo.png'
+import Logo from '../../assets/Logo.png'
 
 class Loader extends React.Component {
     constructor(props) {
