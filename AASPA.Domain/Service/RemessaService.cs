@@ -483,13 +483,14 @@ namespace AASPA.Domain.Service
                                         uf = uf,
                                         desconto = dc,
                                         retorno_financeiro_id = rId,
-                                        parcela = _mysql.registro_retorno_financeiro.Where(x => x.numero_beneficio == nb).Select(x => x.retorno_financeiro_id).Distinct().Count() + 1
+                                        //parcela = _mysql.registro_retorno_financeiro.Where(x => x.numero_beneficio == nb).Select(x => x.retorno_financeiro_id).Distinct().Count() + 1
                                     };
                                     processados.Add(registro_Financeiro);
                                 }
                             }
                         }
                         tran.Commit();
+
                         await InserirDadosRepasse(processados);
                         AdicionarHistoricoPagamento(processados, usuarioLogadoId, retorno_financeiro);
 
@@ -511,6 +512,19 @@ namespace AASPA.Domain.Service
         {
             try
             {
+                var numerosBeneficios = registros
+                .Select(c => c.numero_beneficio.PadLeft(10, '0'))
+                .ToList();
+
+                var parcelas = await _mysql.registro_retorno_financeiro
+                .Where(x => numerosBeneficios.Contains(x.numero_beneficio.PadLeft(10, '0')))
+                .GroupBy(c => c.numero_beneficio)
+                .Select(group => new QuantidadeParcelaModel
+                {
+                    NumeroBeneficio = group.Key,
+                    QuantidadeParcelas = group.Count()
+                }).ToListAsync();
+
                 int batchSize = 10000;
                 int maxBatchSize = registros.Count;
                 var data = new List<RegistroRetornoFinanceiroDb>();
@@ -526,14 +540,14 @@ namespace AASPA.Domain.Service
                         {
                             var sqlBuilder = new StringBuilder();
 
-                            sqlBuilder.Append("INSERT INTO registro_retorno_financeiro (retorno_financeiro_id, numero_beneficio, competencia_desconto, especie, uf, desconto) VALUES ");
+                            sqlBuilder.Append("INSERT INTO registro_retorno_financeiro (retorno_financeiro_id, numero_beneficio, competencia_desconto, especie, uf, desconto,parcela) VALUES ");
 
                             var parameters = new DynamicParameters();
                             int counter = 0;
 
                             foreach (var reg in data)
                             {
-                                sqlBuilder.Append($"(@Repasse{counter}, @Nb{counter}, @CompDesc{counter}, @Esp{counter}, @Uf{counter},@Desc{counter}),");
+                                sqlBuilder.Append($"(@Repasse{counter}, @Nb{counter}, @CompDesc{counter}, @Esp{counter}, @Uf{counter},@Desc{counter},@Parcela{counter}),");
 
                                 parameters.Add($"@Repasse{counter}", reg.retorno_financeiro_id);
                                 parameters.Add($"@Nb{counter}", reg.numero_beneficio);
@@ -541,6 +555,7 @@ namespace AASPA.Domain.Service
                                 parameters.Add($"@Esp{counter}", reg.especie);
                                 parameters.Add($"@Uf{counter}", reg.uf);
                                 parameters.Add($"@Desc{counter}", reg.desconto);
+                                parameters.Add($"@Parcela{counter}", GetParcela(reg.numero_beneficio, parcelas));
 
                                 counter++;
                             }
@@ -562,6 +577,19 @@ namespace AASPA.Domain.Service
                 throw;
             }
         }
+
+        private int GetParcela(string nb, List<QuantidadeParcelaModel> parcelas)
+        {
+            var exist = parcelas.FirstOrDefault(x => x.NumeroBeneficio == nb.PadLeft(10, '0'));
+
+            if(exist != null)
+            {
+                return exist.QuantidadeParcelas + 1;
+            }
+
+            return 1;
+        }
+
 
         private decimal GetValorDescontoArquivoRepasse(string valor)
         {
@@ -589,35 +617,35 @@ namespace AASPA.Domain.Service
         {
             try
             {
+                var matriculas = processados.Select(p => p.numero_beneficio.PadLeft(10, '0')).Distinct().ToList();
+                var clientes = _mysql.clientes
+                                     .Where(c => matriculas.Contains(c.cliente_matriculaBeneficio.PadLeft(10, '0')))
+                                     .AsNoTracking()
+                                     .ToDictionary(c => c.cliente_matriculaBeneficio.PadLeft(10, '0'));
+
+                var pagamentos = new List<PagamentoDb>();
+                var historicos = new List<HistoricoContatosOcorrenciaDb>();
+
                 foreach (var repasse in processados)
                 {
-                    var cliente = _mysql.clientes.FirstOrDefault(x => x.cliente_matriculaBeneficio.PadLeft(10, '0') == repasse.numero_beneficio.PadLeft(10, '0'));
-                    if (cliente != null)
+                    if (clientes.TryGetValue(repasse.numero_beneficio.PadLeft(10, '0'), out var cliente))
                     {
-                        var desconto = repasse.desconto.HasValue ? FormatarValorDescontado(repasse.desconto.Value).ToString("C", new System.Globalization.CultureInfo("pt-BR")) : "R$ 00,00";
+                        var desconto = repasse.desconto.HasValue
+                            ? FormatarValorDescontado(repasse.desconto.Value).ToString("C", new System.Globalization.CultureInfo("pt-BR"))
+                            : "R$ 00,00";
 
-                        _historicoContato.NovoContatoOcorrencia(new HistoricoContatosOcorrenciaRequest
+                        historicos.Add(new HistoricoContatosOcorrenciaDb
                         {
-                            HistoricoContatosOcorrenciaOrigemId = (int)EOrigem.ARQUIVO_REPASSE_FINANCEIRO,
-                            HistoricoContatosOcorrenciaDtOcorrencia = DateTime.Now,
-                            HistoricoContatosOcorrenciaClienteId = cliente.cliente_id,
-                            HistoricoContatosOcorrenciaMotivoContatoId = (int)EMotivo.ARQUIVO_INSS,
-                            HistoricoContatosOcorrenciaSituacaoOcorrencia = "EM PROCESSAMENTO",
+                            historico_contatos_ocorrencia_origem_id = (int)EOrigem.ARQUIVO_REPASSE_FINANCEIRO,
+                            historico_contatos_ocorrencia_dt_ocorrencia = DateTime.Now,
+                            historico_contatos_ocorrencia_cliente_id = cliente.cliente_id,
+                            historico_contatos_ocorrencia_motivo_contato_id = (int)EMotivo.ARQUIVO_INSS,
+                            historico_contatos_ocorrencia_situacao_ocorrencia = "EM PROCESSAMENTO",
+                            historico_contatos_ocorrencia_descricao = $"Desconto do valor de {desconto} da parcela {repasse.parcela}",
+                            historico_contatos_ocorrencia_usuario_fk = usuarioLogadoId
+                        });
 
-                            HistoricoContatosOcorrenciaDescricao = $"Desconto do valor de {desconto} da parcela {repasse.parcela}",
-                            HistoricoContatosOcorrenciaAgencia = "",
-                            HistoricoContatosOcorrenciaPix = "",
-                            HistoricoContatosOcorrenciaBanco = "",
-                            HistoricoContatosOcorrenciaConta = "",
-                            HistoricoContatosOcorrenciaDigito = "",
-                            HistoricoContatosOcorrenciaTelefone = "",
-                            HistoricoContatosOcorrenciaTipoConta = "",
-                            HistoricoContatosOcorrenciaTipoChavePix = "",
-                            HistoricoContatosOcorrenciaAnexos = null,
-                            HistoricoContatosOcorrenciaId = 0
-                        }, usuarioLogadoId);
-
-                        _mysql.pagamentos.Add(new PagamentoDb
+                        pagamentos.Add(new PagamentoDb
                         {
                             pagamento_cliente_id = cliente.cliente_id,
                             pagamento_dt_cadastro = DateTime.Now,
@@ -627,15 +655,53 @@ namespace AASPA.Domain.Service
                             pagamento_competencia_repasse = $"{retorno_financeiro.ano_mes.Substring(4, 2)}/{retorno_financeiro.ano_mes.Substring(0, 4)}",
                             pagamento_parcela = repasse.parcela
                         });
-                        _mysql.SaveChanges();
                     }
                 }
+
+                var dataHist = new List<HistoricoContatosOcorrenciaDb>();
+
+                int batchSize = 10000;
+                int maxBatchSize = historicos.Count;
+                int count = 0;
+
+                foreach (var historico in historicos)
+                {
+                    dataHist.Add(historico);
+                    count++;
+                    if (dataHist.Count == batchSize || count == historicos.Count)
+                    {
+                        _mysql.historico_contatos_ocorrencia.AddRange(dataHist);
+                        maxBatchSize -= batchSize;
+                        dataHist.Clear();
+                    }
+                }
+
+                if (historicos.Count > 0)
+                    _mysql.SaveChanges();
+
+                var dataPag = new List<PagamentoDb>();
+
+                foreach (var pagamento in pagamentos)
+                {
+                    dataPag.Add(pagamento);
+                    count++;
+                    if (dataHist.Count == batchSize || count == pagamentos.Count)
+                    {
+                        _mysql.pagamentos.AddRange(dataPag);
+                        maxBatchSize -= batchSize;
+                        dataHist.Clear();
+                    }
+                }
+
+                if (pagamentos.Count > 0)
+                    _mysql.SaveChanges();
             }
             catch (Exception)
             {
                 throw;
             }
         }
+
 
         public async Task<string> LerRetorno(IFormFile file, int usuarioLogadoId)
         {
