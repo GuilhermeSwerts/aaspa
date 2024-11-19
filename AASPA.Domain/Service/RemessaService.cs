@@ -491,9 +491,10 @@ namespace AASPA.Domain.Service
                         }
                         tran.Commit();
 
+                        var teste = processados.FirstOrDefault(x => x.numero_beneficio == "1353387825");
+
                         await InserirDadosRepasse(processados);
                         AdicionarHistoricoPagamento(processados, usuarioLogadoId, retorno_financeiro);
-
 
                         return anomes;
                     }
@@ -582,7 +583,7 @@ namespace AASPA.Domain.Service
         {
             var exist = parcelas.FirstOrDefault(x => x.NumeroBeneficio == nb.PadLeft(10, '0'));
 
-            if(exist != null)
+            if (exist != null)
             {
                 return exist.QuantidadeParcelas + 1;
             }
@@ -593,10 +594,20 @@ namespace AASPA.Domain.Service
 
         private decimal GetValorDescontoArquivoRepasse(string valor)
         {
-            var centena = valor.Substring(0, 3);
+            string centena = string.Empty;
+
+            do
+            {
+                if (string.IsNullOrEmpty(centena))
+                    centena = valor.Substring(0, 3);
+
+                centena = centena.TrimStart('0');
+
+            } while (centena.StartsWith("0"));
+
             var decimais = valor.Substring(3, 2);
             var valDesconto = decimal.Parse($"{centena},{decimais}");
-            return FormatarValorDescontado(valDesconto);
+            return valDesconto;
         }
 
         private decimal FormatarValorDescontado(decimal desconto)

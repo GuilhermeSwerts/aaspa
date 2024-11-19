@@ -591,7 +591,7 @@ namespace AASPA.Domain.Service
                 worksheet.Cell("E13").Value = "Taxa Associativa";
                 worksheet.Cell("F13").Value = "Parcela";
 
-                int row = 13;
+                int row = 14;
                 foreach (var item in dados.Relatorio)
                 {
                     worksheet.Cell(row, 1).Value = long.TryParse(item.CodExterno, out long codexterno) ? codexterno : item.CodExterno;
@@ -907,16 +907,34 @@ namespace AASPA.Domain.Service
 
         private decimal FormatarValorDescontado(decimal desconto)
         {
-            var desc = desconto.ToString().Replace(".", "").Replace(",", "");
+            if (desconto > 9)
+            {
 
-            var integerPart = desc.Length > 2 ? desc.Substring(0, 2) : desc.PadLeft(2, '0');
-            var fractionalPart = desc.Length > 4 ? desc.Substring(2, 2) : "00";
+                var desc = desconto.ToString().Replace(".", "").Replace(",", "");
 
-            var valorFormatado = $"{integerPart}.{fractionalPart}";
+                var integerPart = desc.Length > 2 ? desc.Substring(0, 2) : desc.PadLeft(2, '0');
+                var fractionalPart = desc.Length > 4 ? desc.Substring(2, 2) : "00";
 
-            decimal valorConvertido = decimal.Parse(valorFormatado, CultureInfo.InvariantCulture);
+                var valorFormatado = $"{integerPart}.{fractionalPart}";
 
-            return valorConvertido;
+                decimal valorConvertido = decimal.Parse(valorFormatado, CultureInfo.InvariantCulture);
+
+                return valorConvertido;
+            }
+            else
+            {
+                var desc = desconto.ToString().Replace(".", "").Replace(",", "");
+
+                var integerPart = desc.Substring(0,1);
+                var fractionalPart = desc.Substring(1, 2);
+
+                var valorFormatado = $"{integerPart}.{fractionalPart}";
+
+                decimal valorConvertido = decimal.Parse(valorFormatado, CultureInfo.InvariantCulture);
+
+                return valorConvertido;
+
+            }
         }
 
     }
