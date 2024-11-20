@@ -491,8 +491,6 @@ namespace AASPA.Domain.Service
                         }
                         tran.Commit();
 
-                        var teste = processados.FirstOrDefault(x => x.numero_beneficio == "1353387825");
-
                         await InserirDadosRepasse(processados);
                         AdicionarHistoricoPagamento(processados, usuarioLogadoId, retorno_financeiro);
 
@@ -645,16 +643,16 @@ namespace AASPA.Domain.Service
                             ? FormatarValorDescontado(repasse.desconto.Value).ToString("C", new System.Globalization.CultureInfo("pt-BR"))
                             : "R$ 00,00";
 
-                        historicos.Add(new HistoricoContatosOcorrenciaDb
-                        {
-                            historico_contatos_ocorrencia_origem_id = (int)EOrigem.ARQUIVO_REPASSE_FINANCEIRO,
-                            historico_contatos_ocorrencia_dt_ocorrencia = DateTime.Now,
-                            historico_contatos_ocorrencia_cliente_id = cliente.cliente_id,
-                            historico_contatos_ocorrencia_motivo_contato_id = (int)EMotivo.ARQUIVO_INSS,
-                            historico_contatos_ocorrencia_situacao_ocorrencia = "EM PROCESSAMENTO",
-                            historico_contatos_ocorrencia_descricao = $"Desconto do valor de {desconto} da parcela {repasse.parcela}",
-                            historico_contatos_ocorrencia_usuario_fk = usuarioLogadoId
-                        });
+                        //historicos.Add(new HistoricoContatosOcorrenciaDb
+                        //{
+                        //    historico_contatos_ocorrencia_origem_id = (int)EOrigem.ARQUIVO_REPASSE_FINANCEIRO,
+                        //    historico_contatos_ocorrencia_dt_ocorrencia = DateTime.Now,
+                        //    historico_contatos_ocorrencia_cliente_id = cliente.cliente_id,
+                        //    historico_contatos_ocorrencia_motivo_contato_id = (int)EMotivo.ARQUIVO_INSS,
+                        //    historico_contatos_ocorrencia_situacao_ocorrencia = "EM PROCESSAMENTO",
+                        //    historico_contatos_ocorrencia_descricao = $"Desconto do valor de {desconto} da parcela {repasse.parcela}",
+                        //    historico_contatos_ocorrencia_usuario_fk = usuarioLogadoId
+                        //});
 
                         pagamentos.Add(new PagamentoDb
                         {
@@ -671,41 +669,39 @@ namespace AASPA.Domain.Service
 
                 var dataHist = new List<HistoricoContatosOcorrenciaDb>();
 
+
+                //foreach (var historico in historicos)
+                //{
+                //    dataHist.Add(historico);
+                //    count++;
+                //    if (dataHist.Count == batchSize || count == historicos.Count)
+                //    {
+                //        _mysql.historico_contatos_ocorrencia.AddRange(dataHist);
+                //        maxBatchSize -= batchSize;
+                //        dataHist.Clear();
+                //    }
+                //}
+
+                //if (historicos.Count > 0)
+                //    _mysql.SaveChanges();
+
                 int batchSize = 10000;
-                int maxBatchSize = historicos.Count;
+                int maxBatchSize = pagamentos.Count;
                 int count = 0;
-
-                foreach (var historico in historicos)
-                {
-                    dataHist.Add(historico);
-                    count++;
-                    if (dataHist.Count == batchSize || count == historicos.Count)
-                    {
-                        _mysql.historico_contatos_ocorrencia.AddRange(dataHist);
-                        maxBatchSize -= batchSize;
-                        dataHist.Clear();
-                    }
-                }
-
-                if (historicos.Count > 0)
-                    _mysql.SaveChanges();
-
                 var dataPag = new List<PagamentoDb>();
 
                 foreach (var pagamento in pagamentos)
                 {
                     dataPag.Add(pagamento);
                     count++;
-                    if (dataHist.Count == batchSize || count == pagamentos.Count)
+                    if (dataPag.Count == batchSize || count == pagamentos.Count)
                     {
                         _mysql.pagamentos.AddRange(dataPag);
+                        _mysql.SaveChanges();
                         maxBatchSize -= batchSize;
-                        dataHist.Clear();
+                        dataPag.Clear();
                     }
                 }
-
-                if (pagamentos.Count > 0)
-                    _mysql.SaveChanges();
             }
             catch (Exception)
             {
@@ -817,7 +813,7 @@ namespace AASPA.Domain.Service
                         }
                         tran.Commit();
                         await InserirDadosRetorno(registro);
-                        await InserirDadosHistorico(registro, usuarioLogadoId);
+                        //await InserirDadosHistorico(registro, usuarioLogadoId);
                         await AlterarStatusClienteRemessaEnviada(ClienteparaAtivar, EStatus.AtivoAguardandoAverbacao, EStatus.Ativo);
                         await AlterarStatusClienteRemessaEnviada(clientesparainativar, EStatus.AtivoAguardandoAverbacao, EStatus.Inativo);
                         await AlterarStatusClienteRemessaEnviada(ClienteparaExcluir, EStatus.ExcluidoAguardandoEnvio, EStatus.Deletado);
