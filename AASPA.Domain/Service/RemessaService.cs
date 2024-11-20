@@ -604,7 +604,7 @@ namespace AASPA.Domain.Service
             } while (centena.StartsWith("0"));
 
             var decimais = valor.Substring(3, 2);
-            var valDesconto = decimal.Parse($"{centena},{decimais}");
+            var valDesconto = decimal.Parse($"{centena}.{decimais}", CultureInfo.InvariantCulture);
             return valDesconto;
         }
 
@@ -640,7 +640,7 @@ namespace AASPA.Domain.Service
                     if (clientes.TryGetValue(repasse.numero_beneficio.PadLeft(10, '0'), out var cliente))
                     {
                         var desconto = repasse.desconto.HasValue
-                            ? FormatarValorDescontado(repasse.desconto.Value).ToString("C", new System.Globalization.CultureInfo("pt-BR"))
+                            ? repasse.desconto.Value.ToString("C", new System.Globalization.CultureInfo("pt-BR"))
                             : "R$ 00,00";
 
                         //historicos.Add(new HistoricoContatosOcorrenciaDb
