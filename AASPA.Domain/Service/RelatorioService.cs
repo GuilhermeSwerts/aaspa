@@ -907,34 +907,46 @@ namespace AASPA.Domain.Service
 
         private decimal FormatarValorDescontado(decimal desconto)
         {
-            if (desconto > 9)
+            decimal valorConvertido = 0;
+
+            var desc = desconto.ToString().Replace(".", "").Replace(",", "");
+
+            if (desc.Length == 4)
             {
+                string integerPart = desc.Substring(0, 2);
+                string fractionalPart = desc.Substring(2, 2);
 
-                var desc = desconto.ToString().Replace(".", "").Replace(",", "");
-
-                var integerPart = desc.Length > 2 ? desc.Substring(0, 2) : desc.PadLeft(2, '0');
-                var fractionalPart = desc.Length > 4 ? desc.Substring(2, 2) : "00";
-
-                var valorFormatado = $"{integerPart}.{fractionalPart}";
-
-                decimal valorConvertido = decimal.Parse(valorFormatado, CultureInfo.InvariantCulture);
-
-                return valorConvertido;
+                valorConvertido = decimal.Parse($"{integerPart}.{fractionalPart}", CultureInfo.InvariantCulture);
             }
-            else
+            else if (desc.Length == 3)
             {
-                var desc = desconto.ToString().Replace(".", "").Replace(",", "");
+                string integerPart = desc.Substring(0, 1);
+                string fractionalPart = desc.Substring(1, 2);
 
-                var integerPart = desc.Substring(0,1);
-                var fractionalPart = desc.Substring(1, 2);
-
-                var valorFormatado = $"{integerPart}.{fractionalPart}";
-
-                decimal valorConvertido = decimal.Parse(valorFormatado, CultureInfo.InvariantCulture);
-
-                return valorConvertido;
+                valorConvertido = decimal.Parse($"{integerPart}.{fractionalPart}", CultureInfo.InvariantCulture);
 
             }
+            else if (desc.Length == 2)
+            {
+                return desconto;
+            }
+
+            return valorConvertido;
+            //}
+            //else
+            //{
+            //    var desc = desconto.ToString().Replace(".", "").Replace(",", "");
+
+            //    var integerPart = desc.Substring(0, 1);
+            //    var fractionalPart = desc.Substring(1, 2);
+
+            //    var valorFormatado = $"{integerPart}.{fractionalPart}";
+
+            //    decimal valorConvertido = decimal.Parse(valorFormatado, CultureInfo.InvariantCulture);
+
+            //    return valorConvertido;
+
+            //}
         }
 
     }
