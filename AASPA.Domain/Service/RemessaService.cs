@@ -166,6 +166,7 @@ namespace AASPA.Domain.Service
             var clientes = _mysql.registro_remessa.Where(x => x.remessa_id == idRegistro).ToList();
             foreach (var cliente in clientes)
             {
+                if (cliente.registro_numero_beneficio == "0000000000") continue;
                 linhaArquivo.AppendLine($"1{cliente.registro_numero_beneficio}{cliente.registro_codigo_operacao}000{cliente.registro_decimo_terceiro}{cliente.registro_valor_percentual_desconto.ToString().PadLeft(5, '0')}".PadRight(45));
             }
             linhaArquivo.AppendLine($"9{clientes.Count.ToString().PadLeft(6, '0')}".PadRight(45));
@@ -276,6 +277,8 @@ namespace AASPA.Domain.Service
 
                 foreach (var registro in registros)
                 {
+                    if (registro.registro_numero_beneficio == "0000000000") continue;
+
                     sqlBuilder.Append($"(@NumeroBeneficio{counter}, @CodigoOperacao{counter}, @DecimoTerceiro{counter}, @ValorDesconto{counter}, @RemessaId{counter}),");
 
                     parameters.Add($"@NumeroBeneficio{counter}", registro.registro_numero_beneficio);
