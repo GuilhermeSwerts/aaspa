@@ -23,7 +23,7 @@ namespace AASPA.Controllers
             try
             {
                 var historico = _pagamento.BuscarHistoricoPagamentoClienteId(clienteId);
-                return Ok(historico.OrderByDescending(x=> x.DtPagamento).ToList());
+                return Ok(historico);
             }
             catch (System.Exception ex)
             {
