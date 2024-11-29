@@ -393,22 +393,40 @@ namespace AASPA.Domain.Service
         }
         public byte[] DownloadContatoFiltro(ConsultaParametros request)
         {
-            var clientesData = (from cli in _mysql.clientes
-                                join hist in _mysql.historico_contatos_ocorrencia on cli.cliente_id equals hist.historico_contatos_ocorrencia_cliente_id
-                                join mot in _mysql.motivo_contato on hist.historico_contatos_ocorrencia_motivo_contato_id equals mot.motivo_contato_id
-                                join ori in _mysql.origem on hist.historico_contatos_ocorrencia_origem_id equals ori.origem_id
-                                join vin in _mysql.vinculo_cliente_captador on cli.cliente_id equals vin.vinculo_cliente_id
+            var clientes = (from cli in _mysql.clientes
+                            join hist in _mysql.historico_contatos_ocorrencia on cli.cliente_id equals hist.historico_contatos_ocorrencia_cliente_id
+                            select new
+                            {
+                                Cliente = cli,
+                                Historico = hist
+                            })
+                .ToList() // Transfere os dados para memória
+                .GroupBy(x => x.Cliente)
+                .Select(x => new
+                {
+                    Cliente = x.Key,
+                    UltimoHistorico = x
+                        .OrderByDescending(h => h.Historico.historico_contatos_ocorrencia_dt_cadastro) // Ordena por data de cadastro
+                        .FirstOrDefault().Historico // Pega o último histórico
+                })
+                .ToList();
+
+
+            var clientesData = (from data in clientes
+                                join mot in _mysql.motivo_contato on data.UltimoHistorico.historico_contatos_ocorrencia_motivo_contato_id equals mot.motivo_contato_id
+                                join ori in _mysql.origem on data.UltimoHistorico.historico_contatos_ocorrencia_origem_id equals ori.origem_id
+                                join vin in _mysql.vinculo_cliente_captador on data.Cliente.cliente_id equals vin.vinculo_cliente_id
                                 join cap in _mysql.captadores on vin.vinculo_captador_id equals cap.captador_id
                                 where
-                                    (string.IsNullOrEmpty(request.Cpf) || cli.cliente_cpf == request.Cpf.Replace(".","").Replace("-","").Replace(" ","")) &&
-                                    (string.IsNullOrEmpty(request.Beneficio) || cli.cliente_matriculaBeneficio == request.Beneficio) &&
-                                    (!request.DataInitAtendimento.HasValue || hist.historico_contatos_ocorrencia_dt_ocorrencia >= request.DataInitAtendimento.Value) &&
-                                    (!request.DataEndAtendimento.HasValue || hist.historico_contatos_ocorrencia_dt_ocorrencia < request.DataEndAtendimento.Value.AddDays(1)) &&
-                                    (string.IsNullOrEmpty(request.SituacaoOcorrencia) || hist.historico_contatos_ocorrencia_situacao_ocorrencia == request.SituacaoOcorrencia)
+                                    (string.IsNullOrEmpty(request.Cpf) || data.Cliente.cliente_cpf == request.Cpf.Replace(".","").Replace("-","").Replace(" ","")) &&
+                                    (string.IsNullOrEmpty(request.Beneficio) || data.Cliente.cliente_matriculaBeneficio == request.Beneficio) &&
+                                    (!request.DataInitAtendimento.HasValue || data.UltimoHistorico.historico_contatos_ocorrencia_dt_ocorrencia >= request.DataInitAtendimento.Value) &&
+                                    (!request.DataEndAtendimento.HasValue || data.UltimoHistorico.historico_contatos_ocorrencia_dt_ocorrencia < request.DataEndAtendimento.Value.AddDays(1)) &&
+                                    (string.IsNullOrEmpty(request.SituacaoOcorrencia) || data.UltimoHistorico.historico_contatos_ocorrencia_situacao_ocorrencia == request.SituacaoOcorrencia)
                                 select new BuscarClienteByIdResponse
                                 {
-                                    Cliente = cli,
-                                    Historico = hist,
+                                    Cliente = data.Cliente,
+                                    Historico = data.UltimoHistorico,
                                     Motivo = mot,
                                     Origem = ori,
                                     Captador = cap,
