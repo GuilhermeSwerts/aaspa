@@ -422,7 +422,7 @@ namespace AASPA.Domain.Service
                                     (string.IsNullOrEmpty(request.Beneficio) || data.Cliente.cliente_matriculaBeneficio == request.Beneficio) &&
                                     (!request.DataInitAtendimento.HasValue || data.UltimoHistorico.historico_contatos_ocorrencia_dt_ocorrencia >= request.DataInitAtendimento.Value) &&
                                     (!request.DataEndAtendimento.HasValue || data.UltimoHistorico.historico_contatos_ocorrencia_dt_ocorrencia < request.DataEndAtendimento.Value.AddDays(1)) &&
-                                    (string.IsNullOrEmpty(request.SituacaoOcorrencia) || data.UltimoHistorico.historico_contatos_ocorrencia_situacao_ocorrencia == request.SituacaoOcorrencia)
+                                    ((request.SituacoesOcorrencias == null || request.SituacoesOcorrencias.Count == 0) ||  request.SituacoesOcorrencias.Contains(data.UltimoHistorico.historico_contatos_ocorrencia_situacao_ocorrencia))
                                 select new BuscarClienteByIdResponse
                                 {
                                     Cliente = data.Cliente,
