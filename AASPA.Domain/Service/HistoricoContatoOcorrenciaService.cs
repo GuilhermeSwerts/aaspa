@@ -404,6 +404,7 @@ namespace AASPA.Domain.Service
                 .GroupBy(x => x.Cliente)
                 .Select(x => new
                 {
+                    UsuarioCriador = x.OrderBy(h => h.Historico.historico_contatos_ocorrencia_dt_cadastro).FirstOrDefault().Historico.historico_contatos_ocorrencia_usuario_fk,
                     Cliente = x.Key,
                     UltimoHistorico = x
                         .OrderByDescending(h => h.Historico.historico_contatos_ocorrencia_dt_cadastro) // Ordena por data de cadastro
@@ -417,6 +418,8 @@ namespace AASPA.Domain.Service
                                 join ori in _mysql.origem on data.UltimoHistorico.historico_contatos_ocorrencia_origem_id equals ori.origem_id
                                 join vin in _mysql.vinculo_cliente_captador on data.Cliente.cliente_id equals vin.vinculo_cliente_id
                                 join cap in _mysql.captadores on vin.vinculo_captador_id equals cap.captador_id
+                                join usu in _mysql.usuarios on data.UltimoHistorico.historico_contatos_ocorrencia_usuario_fk equals usu.usuario_id
+                                join usu2 in _mysql.usuarios on data.UsuarioCriador equals usu2.usuario_id
                                 where
                                     (string.IsNullOrEmpty(request.Cpf) || data.Cliente.cliente_cpf == request.Cpf.Replace(".","").Replace("-","").Replace(" ","")) &&
                                     (string.IsNullOrEmpty(request.Beneficio) || data.Cliente.cliente_matriculaBeneficio == request.Beneficio) &&
@@ -430,11 +433,13 @@ namespace AASPA.Domain.Service
                                     Motivo = mot,
                                     Origem = ori,
                                     Captador = cap,
+                                    Usuario = usu,
+                                    UsuarioCriador = usu2
                                 }).Distinct().ToList();
 
             var builder = new StringBuilder();
 
-            builder.AppendLine("#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO;STATUS_INTEGRAALL;MOTIVO_ATENDIMENTO;ORIGEM_ATENDIMENTO;SITUACAO_ATENDIMENTO;DATA_ATENDIMENTO;DESCRICAO_ATENDIMENTO;DADOS_BANCARIOS_BANCO;DADOS_BANCARIOS_AGENCIA;DADOS_BANCARIOS_CONTA;DADOS_BANCARIOS_DIGITO;DADOS_BANCARIOS_CHAVE_PIX");
+            builder.AppendLine("#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO;STATUS_INTEGRAALL;MOTIVO_ATENDIMENTO;ORIGEM_ATENDIMENTO;SITUACAO_ATENDIMENTO;USUARIO_RESPONSAVEL_PELO_REGISTRO;USUARIO_RESPONSAVEL_PELA_ULTIMA_ALTERACAO;DATA_ATENDIMENTO;DESCRICAO_ATENDIMENTO;DADOS_BANCARIOS_BANCO;DADOS_BANCARIOS_AGENCIA;DADOS_BANCARIOS_CONTA;DADOS_BANCARIOS_DIGITO;DADOS_BANCARIOS_CHAVE_PIX");
             
             for (int i = 0; i < clientesData.Count; i++)
             {
@@ -443,7 +448,7 @@ namespace AASPA.Domain.Service
                 var motivoNome = cliente.Motivo != null ? cliente.Motivo.motivo_contato_nome : ";;";
                 var origem = (cliente.Origem != null && !string.IsNullOrEmpty(cliente.Origem.origem_nome)) ? cliente.Origem.origem_nome : ";;";
                 var remessa = cliente.Cliente.cliente_remessa_id ?? 0;
-                var historico = cliente.Historico != null ? $"{cliente.Historico.historico_contatos_ocorrencia_situacao_ocorrencia};{cliente.Historico.historico_contatos_ocorrencia_dt_ocorrencia:dd/MM/yyyy hh:mm:ss};{cliente.Historico.historico_contatos_ocorrencia_descricao};{cliente.Historico.historico_contatos_ocorrencia_banco};{cliente.Historico.historico_contatos_ocorrencia_agencia};{cliente.Historico.historico_contatos_ocorrencia_conta};{cliente.Historico.historico_contatos_ocorrencia_digito};{cliente.Historico.historico_contatos_ocorrencia_chave_pix}" : ";;;;;;";
+                var historico = cliente.Historico != null ? $"{cliente.Historico.historico_contatos_ocorrencia_situacao_ocorrencia};{cliente.Usuario.usuario_nome};{cliente.UsuarioCriador.usuario_nome};{cliente.Historico.historico_contatos_ocorrencia_dt_ocorrencia:dd/MM/yyyy hh:mm:ss};{cliente.Historico.historico_contatos_ocorrencia_descricao};{cliente.Historico.historico_contatos_ocorrencia_banco};{cliente.Historico.historico_contatos_ocorrencia_agencia};{cliente.Historico.historico_contatos_ocorrencia_conta};{cliente.Historico.historico_contatos_ocorrencia_digito};{cliente.Historico.historico_contatos_ocorrencia_chave_pix}" : ";;;;;;;;";
                 builder.AppendLine(
                     $"{cliente.Cliente.cliente_id};" +
                     $"{cliente.Cliente.cliente_cpf};" +
@@ -478,7 +483,7 @@ namespace AASPA.Domain.Service
                     $"{cliente.Cliente.cliente_StatusIntegral};" +
                     $"{motivoNome};" +
                     $"{origem};" +
-                    $"{historico.Replace("\r\n", "").Replace("\n", "").Replace("\r", "")}");
+                    $"{historico.Replace("\r\n", "").Replace("\n", "").Replace("\r", "")};");
             }
 
             byte[] fileBytes = Encoding.Latin1.GetBytes(builder.ToString());

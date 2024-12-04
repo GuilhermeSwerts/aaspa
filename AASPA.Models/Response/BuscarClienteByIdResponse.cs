@@ -17,5 +17,7 @@ namespace AASPA.Models.Response
         public OrigemDb Origem { get; set; }
         public MotivoContatoDb Motivo { get; set; }
         public int QtdPaginas { get; set; }
+        public UsuarioDb Usuario { get; set; }
+        public UsuarioDb UsuarioCriador { get; set; }
     }
 }
