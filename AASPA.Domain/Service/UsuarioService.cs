@@ -39,8 +39,7 @@ namespace AASPA.Domain.Service
         {
             var usuario = _mysql.usuarios.FirstOrDefault(x => x.usuario_id == usuarioId)
                ?? throw new Exception("Usuário não encontrado");
-
-            _mysql.usuarios.Remove(usuario);
+            usuario.usuario_status = false;
             _mysql.SaveChanges();
         }
 
@@ -49,7 +48,7 @@ namespace AASPA.Domain.Service
             var usuariosMaster = _mysql.usuarios.FirstOrDefault(x => x.usuario_id == usuarioDb.usuario_id && x.usuario_tipo == 1)
                 ?? throw new Exception("Você não tem permissão para efetuar essa ação!");
 
-            return _mysql.usuarios.Where(x => x.usuario_id != usuarioDb.usuario_id).Select(x => new
+            return _mysql.usuarios.Where(x => x.usuario_id != usuarioDb.usuario_id).ToList().Where(x=> x.usuario_status).Select(x => new
             {
                 UsuarioId = x.usuario_id,
                 Nome = x.usuario_nome,
@@ -63,7 +62,7 @@ namespace AASPA.Domain.Service
         {
             try
             {
-                var usuarioDb = _mysql.usuarios.FirstOrDefault(x => x.usuario_username.ToUpper() == usuario.ToUpper())
+                var usuarioDb = _mysql.usuarios.FirstOrDefault(x => x.usuario_username.ToUpper() == usuario.ToUpper() && x.usuario_status)
                         ?? throw new Exception("Usuário não existe!");
 
                 if (Cripto.Decrypt(usuarioDb.usuario_senha) != senha)

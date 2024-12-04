@@ -16,6 +16,7 @@ namespace AASPA.Repository.Maps
         public string usuario_nome { get; set; }
         public string usuario_senha { get; set; }
         public string usuario_username { get; set; }
+        public bool usuario_status { get; set; } = true;
         public DateTime usuario_dt_cadastro { get; set; }
     }
 }
