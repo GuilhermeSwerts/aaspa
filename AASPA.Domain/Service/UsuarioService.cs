@@ -37,10 +37,18 @@ namespace AASPA.Domain.Service
 
         public void ExcluirUsuario(int usuarioId)
         {
-            var usuario = _mysql.usuarios.FirstOrDefault(x => x.usuario_id == usuarioId)
-               ?? throw new Exception("Usuário não encontrado");
-            usuario.usuario_status = false;
-            _mysql.SaveChanges();
+            try
+            {
+                var usuario = _mysql.usuarios.FirstOrDefault(x => x.usuario_id == usuarioId)
+              ?? throw new Exception("Usuário não encontrado");
+                usuario.usuario_status = false;
+
+                _mysql.SaveChanges();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         public object GetAll(UsuarioDb usuarioDb)
