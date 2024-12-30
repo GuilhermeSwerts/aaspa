@@ -891,7 +891,8 @@ namespace AASPA.Domain.Service
                 _status.AlterarStatusCliente(new AlterarStatusClienteRequest
                 {
                     cliente_id = cliente.cliente_id,
-                    status_id_antigo
+                    status_id_antigo = statusAtual.status_id,
+                    status_id_novo = 8
                 });
 
             }

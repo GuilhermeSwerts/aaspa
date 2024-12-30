@@ -20,6 +20,6 @@ namespace AASPA.Domain.Interface
         Task<string> GerarToken();
         Task CancelarClienteIntegraall(AlterarStatusClientesIntegraallRequest request, string tokenIntegraall);
         Task CancelarCliente(AlterarStatusClientesIntegraallRequest request);
-
+        void CancelarClienteByCpf(string cpf);
     }
 }
