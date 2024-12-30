@@ -878,5 +878,27 @@ namespace AASPA.Domain.Service
                 Console.WriteLine(ex.Message);
             }
         }
+
+        public void CancelarClienteByCpf(string cpf)
+        {
+            try
+            {
+                var cliente = _mysql.clientes.Where(x => x.cliente_cpf.Contains(cpf)).FirstOrDefault()
+                    ?? throw new Exception("Cliente não encontrado na base");
+
+                var statusAtual = BuscaStatusAtual(cliente.cliente_id,false);
+
+                _status.AlterarStatusCliente(new AlterarStatusClienteRequest
+                {
+                    cliente_id = cliente.cliente_id,
+                    status_id_antigo
+                });
+
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
     }
 }

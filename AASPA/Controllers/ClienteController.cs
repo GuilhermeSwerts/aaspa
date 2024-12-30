@@ -2,6 +2,7 @@
 using AASPA.Domain.Interface;
 using AASPA.Models.Requests;
 using AASPA.Models.Response;
+using AASPA.Repository.Maps;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -22,6 +23,28 @@ namespace AASPA.Host.Controllers
         }
 
         #region [HTTPGET]
+
+        [HttpPost]
+        [Route("/Cliente/CancelarCliente")]
+        public ActionResult CancelarCliente([FromBody] string cpf)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(cpf))
+                    throw new Exception("Cpf não informado");
+
+                cpf = cpf.Replace(".", "").Replace("-", "").Replace(" ", "");
+
+                _service.CancelarClienteByCpf(cpf);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+
+            }
+        }
 
         [HttpGet]
         [Route("/BuscarClienteID/{clienteId}")]
