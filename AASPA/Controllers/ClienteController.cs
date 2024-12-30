@@ -139,6 +139,13 @@ namespace AASPA.Host.Controllers
         {
             try
             {
+                request.PaginaAtual = null;
+                request.BuscarStatus = false;
+                if (request.DateInitAverbacao.HasValue && !request.DateInit.HasValue)
+                    request.DateInit = request.DateInitAverbacao.Value;
+                if (request.DateEndAverbacao.HasValue && !request.DateEnd.HasValue)
+                    request.DateEnd = request.DateEndAverbacao.Value;
+
                 byte[] base64 = _service.DownloadFiltro(request);
                 return File(base64, "application/csv;charset=utf-8", "FiltroClientes.csv");
             }

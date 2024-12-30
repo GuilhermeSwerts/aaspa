@@ -8,6 +8,7 @@ namespace AASPA.Models.Requests
 {
     public class ConsultaParametros
     {
+        public bool BuscarStatus { get; set; } = true;
         public int? StatusCliente { get; set; }
         public int? StatusRemessa { get; set; }
         public DateTime? DateInit { get; set; }

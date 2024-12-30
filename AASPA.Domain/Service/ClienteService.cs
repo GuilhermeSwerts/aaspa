@@ -487,10 +487,11 @@ namespace AASPA.Domain.Service
                                                     param: parameters,
                                                     splitOn: "captador_id"
                                                     ).ToList();
-                    foreach (var item in data)
-                    {
-                        item.StatusAtual = BuscaStatusAtual(item.Cliente.cliente_id, isDownload);
-                    }
+                    if (request.BuscarStatus)
+                        foreach (var item in data)
+                        {
+                            item.StatusAtual = BuscaStatusAtual(item.Cliente.cliente_id, isDownload);
+                        }
 
                     clientes.AddRange(data);
                 }
@@ -886,7 +887,7 @@ namespace AASPA.Domain.Service
                 var cliente = _mysql.clientes.Where(x => x.cliente_cpf.Contains(cpf)).FirstOrDefault()
                     ?? throw new Exception("Cliente não encontrado na base");
 
-                var statusAtual = BuscaStatusAtual(cliente.cliente_id,false);
+                var statusAtual = BuscaStatusAtual(cliente.cliente_id, false);
 
                 _status.AlterarStatusCliente(new AlterarStatusClienteRequest
                 {
