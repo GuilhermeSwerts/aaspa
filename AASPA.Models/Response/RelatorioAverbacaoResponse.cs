@@ -8,6 +8,7 @@ namespace AASPA.Models.Response
 {
     public class RelatorioAverbacaoResponse
     {
+        public string Token { get; set; }
         public string CodExterno { get; set; }
         public string ClienteCpf { get; set; }
         public string ClienteNome { get; set; }

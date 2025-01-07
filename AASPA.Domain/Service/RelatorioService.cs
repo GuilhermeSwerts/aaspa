@@ -62,6 +62,7 @@ namespace AASPA.Domain.Service
 
             return clientes.Select(x => new RelatorioAverbacaoResponse
             {
+                Token = x.Cliente.cliente_token,
                 Status =
                       x.Registro.Codigo_Resultado == 1 && x.Registro.Codigo_Resultado == 1 ? "Incluído(a)"
                     : x.Registro.Codigo_Operacao == 5 && x.Registro.Codigo_Resultado == 1 ? "Excluído(a)"
