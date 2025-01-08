@@ -42,7 +42,7 @@ namespace AASPA
                 .UseMySql(Configuration["MySQLConnection:MySQLConnectionString"], new MySqlServerVersion(new Version(8, 0, 5)))
                 .EnableSensitiveDataLogging());
 
-            services.AddCors(x=> x.AddDefaultPolicy(c=> c.AllowAnyMethod().AllowAnyOrigin().AllowAnyHeader()));
+            services.AddCors(x => x.AddDefaultPolicy(c => c.AllowAnyMethod().AllowAnyOrigin().AllowAnyHeader()));
             services.AddHttpClient<ClienteService>(client =>
             {
                 client.BaseAddress = new Uri("https://integraall.com/api/");
@@ -67,9 +67,9 @@ namespace AASPA
                     };
                 });
 
-            services.AddScoped<ICliente,ClienteService>();
-            services.AddScoped<IStatus,StatusService>();
-            services.AddScoped<IBeneficio,BeneficioService>();
+            services.AddScoped<ICliente, ClienteService>();
+            services.AddScoped<IStatus, StatusService>();
+            services.AddScoped<IBeneficio, BeneficioService>();
             services.AddScoped<IPagamento, PagamentoService>();
             services.AddScoped<IOrigem, OrigemService>();
             services.AddScoped<IMotivoContato, MotivoContatoService>();
@@ -97,9 +97,9 @@ namespace AASPA
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json"," v1"));
             }
+            app.UseSwagger();
+            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", " v1"));
             //else
             //{
             //    app.UseExceptionHandler("/Error");
