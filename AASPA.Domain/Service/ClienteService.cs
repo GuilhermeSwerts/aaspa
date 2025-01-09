@@ -557,7 +557,7 @@ namespace AASPA.Domain.Service
             try
             {
                 var builder = new StringBuilder();
-                builder.AppendLine("#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO;STATUS_INTEGRAALL");
+                builder.AppendLine("#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO DO CLIENTE;MOTIVO CANCELAMENTO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO;STATUS_INTEGRAALL");
                 for (int i = 0; i < clientesData.Count; i++)
                 {
                     var cliente = clientesData[i];
@@ -592,7 +592,8 @@ namespace AASPA.Domain.Service
                                  $"{(cliente.Cliente.cliente_possuiWhatsapp ? "Sim" : "Não")};" +
                                  $"{funcaoAaspa};" +
                                  $"{cliente.Cliente.cliente_email ?? ""};" +
-                                 $"{(cliente.Cliente.cliente_situacao == true ? "Ativo" : "Inativo")};" +
+                                 $"{(cliente.StatusAtual != null ? cliente.StatusAtual.status_nome : "Não Encontrado")};" +
+                                 $"{(!string.IsNullOrEmpty(cliente.Cliente.cliente_motivocancelamento) ? cliente.Cliente.cliente_motivocancelamento : "-")};" +
                                  $"{(cliente.Cliente.cliente_estado_civil == 1 ? "Solteiro" : cliente.Cliente.cliente_estado_civil == 2 ? "Casado" : cliente.Cliente.cliente_estado_civil == 3 ? "Viúvo" : cliente.Cliente.cliente_estado_civil == 4 ? "Separado judiscialmente" : cliente.Cliente.cliente_estado_civil == 5 ? "União estável" : "Outros")};" +
                                  $"{(cliente.Cliente.cliente_sexo == 1 ? "Masculino" : cliente.Cliente.cliente_sexo == 2 ? "Feminino" : "Outros")};" +
                                  $"{cliente.Cliente.cliente_remessa_id ?? 0};" +

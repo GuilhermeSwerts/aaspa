@@ -11,7 +11,7 @@ namespace AASPA.Domain.Interface
 {
     public interface IStatus
     {
-        List<BuscarLogStatusClienteIdResponse> BuscarLogStatusClienteId(int clienteId, DateTime? dtInicio = null, DateTime? dtFim = null);
+        List<BuscarLogStatusClienteIdResponse> BuscarLogStatusClienteId(int clienteId);
         void AlterarStatusCliente(AlterarStatusClienteRequest request);
         object BuscarStatusById(int statusId);
         List<StatusDb> BuscarTodosStatus();

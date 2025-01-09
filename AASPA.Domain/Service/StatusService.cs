@@ -32,29 +32,27 @@ namespace AASPA.Domain.Service
             _mysql = mysql;
         }
 
-        public List<BuscarLogStatusClienteIdResponse> BuscarLogStatusClienteId(int clienteId, DateTime? dtInicio = null, DateTime? dtFim = null)
+        public List<BuscarLogStatusClienteIdResponse> BuscarLogStatusClienteId(int clienteId)
         {
-            var logs = _mysql.log_status
-     .Where(x => x.log_status_id > 0
-         && (dtInicio == null || x.log_status_dt_cadastro >= dtInicio)
-         && (dtFim == null || x.log_status_dt_cadastro <= dtFim)
-     ).ToList();
+            var logs = (from log in _mysql.log_status
+                        join st1 in _mysql.status on log.log_status_novo_id equals st1.status_id
+                        join st2 in _mysql.status on log.log_status_antigo_id equals st2.status_id
+                        where log.log_status_cliente_id == clienteId
+                        select new
+                        {
+                            Id = log.log_status_antigo_id,
+                            Status = st1.status_nome,
+                            Data = log.log_status_dt_cadastro
+                        })
+                        .ToList()
+                        .OrderByDescending(c => c.Data).ToList();
 
-            List<BuscarLogStatusClienteIdResponse> response = new();
-            foreach (var log in logs)
+            return logs.Select(x => new BuscarLogStatusClienteIdResponse
             {
-                var de = _mysql.status.First(x => x.status_id == log.log_status_antigo_id);
-                var para = _mysql.status.First(x => x.status_id == log.log_status_novo_id);
-
-                response.Add(new BuscarLogStatusClienteIdResponse
-                {
-                    Data = log.log_status_dt_cadastro.ToString("dd/MM/yyyy HH:mm:ss"),
-                    De = de.status_nome,
-                    Para = log.log_status_antigo_id == log.log_status_novo_id ? "-" :para.status_nome
-                });
-            }
-
-            return response;
+                Id = x.Id,
+                Status = x.Status,
+                Data = x.Data.ToString("dd/MM/yyyy HH:mm:ss")
+            }).ToList();
         }
 
         public void AlterarStatusCliente(AlterarStatusClienteRequest request)
@@ -66,6 +64,15 @@ namespace AASPA.Domain.Service
                 {
                     var cliente = _mysql.clientes.FirstOrDefault(x => x.cliente_id == request.cliente_id);
                     cliente.cliente_situacao = false;
+                    _mysql.SaveChanges();
+                }
+
+                if (request.status_id_novo == (int)EStatus.CanceladoNaoAverbado
+                    || request.status_id_novo == (int)EStatus.CanceladoAPedidoDoCliente 
+                    || request.status_id_novo == (int)EStatus.Cancelado)
+                {
+                    var cliente = _mysql.clientes.FirstOrDefault(x => x.cliente_id == request.cliente_id);
+                    cliente.cliente_motivocancelamento = request.motivo;
                     _mysql.SaveChanges();
                 }
 

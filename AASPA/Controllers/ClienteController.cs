@@ -140,7 +140,7 @@ namespace AASPA.Host.Controllers
             try
             {
                 request.PaginaAtual = null;
-                request.BuscarStatus = false;
+                request.BuscarStatus = true;
                 if (request.DateInitAverbacao.HasValue && !request.DateInit.HasValue)
                     request.DateInit = request.DateInitAverbacao.Value;
                 if (request.DateEndAverbacao.HasValue && !request.DateEnd.HasValue)

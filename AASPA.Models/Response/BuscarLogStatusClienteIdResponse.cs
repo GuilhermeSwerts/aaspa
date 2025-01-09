@@ -8,8 +8,8 @@ namespace AASPA.Models.Response
 {
     public class BuscarLogStatusClienteIdResponse
     {
+        public int Id { get; set; }
+        public string Status { get; set; }
         public string Data { get; set; }
-        public string De { get; set; }
-        public string Para { get; set; }
     }
 }

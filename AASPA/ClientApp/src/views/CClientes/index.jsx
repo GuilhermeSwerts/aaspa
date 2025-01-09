@@ -311,6 +311,7 @@ const Cclientes = () => {
                                     <td>{cliente.cliente.cliente_remessa_id > 0 ? cliente.cliente.cliente_remessa_id : '-'}</td>
                                     <td>{cliente.cliente.clientes_cadastro_externo == true ? 'SIM' : 'NÃO'}</td>
                                     <td className='button-container-grid'>
+                                        <ModalLogStatus ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />
                                         <ButtonTooltip
                                             backgroundColor={'#004d00'}
                                             onClick={() => window.location.href = `/historicopagamento?clienteId=${cliente.cliente.cliente_id}`}
@@ -376,8 +377,8 @@ const Cclientes = () => {
                                             top={true}
                                             textButton={<RiChatHistoryLine size={Size.IconeTabela} />}
                                         />
-                                        {/* <ModalLogStatus ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />
-                                        <ModalLogBeneficios ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} /> */}
+                                        <ModalLogStatus ClienteId={cliente.cliente.cliente_id}/>
+                                        {/*<ModalLogBeneficios ClienteId={cliente.cliente.cliente_id} ClienteNome={cliente.cliente.cliente_nome} />*/}
                                         <ModalVisualizarCliente Cliente={cliente.cliente} Captador={cliente.captador} />
                                         <ButtonTooltip
                                             backgroundColor={'#00b300'}
@@ -416,7 +417,7 @@ const Cclientes = () => {
                 show={ModalExcluir}
                 handleClose={() => setModalExcluir(false)}
                 handleConfirm={handleConfirmExclusion}
-                token = {tokenCliente}
+                token={tokenCliente}
             />
         </NavBar >
     );

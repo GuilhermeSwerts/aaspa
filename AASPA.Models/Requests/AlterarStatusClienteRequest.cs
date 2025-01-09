@@ -11,5 +11,6 @@ namespace AASPA.Models.Requests
         public int status_id_antigo { get; set; }
         public int status_id_novo { get; set; }
         public int cliente_id { get; set; }
+        public string motivo { get; set; }
     }
 }
