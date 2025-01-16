@@ -333,14 +333,29 @@ namespace AASPA.Domain.Service
             {
                 List<string> filtros = new();
 
-                string colunas = "cli.*, cpt.*";
+                string colunas = "cli.*, cpt.*, st.*";
                 string coluns = isCount ? "count(*) as Qtd" : colunas;
-                string query = @$"
+                string query = string.Empty;
+                query = @"WITH UltimosStatus AS (
+                        SELECT 
+                            ls.*,
+                            ROW_NUMBER() OVER (PARTITION BY log_status_cliente_id ORDER BY log_status_dt_cadastro DESC) AS RowNum
+                        FROM 
+                            log_status ls
+                    )
+
+                    ";
+
+                query += @$"
                          SELECT distinct {coluns}    
-    FROM clientes cli
-    JOIN vinculo_cliente_captador vin ON cli.cliente_id = vin.vinculo_cliente_id
-    JOIN captadores cpt ON vin.vinculo_captador_id = cpt.captador_id
-    LEFT JOIN historico_contatos_ocorrencia his ON cli.cliente_id = his.historico_contatos_ocorrencia_cliente_id";
+                FROM clientes cli
+                JOIN vinculo_cliente_captador vin ON cli.cliente_id = vin.vinculo_cliente_id
+                JOIN captadores cpt ON vin.vinculo_captador_id = cpt.captador_id
+                JOIN UltimosStatus us ON cli.cliente_id = us.log_status_cliente_id
+                JOIN status st on us.log_status_novo_id = st.status_id
+                LEFT JOIN historico_contatos_ocorrencia his ON cli.cliente_id = his.historico_contatos_ocorrencia_cliente_id";
+
+                filtros.Add($"RowNum = 1");
 
                 if (request.DateInit.HasValue)
                 {
@@ -372,16 +387,6 @@ namespace AASPA.Domain.Service
                     filtros.Add("cli.clientes_cadastro_externo = @CadastroExterno");
                 }
 
-                if (request.StatusCliente > 0)
-                {
-                    filtros.Add("cli.cliente_situacao = @StatusCliente");
-                }
-
-                if (request.StatusRemessa > 0)
-                {
-                    filtros.Add("cli.cliente_remessa_id = @StatusRemessa");
-                }
-
                 if (request.StatusIntegraall > 0)
                 {
                     filtros.Add("cli.cliente_StatusIntegral = @StatusIntegraall");
@@ -408,6 +413,31 @@ namespace AASPA.Domain.Service
                 {
                     filtros.Add("cpt.captador_nome like CONCAT('%', @Captador, '%')");
                 }
+
+                if (request.StatusCliente > 0)
+                {
+                    var ativos = new List<int> { (int)EStatus.Ativo, (int)EStatus.AtivoAguardandoAverbacao };
+                    var inativo = new List<int> { (int)EStatus.Inativo };
+                    var excluidos = new List<int> { (int)EStatus.Deletado,(
+                            int)EStatus.ExcluidoAguardandoEnvio,
+                            (int)EStatus.CanceladoAPedidoDoCliente,
+                            (int)EStatus.CanceladoNaoAverbado,
+                            (int)EStatus.Cancelado};
+
+                    List<int> status = new();
+
+                    if (request.StatusCliente == 1)
+                        status.AddRange(ativos);
+
+                    if (request.StatusCliente == 2)
+                        status.AddRange(inativo);
+
+                    if (request.StatusCliente == 3)
+                        status.AddRange(excluidos);
+
+                    filtros.Add($"us.log_status_novo_id in ({string.Join(",", status)})");
+                }
+
 
                 if (filtros.Count > 0)
                 {
@@ -439,10 +469,6 @@ namespace AASPA.Domain.Service
                     parameters.Add("@Cpf", RemoveZerosEsquerda(request.Cpf.Replace(".", "").Replace("-", "")));
                 if (request.CadastroExterno > 0)
                     parameters.Add("@CadastroExterno", request.CadastroExterno);
-                if (request.CadastroExterno > 0)
-                    parameters.Add("@StatusCliente", request.StatusCliente);
-                if (request.StatusRemessa > 0)
-                    parameters.Add("@StatusRemessa", request.StatusRemessa);
                 if (request.StatusIntegraall > 0)
                     parameters.Add("@StatusIntegraall", request.StatusIntegraall);
                 if (!string.IsNullOrEmpty(request.Beneficio))
@@ -475,25 +501,27 @@ namespace AASPA.Domain.Service
 
                 if (!isCount)
                 {
-                    var data = connection.Query<ClienteDb, CaptadorDb, BuscarClienteByIdResponse>(query,
-                                                    (cliente, captador) =>
+                    var data = connection.Query<ClienteDb, CaptadorDb, StatusDb, BuscarClienteByIdResponse>(query,
+                                                    (cliente, captador, status) =>
                                                     {
                                                         return new BuscarClienteByIdResponse
                                                         {
                                                             Cliente = cliente,
-                                                            Captador = captador
+                                                            Captador = captador,
+                                                            StatusAtual = status
                                                         };
                                                     },
                                                     param: parameters,
-                                                    splitOn: "captador_id"
+                                                    splitOn: "captador_id,status_id"
                                                     ).ToList();
-                    if (request.BuscarStatus)
-                        foreach (var item in data)
-                        {
-                            item.StatusAtual = BuscaStatusAtual(item.Cliente.cliente_id, isDownload);
-                        }
+                    //if (request.BuscarStatus)
+                    //    foreach (var item in data)
+                    //    {
+                    //        item.StatusAtual = BuscaStatusAtual(item.Cliente.cliente_id, isDownload);
+                    //    }
 
                     clientes.AddRange(data);
+
                 }
                 else
                 {
