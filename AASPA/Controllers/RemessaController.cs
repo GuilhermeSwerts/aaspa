@@ -122,6 +122,21 @@ namespace AASPA.Controllers
             }
         }
 
+        [HttpPost]
+        public IActionResult Teste(IFormFile file)
+        {
+            try
+            {
+                _remessa.Testes(file);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpGet]
         [Route("BuscarRetornos")]
         public ActionResult BuscarRetorno([FromQuery] int mes, [FromQuery] int ano)

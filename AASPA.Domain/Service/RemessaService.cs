@@ -1,6 +1,8 @@
 ﻿using AASPA.Controllers;
 using AASPA.Domain.Interface;
-using AASPA.Models.Enum;
+using AASPA.Domain.Util;
+using AASPA.Models.Enums;
+using AASPA.Models.Model.Integraal;
 using AASPA.Models.Requests;
 using AASPA.Models.Response;
 using AASPA.Repository;
@@ -19,6 +21,8 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Win32;
 using MySqlConnector;
+using Newtonsoft.Json;
+using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -392,16 +396,6 @@ namespace AASPA.Domain.Service
 
         public async Task<string> LerRetornoRepasse(IFormFile file, int usuarioLogadoId)
         {
-            RetornoFinanceiroDb retorno_financeiro = new RetornoFinanceiroDb();
-            string content;
-            var anomes = file.FileName.Substring(18, 6);
-
-            var ano = file.FileName.Substring(18, 4);
-            var mes = file.FileName.Substring(22, 2);
-            mes = (int.Parse(mes) - 1).ToString().PadLeft(2, '0');
-
-            anomes = $"{ano}{mes}";
-
             if (file == null || file.Length == 0)
             {
                 throw new Exception("Nenhum arquivo foi enviado.");
@@ -410,6 +404,22 @@ namespace AASPA.Domain.Service
             {
                 throw new Exception("Arquivo com nome fora do formato!");
             }
+
+            RetornoFinanceiroDb retorno_financeiro = new();
+            string content;
+            var anomes = file.FileName.Substring(18, 6);
+            var ano = file.FileName.Substring(18, 4);
+            var mes = file.FileName.Substring(22, 2);
+
+            int tempMes = int.Parse(mes) - 1;
+            if (tempMes == 0)
+            {
+                tempMes = 12;
+                ano = (int.Parse(ano) - 1).ToString();
+            }
+            mes = (tempMes).ToString().PadLeft(2, '0');
+            anomes = $"{ano}{mes}";
+
             try
             {
 
@@ -530,6 +540,7 @@ namespace AASPA.Domain.Service
                 int batchSize = 10000;
                 int maxBatchSize = registros.Count;
                 var data = new List<RegistroRetornoFinanceiroDb>();
+                var primeiroPagamento = new List<QuantidadeParcelaModel>();
                 int count = 0;
                 foreach (var registro in registros)
                 {
@@ -557,7 +568,15 @@ namespace AASPA.Domain.Service
                                 parameters.Add($"@Esp{counter}", reg.especie);
                                 parameters.Add($"@Uf{counter}", reg.uf);
                                 parameters.Add($"@Desc{counter}", reg.desconto);
-                                parameters.Add($"@Parcela{counter}", GetParcela(reg.numero_beneficio, parcelas));
+                                var np = GetParcela(reg.numero_beneficio, parcelas);
+                                parameters.Add($"@Parcela{counter}", np);
+
+                                if (np == 1)
+                                    primeiroPagamento.Add(new QuantidadeParcelaModel
+                                    {
+                                        NumeroBeneficio = reg.numero_beneficio,
+                                        QuantidadeParcelas = np
+                                    });
 
                                 counter++;
                             }
@@ -572,6 +591,7 @@ namespace AASPA.Domain.Service
                         data.Clear();
                     }
                 }
+                await AlterarStatusPagoIntegraal(primeiroPagamento);
             }
             catch (Exception)
             {
@@ -818,8 +838,13 @@ namespace AASPA.Domain.Service
                         await InserirDadosRetorno(registro);
                         //await InserirDadosHistorico(registro, usuarioLogadoId);
                         await AlterarStatusClienteRemessaEnviada(ClienteparaAtivar, EStatus.AtivoAguardandoAverbacao, EStatus.Ativo);
+
                         await AlterarStatusClienteRemessaEnviada(clientesparainativar, EStatus.AtivoAguardandoAverbacao, EStatus.Inativo);
                         await AlterarStatusClienteRemessaEnviada(ClienteparaExcluir, EStatus.ExcluidoAguardandoEnvio, EStatus.Deletado);
+
+                        await AlterarStatusAtivoIntegraal(ClienteparaAtivar);
+                        await AlterarStatusExcluidoIntegraal(clientesparainativar, ClienteparaExcluir);
+
                         return anomes;
                     }
                 }
@@ -829,6 +854,120 @@ namespace AASPA.Domain.Service
                 throw new Exception(ex.Message);
             }
         }
+
+        private async Task AlterarStatusPagoIntegraal(List<QuantidadeParcelaModel> clientesPagos)
+        {
+            try
+            {
+                var nbs = clientesPagos.Where(x => x.QuantidadeParcelas == 1).Select(line => new
+                {
+                    Nb = line.NumeroBeneficio
+                }).ToList();
+                var clientes = (from cli in _mysql.clientes
+                                join nb in nbs on cli.cliente_matriculaBeneficio.PadLeft(10, '0') equals nb.Nb.PadLeft(10, '0')
+                                select cli)
+              .ToList()
+              .Select(cli => new ClienteStatusIntegraal
+              {
+                  Cpf = cli.cliente_cpf.PadLeft(11, '0'),
+                  Nb = cli.cliente_matriculaBeneficio.PadLeft(10, '0')
+              })
+              .ToList();
+
+                await WebRequestUtil.Integrral
+                    .Post(JsonConvert.SerializeObject(clientes), EEndpointsIntegraall.AtualizaStatusPago);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        private async Task AlterarStatusExcluidoIntegraal(List<string> clientesparainativar, List<string> clienteparaExcluir)
+        {
+            try
+            {
+                var nbs = clientesparainativar.Select(line => new
+                {
+                    Nb = line.Substring(1, 10)
+                }).ToList();
+                nbs.AddRange(clienteparaExcluir.Select(line => new
+                {
+                    Nb = line.Substring(1, 10)
+                }).ToList());
+
+                var clientes = (from cli in _mysql.clientes
+                                join nb in nbs on cli.cliente_matriculaBeneficio.PadLeft(10, '0') equals nb.Nb.PadLeft(10, '0')
+                                select cli)
+                              .ToList()
+                              .Select(cli => new ClienteStatusIntegraal
+                              {
+                                  Cpf = cli.cliente_cpf.PadLeft(11, '0'),
+                                  Nb = cli.cliente_matriculaBeneficio.PadLeft(10, '0')
+                              })
+                              .ToList();
+
+                await WebRequestUtil.Integrral
+                    .Post(JsonConvert.SerializeObject(clientes), EEndpointsIntegraall.AtualizaStatusCancelado);
+
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        private async Task AlterarStatusAtivoIntegraal(List<string> clienteparaAtivar)
+        {
+            try
+            {
+                var nbs = clienteparaAtivar.Select(line => new
+                {
+                    Nb = line.Substring(1, 10)
+                }).ToList();
+
+                var clientes = (from cli in _mysql.clientes
+                                join nb in nbs on cli.cliente_matriculaBeneficio.PadLeft(10, '0') equals nb.Nb.PadLeft(10, '0')
+                                select cli)
+                               .ToList()
+                               .Select(cli => new ClienteStatusIntegraal
+                               {
+                                   Cpf = cli.cliente_cpf.PadLeft(11, '0'),
+                                   Nb = cli.cliente_matriculaBeneficio.PadLeft(10, '0')
+                               })
+                               .ToList();
+
+                var canceladosIntegraal = await WebRequestUtil.Integrral
+                    .Post<List<ClienteStatusIntegraal>>(JsonConvert.SerializeObject(clientes), EEndpointsIntegraall.AtualizaStatusAverbado);
+
+                var clientesCancelados = (from cli in _mysql.clientes
+                                          join nb in canceladosIntegraal
+                                              on cli.cliente_matriculaBeneficio.PadLeft(10, '0') equals nb.Nb.PadLeft(10, '0')
+                                          where cli.cliente_cpf.PadLeft(11, '0') == nb.Cpf.PadLeft(11, '0')
+                                          select cli).ToList();
+
+                foreach (var cliente in clientesCancelados)
+                    cliente.cliente_motivocancelamento = "Cancelado no Integraal";
+
+                _mysql.log_status.AddRange(clientesCancelados.Select(cli => new LogStatusDb
+                {
+                    log_status_antigo_id = (int)EStatus.Ativo,
+                    log_status_cliente_id = cli.cliente_id,
+                    log_status_novo_id = (int)EStatus.Cancelado,
+                    log_status_dt_cadastro = DateTime.Now
+                }).ToList()
+                );
+
+                if (clientesCancelados.Count > 0)
+                    _mysql.SaveChanges();
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao alterar status ativo na Integraal.", ex);
+            }
+        }
+
 
         private async Task InserirDadosHistorico(List<RegistroRetornoRemessaDb> registros, int usuarioLogadoId)
         {
@@ -1018,7 +1157,7 @@ namespace AASPA.Domain.Service
 
                             foreach (var nb in data)
                             {
-                                sqlBuilder.Append($"({(int)antigo},NOW(),(select cliente_matriculaBeneficio from clientes where lpad(cliente_matriculaBeneficio,10,'0') like concat('%',@Nb,'%')),{(int)novo}),");
+                                sqlBuilder.Append($"({(int)antigo},NOW(),(select cliente_id from clientes where lpad(cliente_matriculaBeneficio,10,'0') like concat('%',@Nb,'%')),{(int)novo}),");
                                 parameters.Add($"@Nb{counter}", nb);
                                 counter++;
                             }
@@ -1289,6 +1428,80 @@ namespace AASPA.Domain.Service
 
             }
 
+        }
+
+        public async void Testes(IFormFile file)
+        {
+            try
+            {
+                List<string> clientesparainativar = new List<string>();
+                List<string> ClienteparaAtivar = new List<string>();
+                List<string> ClienteparaExcluir = new List<string>();
+
+                using (var memoryStream = new MemoryStream())
+                {
+                    await file.CopyToAsync(memoryStream);
+                    memoryStream.Position = 0;
+
+                    using (var reader = new StreamReader(memoryStream, Encoding.UTF8))
+                    {
+                        var content = await reader.ReadToEndAsync();
+
+                        var linhas = content.Split('\n');
+
+                        var registro = new List<RegistroRetornoRemessaDb>();
+
+                        foreach (var line in linhas)
+                        {
+                            if (!string.IsNullOrWhiteSpace(line))
+                            {
+                                if (int.Parse(line.Substring(0, 1)) == 0)
+                                {
+                                    if (line.Substring(1, 10).Trim() != "AASPA")
+                                    {
+                                        throw new Exception("Arquivo não pertence a AASPA");
+                                    }
+                                }
+                                else if (int.Parse(line.Substring(0, 1)) == 1)
+                                {
+                                    if (int.Parse(line.Substring(12, 1)) == 2)
+                                    {
+                                        clientesparainativar.Add(line);
+                                    }
+                                    else if (int.Parse(line.Substring(11, 1)) != (int)EStatus.ExcluidoAguardandoEnvio && int.Parse(line.Substring(12, 1)) == 1)
+                                    {
+                                        ClienteparaAtivar.Add(line);
+                                    }
+                                    else if (int.Parse(line.Substring(11, 1)) == (int)EStatus.ExcluidoAguardandoEnvio && int.Parse(line.Substring(12, 1)) == 1)
+                                    {
+                                        ClienteparaExcluir.Add(line);
+                                    }
+                                    DateTime date;
+                                    var registroretorno = new RegistroRetornoRemessaDb()
+                                    {
+                                        Numero_Beneficio = line.Substring(1, 10),
+                                        Codigo_Operacao = int.Parse(line.Substring(11, 1)),
+                                        Codigo_Resultado = int.Parse(line.Substring(12, 1)),
+                                        Motivo_Rejeicao = int.Parse(line.Substring(13, 3)),
+                                        Valor_Desconto = GetValorDescontoArquivoRepasse(line.Substring(16, 5)),
+                                        Data_Inicio_Desconto = line.Substring(21, 8) == "00000000" ? DateTime.ParseExact(DateTime.Now.ToString("yyyyMMdd", CultureInfo.InvariantCulture), "yyyyMMdd", CultureInfo.InvariantCulture) : DateTime.ParseExact(line.Substring(21, 8), "yyyyMMdd", CultureInfo.InvariantCulture),
+                                        Codigo_Especie_Beneficio = int.Parse(line.Substring(29, 2)),
+                                        Retorno_Remessa_Id = 0
+                                    };
+                                    registro.Add(registroretorno);
+                                }
+                            }
+                        }
+                        await AlterarStatusAtivoIntegraal(ClienteparaAtivar);
+                        await AlterarStatusExcluidoIntegraal(clientesparainativar, ClienteparaExcluir);
+                        await AlterarStatusPagoIntegraal(new List<QuantidadeParcelaModel>());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
         }
     }
 }

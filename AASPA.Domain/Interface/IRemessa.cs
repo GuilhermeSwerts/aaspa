@@ -21,5 +21,6 @@ namespace AASPA.Domain.Interface
         List<BuscarArquivosResponse> BuscarRetorno(int mes, int ano);
         object GetBuscarRepasse(int? mes, int? ano);
         (List<ClienteDb> Clientes, int QtdPaginas, int TotalClientes) BuscarClientesElegivel(ConsultaParametros request);
+        void Testes(IFormFile file);
     }
 }
