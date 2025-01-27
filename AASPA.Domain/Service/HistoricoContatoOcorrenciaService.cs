@@ -223,7 +223,7 @@ namespace AASPA.Domain.Service
                     historico_contatos_ocorrencia_tipo_chave_pix = historicoContatos.HistoricoContatosOcorrenciaTipoChavePix != null ? historicoContatos.HistoricoContatosOcorrenciaTipoChavePix.Replace("null", "") : "",
                     historico_contatos_ocorrencia_telefone = historicoContatos.HistoricoContatosOcorrenciaTelefone != null ? historicoContatos.HistoricoContatosOcorrenciaTelefone.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "") : "",
                     historico_contatos_ocorrencia_usuario_fk = usuarioId,
-                    historico_contatos_ocorrencia_tipo_conta = historicoContatos.HistoricoContatosOcorrenciaTipoConta != null ? historicoContatos.HistoricoContatosOcorrenciaTipoConta.Replace("null", "")  : ""
+                    historico_contatos_ocorrencia_tipo_conta = historicoContatos.HistoricoContatosOcorrenciaTipoConta != null ? historicoContatos.HistoricoContatosOcorrenciaTipoConta.Replace("null", "") : ""
                 };
 
                 _mysql.historico_contatos_ocorrencia.Add(hst);
@@ -393,57 +393,49 @@ namespace AASPA.Domain.Service
         }
         public byte[] DownloadContatoFiltro(ConsultaParametros request)
         {
-            var clientes = (from cli in _mysql.clientes
-                            join hist in _mysql.historico_contatos_ocorrencia on cli.cliente_id equals hist.historico_contatos_ocorrencia_cliente_id
-                            select new
-                            {
-                                Cliente = cli,
-                                Historico = hist
-                            })
-                .ToList() // Transfere os dados para memória
-                .GroupBy(x => x.Cliente)
-                .Select(x => new
-                {
-                    UsuarioCriador = x.OrderBy(h => h.Historico.historico_contatos_ocorrencia_dt_cadastro).FirstOrDefault().Historico.historico_contatos_ocorrencia_usuario_fk,
-                    Cliente = x.Key,
-                    UltimoHistorico = x
-                        .OrderByDescending(h => h.Historico.historico_contatos_ocorrencia_dt_cadastro) // Ordena por data de cadastro
-                        .FirstOrDefault().Historico // Pega o último histórico
-                })
-                .ToList();
-
-
-            var clientesData = (from data in clientes
-                                join mot in _mysql.motivo_contato on data.UltimoHistorico.historico_contatos_ocorrencia_motivo_contato_id equals mot.motivo_contato_id
-                                join ori in _mysql.origem on data.UltimoHistorico.historico_contatos_ocorrencia_origem_id equals ori.origem_id
-                                join vin in _mysql.vinculo_cliente_captador on data.Cliente.cliente_id equals vin.vinculo_cliente_id
-                                join cap in _mysql.captadores on vin.vinculo_captador_id equals cap.captador_id
-                                join usu in _mysql.usuarios on data.UltimoHistorico.historico_contatos_ocorrencia_usuario_fk equals usu.usuario_id
-                                join usu2 in _mysql.usuarios on data.UsuarioCriador equals usu2.usuario_id
-                                where
-                                    (string.IsNullOrEmpty(request.Cpf) || data.Cliente.cliente_cpf == request.Cpf.Replace(".","").Replace("-","").Replace(" ","")) &&
-                                    (string.IsNullOrEmpty(request.Beneficio) || data.Cliente.cliente_matriculaBeneficio == request.Beneficio) &&
-                                    (!request.DataInitAtendimento.HasValue || data.UltimoHistorico.historico_contatos_ocorrencia_dt_ocorrencia >= request.DataInitAtendimento.Value) &&
-                                    (!request.DataEndAtendimento.HasValue || data.UltimoHistorico.historico_contatos_ocorrencia_dt_ocorrencia < request.DataEndAtendimento.Value.AddDays(1)) &&
-                                    ((request.SituacoesOcorrencias == null || request.SituacoesOcorrencias.Count == 0) ||  request.SituacoesOcorrencias.Contains(data.UltimoHistorico.historico_contatos_ocorrencia_situacao_ocorrencia))
-                                select new BuscarClienteByIdResponse
+            var clientesData = (from cli in _mysql.clientes
+                                join hist in _mysql.historico_contatos_ocorrencia
+                                    on cli.cliente_id equals hist.historico_contatos_ocorrencia_cliente_id
+                                join mot in _mysql.motivo_contato
+                                    on hist.historico_contatos_ocorrencia_motivo_contato_id equals mot.motivo_contato_id
+                                join ori in _mysql.origem
+                                    on hist.historico_contatos_ocorrencia_origem_id equals ori.origem_id
+                                join vin in _mysql.vinculo_cliente_captador
+                                    on cli.cliente_id equals vin.vinculo_cliente_id
+                                join cap in _mysql.captadores
+                                    on vin.vinculo_captador_id equals cap.captador_id
+                                join ultimo_usu in _mysql.usuarios
+                                    on hist.historico_contatos_ocorrencia_usuario_fk equals ultimo_usu.usuario_id
+                                where (string.IsNullOrEmpty(request.Cpf) || cli.cliente_cpf == request.Cpf.PadLeft(11, '0').Replace(".", "").Replace("-", "").Replace(" ", "")) &&
+                                      (string.IsNullOrEmpty(request.Beneficio) || cli.cliente_matriculaBeneficio == request.Beneficio) &&
+                                      (!request.DataInitAtendimento.HasValue || hist.historico_contatos_ocorrencia_dt_ocorrencia >= request.DataInitAtendimento.Value) &&
+                                      (!request.DataEndAtendimento.HasValue || hist.historico_contatos_ocorrencia_dt_ocorrencia < request.DataEndAtendimento.Value.AddDays(1)) &&
+                                      (request.SituacoesOcorrencias == null || !request.SituacoesOcorrencias.Any() ||
+                                      request.SituacoesOcorrencias.Contains(hist.historico_contatos_ocorrencia_situacao_ocorrencia))
+                                select new
                                 {
-                                    Cliente = data.Cliente,
-                                    Historico = data.UltimoHistorico,
+                                    Cliente = cli,
+                                    Historico = hist,
                                     Motivo = mot,
                                     Origem = ori,
                                     Captador = cap,
-                                    Usuario = usu,
-                                    UsuarioCriador = usu2
-                                }).Distinct().ToList();
+                                    Usuario = ultimo_usu,
+                                    UsuarioCriador = (from criador in _mysql.usuarios
+                                                      join histo in _mysql.historico_contatos_ocorrencia
+                                                            on criador.usuario_id equals histo.historico_contatos_ocorrencia_usuario_fk
+                                                      where histo.historico_contatos_ocorrencia_cliente_id == cli.cliente_id
+                                                      orderby histo.historico_contatos_ocorrencia_dt_ocorrencia
+                                                      select criador).FirstOrDefault()
+                                }).ToList();
 
             var builder = new StringBuilder();
 
             builder.AppendLine("#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO;STATUS_INTEGRAALL;MOTIVO_ATENDIMENTO;ORIGEM_ATENDIMENTO;SITUACAO_ATENDIMENTO;USUARIO_RESPONSAVEL_PELO_REGISTRO;USUARIO_RESPONSAVEL_PELA_ULTIMA_ALTERACAO;DATA_ATENDIMENTO;DESCRICAO_ATENDIMENTO;DADOS_BANCARIOS_BANCO;DADOS_BANCARIOS_AGENCIA;DADOS_BANCARIOS_CONTA;DADOS_BANCARIOS_DIGITO;DADOS_BANCARIOS_CHAVE_PIX");
-            
+
             for (int i = 0; i < clientesData.Count; i++)
             {
                 var cliente = clientesData[i];
+
                 var dtAverbacao = cliente.Cliente.cliente_DataAverbacao.HasValue ? cliente.Cliente.cliente_DataAverbacao.Value.ToString("dd/MM/yyyy hh:mm:ss:") : "";
                 var motivoNome = cliente.Motivo != null ? cliente.Motivo.motivo_contato_nome : ";;";
                 var origem = (cliente.Origem != null && !string.IsNullOrEmpty(cliente.Origem.origem_nome)) ? cliente.Origem.origem_nome : ";;";
@@ -474,7 +466,7 @@ namespace AASPA.Domain.Service
                     $"{cliente.Cliente.cliente_email};" +
                     $"{(cliente.Cliente.cliente_situacao ? "Ativo" : "Inativo")};" +
                     $"{(cliente.Cliente.cliente_estado_civil switch { 1 => "Solteiro", 2 => "Casado", 3 => "Viúvo", 4 => "Separado judicialmente", 5 => "União estável", 6 => "Outros", _ => "Não especificado" })};" +
-                    $"{(cliente.Cliente.cliente_sexo == 1? "Masculino" : cliente.Cliente.cliente_sexo == 2? "Feminino" : "Outros")};" +
+                    $"{(cliente.Cliente.cliente_sexo == 1 ? "Masculino" : cliente.Cliente.cliente_sexo == 2 ? "Feminino" : "Outros")};" +
                     $"{remessa};" +
                     $"{cliente.Captador.captador_nome};" +
                     $"{cliente.Captador.captador_cpf_cnpj};" +
