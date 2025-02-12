@@ -22,6 +22,7 @@ import Atendimento from '../views/Atendimento/Atendimento';
 import SolicitacaoReembolso from '../views/SolicitacaoReembolso/SolicitacaoReembolso';
 import Usuarios from '../views/Usuarios/Usuario';
 import Login from '../views/Login';
+import SituacaoOcorrencia from '../views/Gerenciamento/SituacaoOcorrencia/SituacaoOcorrencia';
 
 /*ICONES*/
 import { FaUsersGear } from "react-icons/fa6";
@@ -62,6 +63,7 @@ export const PublicaRotas = [ /*PUBLICA PARA APARECER NO MENU*/
     { Icon: FaGears, nome: 'Gerenciar Motivo de Contato', path: '/gmotivocontato', component: MotivoContato },
     { Icon: FaGears, nome: 'Gerenciar Status', path: '/gstatus', component: Status },
     { Icon: FaGears, nome: 'Gerenciar Benefícios', path: '/gbeneficio', component: GBeneficios },
+    { Icon: FaGears, nome: 'Gerenciar Situacao Ocorrencia', path: '/gsituacaoocorrencia', component: SituacaoOcorrencia },
 ]
 
 export const PrivateRotas = [ /*PUBLICA PARA NÃO APARECER NO MENU*/

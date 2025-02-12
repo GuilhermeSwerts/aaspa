@@ -8,7 +8,7 @@ import { Alert } from '../../util/alertas';
 import { Size } from '../../util/size';
 import { FiPaperclip } from 'react-icons/fi';
 
-function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = null, isEdit = false }) {
+function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = null, isEdit = false, situacaoOcorrencias = [] }) {
     const [show, setShow] = useState(false);
     const [origens, setOrigens] = useState([]);
     const [motivos, setMotivos] = useState([]);
@@ -197,13 +197,9 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                             <div className="col-md-3">
                                 <Label>Situação Da Ocorrência</Label>
                                 <select name='HistoricoContatosOcorrenciaSituacaoOcorrencia' value={situacao} onChange={e => setSituacao(e.target.value)} required className='form-control'>
-                                    <option value="ATENDIDA">ATENDIDA</option>
-                                    <option value="EM TRATAMENTO">EM TRATAMENTO</option>
-                                    <option value="CANCELADA">CANCELADA</option>
-                                    <option value="FINALIZADO">FINALIZADO</option>
-                                    <option value="REEMBOLSO AGENDADO">REEMBOLSO AGENDADO</option>
-                                    <option value="DADOS INVALIDOS">DADOS INVALIDOS</option>
-                                    <option value="EM PROCESSAMENTO">EM PROCESSAMENTO</option>
+                                    {situacaoOcorrencias.map(item => (
+                                        <option value={item.nome}>{item.nome}</option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
@@ -220,7 +216,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                             {!tipoPagamento && <>
                                 <div className="col-md-3">
                                     <Label>Tipo Conta</Label>
-                                    <select name="" id="" className='form-control' value={tipoConta} onChange={e=> setTipoConta(e.target.value)}>
+                                    <select name="" id="" className='form-control' value={tipoConta} onChange={e => setTipoConta(e.target.value)}>
                                         <option value="">Selecione</option>
                                         <option value="CONTA CORRENTE">CONTA CORRENTE</option>
                                         <option value="CONTA POUPANÇA">CONTA POUPANÇA</option>

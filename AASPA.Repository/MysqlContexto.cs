@@ -62,5 +62,6 @@ namespace AASPA.Repository
         public DbSet<AnexosDb> anexos { get; set; }
         public DbSet<LogAlteracaoDb> log_alteracao { get; set; }
         public DbSet<LogCancelamentoClienteDb> log_cancelamento_cliente {  get; set; }
+        public DbSet<SituacaoOcorrencia> situacao_ocorrencia {  get; set; }
     }
 }

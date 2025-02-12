@@ -15,6 +15,7 @@ import Dropdown from '../../components/Inputs/Dropdown';
 function Atendimento() {
     const ref = useRef();
     const { usuario, handdleUsuarioLogado } = useContext(AuthContext)
+    const [situacaoOcorrencias, setSituacaoOcorrencias] = useState([]);
     const [selectedOptions, setSelectedOptions] = useState([]);
     const [showFiltro, setShowFiltro] = useState(true);
     const [dateInitAtendimento, setDateInitAtendimento] = useState('');
@@ -39,12 +40,20 @@ function Atendimento() {
         });
     };
 
+    const BuscarSituacaoOcorrencias = () => {
+        api.get("api/SituacaoOcorrencia", res => {
+            setSituacaoOcorrencias(res.data);
+        }, err => {
+            Alert('Houve um erro ao buscar os Situação Ocorrencias', false)
+        })
+    }
+
     const BuscarTodosClientes = (pPagina) => {
 
         if (!pPagina) pPagina = paginaAtual;
 
         let situacoesOcorrencias = "";
-        
+
         if (selectedOptions.length > 0) {
             selectedOptions.forEach((x, i) => {
                 situacoesOcorrencias += `SituacoesOcorrencias=${x}`
@@ -65,6 +74,7 @@ function Atendimento() {
 
     useEffect(() => {
         handdleUsuarioLogado();
+        BuscarSituacaoOcorrencias();
         BuscarTodosClientes();
     }, [])
 
@@ -84,7 +94,7 @@ function Atendimento() {
 
     return (
         <NavBar pagina_atual='ATENDIMENTO' usuario_tipo={usuario && usuario.usuario_tipo} usuario_nome={usuario && usuario.usuario_nome} >
-            <CrudAtendimento ref={ref} isUsuarioMaster={usuario && usuario.usuario_tipo === 1} />
+            <CrudAtendimento situacaoOcorrencias={situacaoOcorrencias} ref={ref} isUsuarioMaster={usuario && usuario.usuario_tipo === 1} />
             <div className="row">
                 <div className="col-md-2">
                     <button style={{ width: '100%' }} className='btn btn-info' onClick={e => setShowFiltro(!showFiltro)}>{showFiltro ? 'Esconder' : 'Mostrar'} Filtro<FaFilter /></button>
@@ -138,15 +148,9 @@ function Atendimento() {
                     </div>
                     <div className="col-md-2">
                         <span>Situação Ocorrencia</span>
-                        <Dropdown options={[
-                            { value: 'ATENDIDA', text: 'ATENDIDA' },
-                            { value: 'EM TRATAMENTO', text: 'EM TRATAMENTO' },
-                            { value: 'CANCELADA', text: 'CANCELADA' },
-                            { value: 'FINALIZADO', text: 'FINALIZADO' },
-                            { value: 'REEMBOLSO AGENDADO', text: 'REEMBOLSO AGENDADO' },
-                            { value: 'DADOS INVALIDOS', text: 'DADOS INVALIDOS' },
-                            { value: 'EM PROCESSAMENTO', text: 'EM PROCESSAMENTO' },
-                        ]}
+                        <Dropdown options={
+                            situacaoOcorrencias.map(item => ({ value: item.nome, text: item.nome }))
+                        }
                             selectedOptions={selectedOptions}
                             setSelectedOptions={setSelectedOptions}
                         />

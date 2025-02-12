@@ -10,7 +10,7 @@ import { FaTrash } from 'react-icons/fa6';
 import { FiPaperclip } from 'react-icons/fi';
 import ModalVisualizarAnexo from './modalVisualizarAnexo';
 
-function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = null, HistoricoId }) {
+function ModalEditarAtendimento({ situacaoOcorrencias, cliente, BuscarHistoricoOcorrenciaCliente = null, HistoricoId }) {
     const modalAnexo = useRef();
     const [show, setShow] = useState(false);
     const [origens, setOrigens] = useState([]);
@@ -243,12 +243,9 @@ function ModalEditarAtendimento({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                             <div className="col-md-3">
                                 <Label>Situação Da Ocorrência</Label>
                                 <select name='HistoricoContatosOcorrenciaSituacaoOcorrencia' value={situacao} onChange={e => setSituacao(e.target.value)} required className='form-control'>
-                                    <option value="ATENDIDA">ATENDIDA</option>
-                                    <option value="EM TRATAMENTO">EM TRATAMENTO</option>
-                                    <option value="CANCELADA">CANCELADA</option>
-                                    <option value="FINALIZADO">FINALIZADO</option>
-                                    <option value="REEMBOLSO AGENDADO">REEMBOLSO AGENDADO</option>
-                                    <option value="DADOS INVALIDOS">DADOS INVALIDOS</option>
+                                    {situacaoOcorrencias.map(item => (
+                                        <option value={item.nome}>{item.nome}</option>
+                                    ))}
                                 </select>
                             </div>
                         </div>

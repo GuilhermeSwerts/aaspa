@@ -71,6 +71,7 @@ class CrudAtendimento extends Component {
     render() {
         const { show, historicoOcorrenciaCliente, clienteData, clientId } = this.state;
         const { descRef, anexosRef, logRef } = this;
+        const { situacaoOcorrencias } = this.props;
 
         //**paginação**
         const limit = this.state.limit;
@@ -135,7 +136,7 @@ class CrudAtendimento extends Component {
                 <br />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 20 }}>
                     <button className='btn btn-link' onClick={Fechar}>Voltar</button>
-                    <ModalContatoOcorrencia BuscarHistoricoOcorrenciaCliente={this.BuscarHistoricoOcorrenciaCliente} cliente={clienteData ? clienteData.cliente : { cliente_nome: '', cliente_cpf: '', cliente_id: 0 }} />
+                    <ModalContatoOcorrencia situacaoOcorrencias={situacaoOcorrencias} BuscarHistoricoOcorrenciaCliente={this.BuscarHistoricoOcorrenciaCliente} cliente={clienteData ? clienteData.cliente : { cliente_nome: '', cliente_cpf: '', cliente_id: 0 }} />
                 </div>
                 <table className='table table-striped'>
                     <thead>
@@ -184,6 +185,7 @@ class CrudAtendimento extends Component {
                                         textButton={<FaPaperclip color='#fff' size={20} />}
                                     />
                                     <ModalEditarAtendimento
+                                        situacaoOcorrencias={situacaoOcorrencias}
                                         BuscarHistoricoOcorrenciaCliente={this.BuscarHistoricoOcorrenciaCliente}
                                         HistoricoId={historico.id}
                                         cliente={clienteData.cliente}
