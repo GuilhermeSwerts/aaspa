@@ -6,3 +6,13 @@ AASPA.Domain/bin
 AASPA.Domain/obj
 .vs
 /AASPA/Remessa/D.SUB.GER.176.202407
+ADM.AASPA/AASPA.Domain/bin
+ADM.AASPA/AASPA.Models/bin
+ADM.AASPA/AASPA.Repository/bin
+WORKER.AASPA/SindicatosWorker.Aaspa/bin
+WORKER.AASPA/SindicatosWorker.Aaspa/obj
+WORKER.AASPA/SindicatosWorker.Aaspa.Repository/obj
+ADM.AASPA/AASPA.Repository/obj
+ADM.AASPA/AASPA.Models/obj
+ADM.AASPA/AASPA.Domain/obj/Release/net5.0
+ADM.AASPA/AASPA.Domain/obj

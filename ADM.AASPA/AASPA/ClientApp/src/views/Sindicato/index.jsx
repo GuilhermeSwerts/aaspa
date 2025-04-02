@@ -18,7 +18,8 @@ function Sindicato() {
 
 
     const handleSubmit = () => {
-        api.ArquviGrande('Sindicato/Importar', res => { Alert(res.data); setImportado(true); }, err => { Alert(err.response.data, false); setImportado(false) }, setProgresso);
+        setImportado(true);
+        api.ArquviGrande('Sindicato/Importar', res => { Alert(res.data); setImportado(false); }, err => { Alert(err.response.data, false); setImportado(false) }, setProgresso);
     }
 
     const handleDragOver = (e) => {
@@ -149,12 +150,19 @@ function Sindicato() {
                                 <p className="text-muted mb-0">{fileName || "Arraste e solte um arquivo aqui ou clique para selecionar"}</p>
                             </div>
                             <br />
-                            <button disabled={progresso > 0} className="btn btn-primary" onClick={handleSubmit}>
+                            {!importado && <button className="btn btn-primary" onClick={handleSubmit}>
                                 Enviar
-                            </button>
-                            {!importado && <div>
-                                {progresso > 0 && progresso < 99 && <span className="text-secondary">Carregando arquivo: {progresso}%</span>}
+                            </button>}
+                            {progresso > 0 && progresso < 99 && <span className="text-secondary">Carregando arquivo: {progresso}%</span>}
+                            {progresso >= 99 && !importado && <span className="text-secondary">Arquivo pronto para ser enviado!</span>}
+                            {importado && <div>
                                 {progresso >= 99 && <span className="text-secondary">O arquivo está sendo importando, isso pode demorar de 3 a 5 minutos.</span>}
+                                <br/>
+                                <div class="dots-loader">
+                                    <div style={{width:'10px',height:'10px' ,backgroundColor: 'var(--cor-principal) !important'}}></div>
+                                    <div style={{width:'10px',height:'10px' ,backgroundColor: 'var(--cor-principal) !important'}}></div>
+                                    <div style={{width:'10px',height:'10px' ,backgroundColor: 'var(--cor-principal) !important'}} ></div>
+                               </dv>
                             </div>}
                             <hr />
                             <table className='table table-striped'>

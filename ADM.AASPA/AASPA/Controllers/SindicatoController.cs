@@ -128,7 +128,12 @@ namespace AASPA.Controllers
             if (file == null || file.Length == 0)
                 return BadRequest("Arquivo inválido.");
 
-            string tempFilePath = Path.Combine(_configuration["PASTA_SINDICATOS"], file.FileName);
+            string diretorio = _configuration["PASTA_SINDICATOS"];
+
+            string tempFilePath = Path.Combine(diretorio, file.FileName);
+
+            if (!Directory.Exists(diretorio))
+                Directory.CreateDirectory(diretorio);
 
             using (var stream = new FileStream(tempFilePath, FileMode.Create))
             {
