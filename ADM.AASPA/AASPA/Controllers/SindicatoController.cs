@@ -107,7 +107,7 @@ namespace AASPA.Controllers
                     NomeArquivo = x.NomeArquivo,
                     DataCadastro = x.DtCadastro.ToString("dd/MM/yyyy hh:mm:ss"),
                     DataImportacao = x.DtImportacao.ToString("dd/MM/yyyy hh:mm:ss"),
-                    TempoImportacao = (x.DtImportacao - x.DtCadastro).ToString(@"mm\:ss"),
+                    TempoImportacao = $"{(x.DtImportacao - x.DtCadastro).ToString(@"hh")}h {(x.DtImportacao - x.DtCadastro).ToString(@"mm")}min {(x.DtImportacao - x.DtCadastro).ToString(@"ss")}seg",
                     ArquivoImportado = x.Importado ? "Sim" : "Não",
                     ArquivoComErro = x.GerouErro ? "Sim" : "Não",
                     Erro = x.Erro

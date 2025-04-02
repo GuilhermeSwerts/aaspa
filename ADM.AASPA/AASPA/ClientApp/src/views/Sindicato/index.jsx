@@ -19,7 +19,7 @@ function Sindicato() {
 
     const handleSubmit = () => {
         setImportado(true);
-        api.ArquviGrande('Sindicato/Importar', res => { Alert(res.data); setImportado(false); }, err => { Alert(err.response.data, false); setImportado(false) }, setProgresso);
+        api.ArquviGrande('Sindicato/Importar', res => { Alert(res.data); setImportado(false); GetLogArquivos() }, err => { Alert(err.response.data, false); setImportado(false); GetLogArquivos() }, setProgresso);
     }
 
     const handleDragOver = (e) => {
@@ -150,19 +150,18 @@ function Sindicato() {
                                 <p className="text-muted mb-0">{fileName || "Arraste e solte um arquivo aqui ou clique para selecionar"}</p>
                             </div>
                             <br />
-                            {!importado && <button className="btn btn-primary" onClick={handleSubmit}>
+                            {fileName && <button className="btn btn-primary" onClick={handleSubmit}>
                                 Enviar
                             </button>}
-                            {progresso > 0 && progresso < 99 && <span className="text-secondary">Carregando arquivo: {progresso}%</span>}
-                            {progresso >= 99 && !importado && <span className="text-secondary">Arquivo pronto para ser enviado!</span>}
-                            {importado && <div>
+                            {importado && <div style={{ display: 'flex', gap: 5 }}>
+                                {progresso > 0 && progresso < 99 && <span className="text-secondary">Carregando arquivo: {progresso}%</span>}
                                 {progresso >= 99 && <span className="text-secondary">O arquivo está sendo importando, isso pode demorar de 3 a 5 minutos.</span>}
-                                <br/>
+                                <br />
                                 <div class="dots-loader">
-                                    <div style={{width:'10px',height:'10px' ,backgroundColor: 'var(--cor-principal) !important'}}></div>
-                                    <div style={{width:'10px',height:'10px' ,backgroundColor: 'var(--cor-principal) !important'}}></div>
-                                    <div style={{width:'10px',height:'10px' ,backgroundColor: 'var(--cor-principal) !important'}} ></div>
-                               </dv>
+                                    <div style={{ width: '10px', height: '10px', backgroundColor: 'var(--cor-principal) !important' }}></div>
+                                    <div style={{ width: '10px', height: '10px', backgroundColor: 'var(--cor-principal) !important' }}></div>
+                                    <div style={{ width: '10px', height: '10px', backgroundColor: 'var(--cor-principal) !important' }}></div>
+                                </div>
                             </div>}
                             <hr />
                             <table className='table table-striped'>
@@ -182,7 +181,7 @@ function Sindicato() {
                                         <td>{arquivo.nomeArquivo}</td>
                                         <td>{arquivo.dataCadastro}</td>
                                         <td>{arquivo.dataImportacao}</td>
-                                        <td>{arquivo.tempoImportacao}</td>
+                                        <td>{arquivo.arquivoImportado !== "Sim" ? "-" : arquivo.tempoImportacao}</td>
                                         <td>{arquivo.arquivoImportado}</td>
                                         <td>{arquivo.arquivoComErro}</td>
                                         <td>{arquivo.erro}</td>
