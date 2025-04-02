@@ -1,6 +1,7 @@
 ﻿using AASPA.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,9 +15,11 @@ namespace AASPA.Controllers
     public class SindicatoController : Controller
     {
         private readonly MysqlContexto _contexto;
-        public SindicatoController(MysqlContexto contexto)
+        private IConfiguration _configuration;
+        public SindicatoController(MysqlContexto contexto, IConfiguration configuration)
         {
             _contexto = contexto;
+            _configuration = configuration;
         }
         public static List<string> GerarCompetencias(string inicio, string fim)
         {
@@ -125,7 +128,7 @@ namespace AASPA.Controllers
             if (file == null || file.Length == 0)
                 return BadRequest("Arquivo inválido.");
 
-            string tempFilePath = Path.Combine("C:\\FILA\\SINDICATOS", file.FileName);
+            string tempFilePath = Path.Combine(_configuration["PASTA_SINDICATOS"], file.FileName);
 
             using (var stream = new FileStream(tempFilePath, FileMode.Create))
             {
@@ -144,7 +147,7 @@ namespace AASPA.Controllers
             {
                 await _contexto.SaveChangesAsync();
 
-                string consoleAppPath = "C:\\ANDERSON\\aaspa\\WORKER.AASPA\\SindicatosWorker.Aaspa\\bin\\Debug\\SindicatosWorker.Aaspa.exe";
+                string consoleAppPath = _configuration["CAMINHO_WORKER"].ToString();
 
                 ProcessStartInfo startInfo = new ProcessStartInfo
                 {
