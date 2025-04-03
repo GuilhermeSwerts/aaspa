@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AASPA.Models.Enum
+namespace AASPA.Models.Enums
 {
     public enum EMotivo
     {

@@ -1,6 +1,8 @@
 ﻿using AASPA.Controllers;
 using AASPA.Domain.Interface;
-using AASPA.Models.Enum;
+using AASPA.Domain.Util;
+using AASPA.Models.Enums;
+using AASPA.Models.Model.Integraal;
 using AASPA.Models.Requests;
 using AASPA.Models.Response;
 using AASPA.Repository;
@@ -9,6 +11,7 @@ using AASPA.Repository.Response;
 using Dapper;
 using DocumentFormat.OpenXml.ExtendedProperties;
 using DocumentFormat.OpenXml.Office2010.Excel;
+using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using DocumentFormat.OpenXml.Office2016.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Vml;
@@ -19,6 +22,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Win32;
 using MySqlConnector;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -496,7 +500,6 @@ namespace AASPA.Domain.Service
 
                         await InserirDadosRepasse(processados);
                         AdicionarHistoricoPagamento(processados, usuarioLogadoId, retorno_financeiro);
-
                         return anomes;
                     }
                 }
@@ -526,7 +529,7 @@ namespace AASPA.Domain.Service
                     NumeroBeneficio = group.Key,
                     QuantidadeParcelas = group.Count()
                 }).ToListAsync();
-
+                await AlterarStatusPagoIntegraal(parcelas);
                 int batchSize = 10000;
                 int maxBatchSize = registros.Count;
                 var data = new List<RegistroRetornoFinanceiroDb>();
@@ -772,6 +775,7 @@ namespace AASPA.Domain.Service
                         var linhas = content.Split('\n');
 
                         var registro = new List<RegistroRetornoRemessaDb>();
+                        var registroRetornos = new List<RegistroRetornoRemessaDb>();
 
                         foreach (var line in linhas)
                         {
@@ -786,6 +790,8 @@ namespace AASPA.Domain.Service
                                 }
                                 else if (int.Parse(line.Substring(0, 1)) == 1)
                                 {
+                                    ClienteparaAtivar.Add(line);
+
                                     if (int.Parse(line.Substring(12, 1)) == 2)
                                     {
                                         clientesparainativar.Add(line);
@@ -820,6 +826,10 @@ namespace AASPA.Domain.Service
                         await AlterarStatusClienteRemessaEnviada(ClienteparaAtivar, EStatus.AtivoAguardandoAverbacao, EStatus.Ativo);
                         await AlterarStatusClienteRemessaEnviada(clientesparainativar, EStatus.AtivoAguardandoAverbacao, EStatus.Inativo);
                         await AlterarStatusClienteRemessaEnviada(ClienteparaExcluir, EStatus.ExcluidoAguardandoEnvio, EStatus.Deletado);
+
+                        await AtualizarStatusParaCancelado(clientesparainativar, ClienteparaExcluir);
+                        await AtualizarStatusParaAtivoPago(ClienteparaAtivar);
+
                         return anomes;
                     }
                 }
@@ -829,84 +839,126 @@ namespace AASPA.Domain.Service
                 throw new Exception(ex.Message);
             }
         }
-
-        private async Task InserirDadosHistorico(List<RegistroRetornoRemessaDb> registros, int usuarioLogadoId)
+        private async Task AlterarStatusPagoIntegraal(List<QuantidadeParcelaModel> clientesPagos)
         {
-            var codigoRetorno = _mysql.codigo_retorno.ToList();
-
-            int batchSize = 10000;
-            int maxBatchSize = registros.Count;
-            var data = new List<HistoricoContatosOcorrenciaRequest>();
-            int count = 0;
-            foreach (var registro in registros)
+            try
             {
-                var cliente = _mysql.clientes.FirstOrDefault(x => x.cliente_matriculaBeneficio.PadLeft(10, '0') == registro.Numero_Beneficio.PadLeft(10, '0'));
-                if (cliente == null) continue;
-
-                var descricao = codigoRetorno
-                .FirstOrDefault(c => c.CodigoErro == registro.Motivo_Rejeicao.ToString().PadLeft(3, '0') && c.CodigoOperacao == registro.Codigo_Operacao)
-                != null ? codigoRetorno
-                .FirstOrDefault(c => c.CodigoErro == registro.Motivo_Rejeicao.ToString().PadLeft(3, '0') && c.CodigoOperacao == registro.Codigo_Operacao)
-                .DescricaoErro : $"Codigo de erro {registro.Motivo_Rejeicao.ToString().PadLeft(3, '0')} ou Codigo da operação {registro.Codigo_Operacao} nao encontrados";
-
-                data.Add(new HistoricoContatosOcorrenciaRequest
+                var nbs = clientesPagos.Where(x => x.QuantidadeParcelas == 1).Select(line => new
                 {
-                    HistoricoContatosOcorrenciaOrigemId = (int)EOrigem.ARQUIVO_REPASSE_FINANCEIRO,
-                    HistoricoContatosOcorrenciaDtOcorrencia = DateTime.Now,
-                    HistoricoContatosOcorrenciaClienteId = cliente.cliente_id,
-                    HistoricoContatosOcorrenciaMotivoContatoId = (int)EMotivo.ARQUIVO_INSS,
-                    HistoricoContatosOcorrenciaSituacaoOcorrencia = "EM PROCESSAMENTO",
-                    HistoricoContatosOcorrenciaDescricao = descricao,
-
-                    HistoricoContatosOcorrenciaAgencia = "",
-                    HistoricoContatosOcorrenciaPix = "",
-                    HistoricoContatosOcorrenciaBanco = "",
-                    HistoricoContatosOcorrenciaConta = "",
-                    HistoricoContatosOcorrenciaDigito = "",
-                    HistoricoContatosOcorrenciaTelefone = "",
-                    HistoricoContatosOcorrenciaTipoConta = "",
-                    HistoricoContatosOcorrenciaTipoChavePix = "",
-                    HistoricoContatosOcorrenciaAnexos = null,
-                    HistoricoContatosOcorrenciaId = 0
-                });
-                count++;
-
-                if (data.Count == batchSize || count == registros.Count)
-                {
-                    using (var connection = new MySqlConnection(_mysql.Database.GetConnectionString()))
+                    Nb = line.NumeroBeneficio.PadLeft(10, '0')
+                }).ToList();
+                var clientes = _mysql.clientes
+                    .Where(cli => nbs.Select(nb => nb.Nb).Contains(cli.cliente_matriculaBeneficio))
+                    .ToList()
+                    .Select(cli => new ClienteStatusIntegraal
                     {
-                        var sqlBuilder = new StringBuilder();
+                        Cpf = cli.cliente_cpf.PadLeft(11, '0'),
+                        Matricula = cli.cliente_matriculaBeneficio.PadLeft(10, '0')
+                    })
+                    .ToList();
 
-                        sqlBuilder.Append("INSERT INTO historico_contatos_ocorrencia (historico_contatos_ocorrencia_origem_id, historico_contatos_ocorrencia_cliente_id, historico_contatos_ocorrencia_motivo_contato_id, historico_contatos_ocorrencia_dt_ocorrencia, historico_contatos_ocorrencia_descricao, historico_contatos_ocorrencia_situacao_ocorrencia, historico_contatos_ocorrencia_dt_cadastro, historico_contatos_ocorrencia_banco, historico_contatos_ocorrencia_agencia, historico_contatos_ocorrencia_conta, historico_contatos_ocorrencia_digito, historico_contatos_ocorrencia_chave_pix, historico_contatos_ocorrencia_tipo_chave_pix, historico_contatos_ocorrencia_telefone, historico_contatos_ocorrencia_usuario_fk, historico_contatos_ocorrencia_tipo_conta) VALUES ");
-
-                        var parameters = new DynamicParameters();
-                        int counter = 0;
-
-                        foreach (var reg in data)
-                        {
-                            sqlBuilder.Append($"(@Origem{counter}, @ClienteId{counter}, @Motivo{counter}, NOW(), @Desc{counter},@Situacao{counter},NOW(),'','','','','','','',@Usuario{counter},''),");
-
-                            parameters.Add($"@Origem{counter}", reg.HistoricoContatosOcorrenciaOrigemId);
-                            parameters.Add($"@ClienteId{counter}", reg.HistoricoContatosOcorrenciaClienteId);
-                            parameters.Add($"@Motivo{counter}", reg.HistoricoContatosOcorrenciaMotivoContatoId);
-                            parameters.Add($"@Desc{counter}", reg.HistoricoContatosOcorrenciaDescricao);
-                            parameters.Add($"@Situacao{counter}", reg.HistoricoContatosOcorrenciaSituacaoOcorrencia);
-                            parameters.Add($"@Usuario{counter}", usuarioLogadoId);
-                            counter++;
-                        }
-
-                        sqlBuilder.Length--;
-                        sqlBuilder.Append(";");
-
-                        await connection.ExecuteAsync(sqlBuilder.ToString(), parameters);
-                    }
-
-                    maxBatchSize -= batchSize;
-                    data.Clear();
-                }
+                await WebRequestUtil.Integrral
+                    .Post(JsonConvert.SerializeObject(clientes), EEndpointsIntegraall.AtualizaStatusPago);
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
 
+        private List<ClienteStatusIntegraal> BuscarClientesAlteracaoStatus(List<string> clientesList)
+        {
+            var nbs = clientesList.Select(line => new
+            {
+                Nb = line.Substring(1, 10).TrimStart('0')
+            }).ToList();
+     
+            var clientes = _mysql.clientes
+                .Where(cli => nbs.Select(nb => nb.Nb).Contains(cli.cliente_matriculaBeneficio.TrimStart('0')))
+                .ToList()
+                .Select(cli => new ClienteStatusIntegraal
+                {
+                    Cpf = cli.cliente_cpf.PadLeft(11, '0'),
+                    Matricula = cli.cliente_matriculaBeneficio.PadLeft(10, '0')
+                })
+                .ToList();
+
+            return clientes;
+        }
+
+        private async Task AtualizarStatusParaAtivoPago(List<string> clienteparaAtivar)
+        {
+            try
+            {
+                var clientes = BuscarClientesAlteracaoStatus(clienteparaAtivar);
+
+                var canceladosIntegraalTete = await WebRequestUtil.Integrral
+                    .Post<object>(JsonConvert.SerializeObject(clientes), EEndpointsIntegraall.AtualizaStatusAverbado);
+
+                var canceladosIntegraal = await WebRequestUtil.Integrral
+                    .Post<List<ClienteStatusIntegraal>>(JsonConvert.SerializeObject(clientes), EEndpointsIntegraall.AtualizaStatusAverbado);
+
+                var clientesCancelados = (from cli in _mysql.clientes
+                                          join nb in canceladosIntegraal
+                                              on cli.cliente_matriculaBeneficio.PadLeft(10, '0') equals nb.Matricula.PadLeft(10, '0')
+                                          where cli.cliente_cpf.PadLeft(11, '0') == nb.Cpf.PadLeft(11, '0')
+                                          select cli).ToList();
+
+                foreach (var cliente in clientesCancelados)
+                    cliente.cliente_motivocancelamento = "Cancelado no Integraal";
+
+                _mysql.log_status.AddRange(clientesCancelados.Select(cli => new LogStatusDb
+                {
+                    log_status_antigo_id = (int)EStatus.Ativo,
+                    log_status_cliente_id = cli.cliente_id,
+                    log_status_novo_id = (int)EStatus.Cancelado,
+                    log_status_dt_cadastro = DateTime.Now
+                }).ToList()
+                );
+
+                if (clientesCancelados.Count > 0)
+                    _mysql.SaveChanges();
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao alterar status ativo na Integraal.", ex);
+            }
+        }
+
+        private async Task AtualizarStatusParaCancelado(List<string> clientesparainativar, List<string> clienteparaExcluir)
+        {
+            try
+            {
+                var nbs = clientesparainativar.Select(line => new
+                {
+                    Nb = line.Substring(2, 10)
+                }).ToList();
+                nbs.AddRange(clienteparaExcluir.Select(line => new
+                {
+                    Nb = line.Substring(2, 10)
+                }).ToList());
+
+                var clientes = _mysql.clientes
+                    .Where(cli => nbs.Select(nb => nb.Nb).Contains(cli.cliente_matriculaBeneficio))
+                    .ToList() // Executa a query no banco antes da manipulação
+                    .Select(cli => new ClienteStatusIntegraal
+                    {
+                        Cpf = cli.cliente_cpf.PadLeft(11, '0'),
+                        Matricula = cli.cliente_matriculaBeneficio.PadLeft(10, '0')
+                    })
+                    .ToList();
+
+                if (clientes.Count > 0)
+                    await WebRequestUtil.Integrral
+                        .Post(JsonConvert.SerializeObject(clientes), EEndpointsIntegraall.AtualizaStatusCancelado);
+
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
         private async Task InserirDadosRetorno(List<RegistroRetornoRemessaDb> registros)
         {
             try

@@ -1,6 +1,6 @@
 ﻿using AASPA.Domain.CustonException;
 using AASPA.Domain.Interface;
-using AASPA.Models.Enum;
+using AASPA.Models.Enums;
 using AASPA.Models.Requests;
 using AASPA.Models.Response;
 using AASPA.Repository;
