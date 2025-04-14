@@ -8,7 +8,7 @@ using System.Linq;
 namespace AASPA.Controllers
 {
     [Authorize]
-    public class PrivateController : Controller
+    public class PrivateController : PrivateController
     {
         public UsuarioDb Usuario => GetUser();
 

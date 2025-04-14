@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace AASPA.Controllers
 {
-    public class ReembolsoController : Controller
+    public class ReembolsoController : PrivateController
     {
         private readonly IReembolso _service;
 

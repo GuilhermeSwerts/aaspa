@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace AASPA.Controllers
 {
-    public class SituacaoOcorrencia : Controller
+    public class SituacaoOcorrencia : PrivateController
     {
         private readonly MysqlContexto _contexto;
 

@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace AASPA.Controllers
 {
-    public class SindicatoController : Controller
+    public class SindicatoController : PrivateController
     {
         private readonly MysqlContexto _contexto;
         private IConfiguration _configuration;
