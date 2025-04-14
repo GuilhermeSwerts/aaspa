@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace AASPA.Controllers
 {
-    public class RelatoriosController : Controller
+    public class RelatoriosController : PrivateController
     {
         private readonly IRelatorios _relatorios;
         private readonly IHostEnvironment _env;
