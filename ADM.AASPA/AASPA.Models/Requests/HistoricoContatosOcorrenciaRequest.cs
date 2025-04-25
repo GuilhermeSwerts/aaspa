@@ -25,5 +25,6 @@ namespace AASPA.Models.Requests
         public string? HistoricoContatosOcorrenciaTipoChavePix { get; set; }
         public string? HistoricoContatosOcorrenciaTelefone { get; set; }
         public List<IFormFile> HistoricoContatosOcorrenciaAnexos { get; set; }
+        public string HistoricoContatosOcorrenciaValorReembolso { get; set; }
     }
 }

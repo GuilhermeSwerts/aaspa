@@ -62,6 +62,7 @@ function HistoricoPagamento() {
             <button className='btn btn-link' onClick={() => window.history.back()}>Voltar</button>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
+                    <h4>Matrícula: {clienteData.cliente.cliente_matriculaBeneficio}</h4>
                     <h4>Cliente: {clienteData.cliente.cliente_nome}</h4>
                     <h4>CPF: {Mascara.cpf(clienteData.cliente.cliente_cpf)}</h4>
                 </div>

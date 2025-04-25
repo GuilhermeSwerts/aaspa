@@ -7,6 +7,7 @@ import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { Alert } from '../../util/alertas';
 import { Size } from '../../util/size';
 import { FiPaperclip } from 'react-icons/fi';
+import { NumericFormat } from "react-number-format";
 
 function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = null, isEdit = false, situacaoOcorrencias = [] }) {
     const [show, setShow] = useState(false);
@@ -39,6 +40,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
     const [tipoConta, setTipoConta] = useState("");
     const [digito, setDigito] = useState("");
     const [pix, setPIX] = useState("");
+    const [valorReembolso, setValorReembolso] = useState("");
     const [telefone, setTelefone] = useState("");
 
     const initState = () => {
@@ -53,6 +55,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         } else {
             setOrigem(motivos[0]);
         }
+        setValorReembolso('');
         setSituacao("EM TRATAMENTO");
         setDesc("");
         setBanco("");
@@ -109,6 +112,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         formData.append("HistoricoContatosOcorrenciaPix", pix)
         formData.append("HistoricoContatosOcorrenciaTipoChavePix", tipoChavePix)
         formData.append("HistoricoContatosOcorrenciaTelefone", telefone)
+        formData.append("HistoricoContatosOcorrenciaValorReembolso", valorReembolso)
 
         for (const file of anexos)
             formData.append('HistoricoContatosOcorrenciaAnexos', file.file, file.file.name);
@@ -255,6 +259,20 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                                     <input type="text" value={pix} onChange={e => setPIX(e.target.value)} placeholder='Chave PIX' className='form-control' />
                                 </div>
                             </>}
+                            <div className="col-md-3">
+                                <Label>Valor total reembolsado</Label>
+                                <NumericFormat
+                                    id='valorReembolso'
+                                    value={valorReembolso}
+                                    thousandSeparator="."
+                                    decimalSeparator=","
+                                    prefix="R$ "
+                                    decimalScale={2}
+                                    onValueChange={({ floatValue }) => setValorReembolso(floatValue)}
+                                    placeholder="R$ x.xxx,xx"
+                                    className="form-control"
+                                />
+                            </div>
                         </div>
                         <hr />
                         <small><b>Dados Extras:</b></small>

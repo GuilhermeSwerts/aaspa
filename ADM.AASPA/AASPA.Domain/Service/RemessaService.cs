@@ -867,7 +867,8 @@ namespace AASPA.Domain.Service
                     HistoricoContatosOcorrenciaTipoConta = "",
                     HistoricoContatosOcorrenciaTipoChavePix = "",
                     HistoricoContatosOcorrenciaAnexos = null,
-                    HistoricoContatosOcorrenciaId = 0
+                    HistoricoContatosOcorrenciaId = 0,
+                    HistoricoContatosOcorrenciaValorReembolso = "",
                 });
                 count++;
 

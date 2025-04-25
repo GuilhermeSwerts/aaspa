@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -99,6 +100,7 @@ namespace AASPA.Domain.Service
                 hst.historico_contatos_ocorrencia_tipo_chave_pix,
                 hst.historico_contatos_ocorrencia_telefone,
                 hst.historico_contatos_ocorrencia_tipo_conta,
+                hst.historico_contatos_ocorrencia_valor_reembolso,
                 anexos
             };
         }
@@ -139,7 +141,7 @@ namespace AASPA.Domain.Service
                 contatoOcorrencia.historico_contatos_ocorrencia_tipo_chave_pix = historicoContatos.HistoricoContatosOcorrenciaTipoChavePix != null ? historicoContatos.HistoricoContatosOcorrenciaTipoChavePix.Replace("null", "") : "";
                 contatoOcorrencia.historico_contatos_ocorrencia_telefone = historicoContatos.HistoricoContatosOcorrenciaTelefone != null ? historicoContatos.HistoricoContatosOcorrenciaTelefone.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "") : "";
                 contatoOcorrencia.historico_contatos_ocorrencia_tipo_conta = historicoContatos.HistoricoContatosOcorrenciaTipoConta != null ? historicoContatos.HistoricoContatosOcorrenciaTipoConta.Replace("null", "") : "";
-
+                contatoOcorrencia.historico_contatos_ocorrencia_valor_reembolso = historicoContatos?.HistoricoContatosOcorrenciaValorReembolso != null ? decimal.Parse(historicoContatos.HistoricoContatosOcorrenciaValorReembolso, CultureInfo.InvariantCulture) : 0m;
                 var anexos = _mysql.anexos.Where(x => x.anexo_historico_contato_fk == contatoOcorrencia.historico_contatos_ocorrencia_id).ToList();
                 _mysql.anexos.RemoveRange(anexos);
                 var novosAnexos = new List<AnexosDb>();
@@ -223,7 +225,8 @@ namespace AASPA.Domain.Service
                     historico_contatos_ocorrencia_tipo_chave_pix = historicoContatos.HistoricoContatosOcorrenciaTipoChavePix != null ? historicoContatos.HistoricoContatosOcorrenciaTipoChavePix.Replace("null", "") : "",
                     historico_contatos_ocorrencia_telefone = historicoContatos.HistoricoContatosOcorrenciaTelefone != null ? historicoContatos.HistoricoContatosOcorrenciaTelefone.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "") : "",
                     historico_contatos_ocorrencia_usuario_fk = usuarioId,
-                    historico_contatos_ocorrencia_tipo_conta = historicoContatos.HistoricoContatosOcorrenciaTipoConta != null ? historicoContatos.HistoricoContatosOcorrenciaTipoConta.Replace("null", "") : ""
+                    historico_contatos_ocorrencia_tipo_conta = historicoContatos.HistoricoContatosOcorrenciaTipoConta != null ? historicoContatos.HistoricoContatosOcorrenciaTipoConta.Replace("null", "") : "",
+                    historico_contatos_ocorrencia_valor_reembolso = historicoContatos?.HistoricoContatosOcorrenciaValorReembolso != null ? decimal.Parse(historicoContatos.HistoricoContatosOcorrenciaValorReembolso, CultureInfo.InvariantCulture) : 0m
                 };
 
                 _mysql.historico_contatos_ocorrencia.Add(hst);
@@ -430,7 +433,7 @@ namespace AASPA.Domain.Service
 
             var builder = new StringBuilder();
 
-            builder.AppendLine("#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO;STATUS_INTEGRAALL;MOTIVO_ATENDIMENTO;ORIGEM_ATENDIMENTO;SITUACAO_ATENDIMENTO;USUARIO_RESPONSAVEL_PELO_REGISTRO;USUARIO_RESPONSAVEL_PELA_ULTIMA_ALTERACAO;DATA_ATENDIMENTO;DESCRICAO_ATENDIMENTO;DADOS_BANCARIOS_BANCO;DADOS_BANCARIOS_AGENCIA;DADOS_BANCARIOS_CONTA;DADOS_BANCARIOS_DIGITO;DADOS_BANCARIOS_CHAVE_PIX");
+            builder.AppendLine("#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO;STATUS_INTEGRAALL;MOTIVO_ATENDIMENTO;ORIGEM_ATENDIMENTO;SITUACAO_ATENDIMENTO;USUARIO_RESPONSAVEL_PELO_REGISTRO;USUARIO_RESPONSAVEL_PELA_ULTIMA_ALTERACAO;DATA_ATENDIMENTO;DESCRICAO_ATENDIMENTO;DADOS_BANCARIOS_BANCO;DADOS_BANCARIOS_AGENCIA;DADOS_BANCARIOS_CONTA;DADOS_BANCARIOS_DIGITO;DADOS_BANCARIOS_CHAVE_PIX;VALOR_REEMBOLSO");
 
             for (int i = 0; i < clientesData.Count; i++)
             {
@@ -440,7 +443,7 @@ namespace AASPA.Domain.Service
                 var motivoNome = cliente.Motivo != null ? cliente.Motivo.motivo_contato_nome : ";;";
                 var origem = (cliente.Origem != null && !string.IsNullOrEmpty(cliente.Origem.origem_nome)) ? cliente.Origem.origem_nome : ";;";
                 var remessa = cliente.Cliente.cliente_remessa_id ?? 0;
-                var historico = cliente.Historico != null ? $"{cliente.Historico.historico_contatos_ocorrencia_situacao_ocorrencia};{cliente.Usuario.usuario_nome};{cliente.UsuarioCriador.usuario_nome};{cliente.Historico.historico_contatos_ocorrencia_dt_ocorrencia:dd/MM/yyyy hh:mm:ss};{cliente.Historico.historico_contatos_ocorrencia_descricao};{cliente.Historico.historico_contatos_ocorrencia_banco};{cliente.Historico.historico_contatos_ocorrencia_agencia};{cliente.Historico.historico_contatos_ocorrencia_conta};{cliente.Historico.historico_contatos_ocorrencia_digito};{cliente.Historico.historico_contatos_ocorrencia_chave_pix}" : ";;;;;;;;";
+                var historico = cliente.Historico != null ? $"{cliente.Historico.historico_contatos_ocorrencia_situacao_ocorrencia};{cliente.Usuario.usuario_nome};{cliente.UsuarioCriador.usuario_nome};{cliente.Historico.historico_contatos_ocorrencia_dt_ocorrencia:dd/MM/yyyy hh:mm:ss};{cliente.Historico.historico_contatos_ocorrencia_descricao};{cliente.Historico.historico_contatos_ocorrencia_banco};{cliente.Historico.historico_contatos_ocorrencia_agencia};{cliente.Historico.historico_contatos_ocorrencia_conta};{cliente.Historico.historico_contatos_ocorrencia_digito};{cliente.Historico.historico_contatos_ocorrencia_chave_pix};{cliente.Historico.historico_contatos_ocorrencia_valor_reembolso}" : ";;;;;;;;;";
                 builder.AppendLine(
                     $"{cliente.Cliente.cliente_id};" +
                     $"{cliente.Cliente.cliente_cpf};" +

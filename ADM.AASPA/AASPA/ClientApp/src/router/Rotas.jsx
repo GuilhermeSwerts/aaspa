@@ -26,7 +26,7 @@ import SituacaoOcorrencia from '../views/Gerenciamento/SituacaoOcorrencia/Situac
 
 /*ICONES*/
 import { FaUsersGear } from "react-icons/fa6";
-import { FaChartArea, FaChartPie, FaFileDownload, FaFileImport, FaHome } from "react-icons/fa";
+import { FaChartArea, FaChartPie, FaFileDownload, FaFileImport, FaHome, FaUserAltSlash } from "react-icons/fa";
 import { FaUsers } from "react-icons/fa";
 import { GiReceiveMoney } from "react-icons/gi";
 import { FaGears } from "react-icons/fa6";
@@ -38,6 +38,7 @@ import { RiChatHistoryLine } from "react-icons/ri";
 import { GiTakeMyMoney } from "react-icons/gi";
 import Home from '../views/Home/home';
 import Sindicato from '../views/Sindicato';
+import NaoAssociados from '../views/NaoAssociado/index';
 
 export const PublicaRotas = [ /*PUBLICA PARA APARECER NO MENU*/
     { Operador: true, Icon: FaHome, nome: 'Home', path: '/', component: Home },
@@ -46,6 +47,7 @@ export const PublicaRotas = [ /*PUBLICA PARA APARECER NO MENU*/
     { Operador: true, Icon: BiSupport, nome: 'Atendimento', path: '/atendimento', component: Atendimento },
     { Icon: GiTakeMyMoney, nome: 'Reembolso', path: '/reembolso', component: SolicitacaoReembolso },
 
+    { Icon: FaUserAltSlash  , nome: 'Aten. Não Associados', path: '/atendimento-nao-associados', component: NaoAssociados },
     { Icon: FaUsers, nome: 'Clientes', path: '/clientes', component: Cclientes },
 
     /*GERAÇÃO DE ARQUIVOS*/
@@ -65,7 +67,7 @@ export const PublicaRotas = [ /*PUBLICA PARA APARECER NO MENU*/
     { Icon: FaGears, nome: 'Gerenciar Status', path: '/gstatus', component: Status },
     { Icon: FaGears, nome: 'Gerenciar Benefícios', path: '/gbeneficio', component: GBeneficios },
     { Icon: FaGears, nome: 'Gerenciar Situacao Ocorrencia', path: '/gsituacaoocorrencia', component: SituacaoOcorrencia },
-    { Icon: FaFileImport, nome: 'Importar Arquivo Sindicato', path: '/sindicato', component: Sindicato },
+    //{ Icon: FaFileImport, nome: 'Importar Arquivo Sindicato', path: '/sindicato', component: Sindicato },
 ]
 
 export const PrivateRotas = [ /*PUBLICA PARA NÃO APARECER NO MENU*/
