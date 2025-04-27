@@ -66,11 +66,11 @@ class ModalAtendimentoNaoAssociado extends Component {
         if (!form.telefone) newErrors.telefone = 'Telefone é obrigatório';
         if (!form.descricao) newErrors.descricao = 'Descrição é obrigatória';
         this.setState({ errors: newErrors });
+        console.log(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
-    handleSubmit = (e) => {
-        e.preventDefault();
+    handleSubmit = () => {
         if (this.validate()) {
             api.put("api/NaoAssociados/" + this.state.id, this.state.form, res => {
                 this.props.BuscarTodosNaoAssociados?.();
@@ -97,7 +97,7 @@ class ModalAtendimentoNaoAssociado extends Component {
                     <Modal.Title>Editar Atendimento</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <small>Dados Gerais:</small>
+                    <small>Dados Gerais:</small><br/>  
                     <label>Nome do não associado</label>
                     <input
                         type="text"

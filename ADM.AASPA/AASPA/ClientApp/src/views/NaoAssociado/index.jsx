@@ -105,7 +105,18 @@ function NaoAssociado() {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (validate()) {
-            api.post("api/NaoAssociados", form, res => {
+            const data = new FormData();
+
+            data.append("nome", form.nome);
+            data.append("cpf",form.cpf);
+            data.append("origem",form.origem);
+            data.append("dataHora",form.dataHora);
+            data.append("motivo",form.motivo);
+            data.append("situacao",form.situacao);
+            data.append("telefone",form.telefone);
+            data.append("descricao",form.descricao);
+
+            api.post("api/NaoAssociados", data, res => {
                 BuscarTodosNaoAssociados();
                 onClose();
                 Alert("Atendimento registrado com sucesso!");

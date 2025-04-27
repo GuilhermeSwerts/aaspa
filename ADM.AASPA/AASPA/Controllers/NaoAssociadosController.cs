@@ -152,7 +152,7 @@ namespace AASPA.Controllers
 
         [HttpPost]
         [Route("/api/NaoAssociados")]
-        public IActionResult PostNovoContato([FromBody] NaoAssociadosNovoAtendimentoRequest request)
+        public IActionResult PostNovoContato([FromForm] NaoAssociadosNovoAtendimentoRequest request)
         {
             try
             {
