@@ -28,6 +28,7 @@
     "eslint-config-react-app": "6.0.0",
     "eslint-plugin-jsx-a11y": "^6.2.3",
     "nan": "^2.14.1",
+    "notenv": "^2.0.3",
     "react-scripts": "^5.0.0",
     "typescript": "^3.7.5"
   },
