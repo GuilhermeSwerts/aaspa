@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const url = process.env.ENVIRONMENT == 'production' ? 'https://adm.aaspa.org.br' : 'https://localhost:5001';
-//const url = 'https://localhost:5001';
+// const url = process.env.ENVIRONMENT == 'production' ? 'https://adm.aaspa.org.br' : 'https://adm.aaspa.org.br';
+const url = 'https://localhost:5001';
 
 export default class Api {
     constructor(urlBase = "") {

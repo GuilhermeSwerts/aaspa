@@ -30,9 +30,9 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
     }
 
     const [dtOcorrencia, setDtOcorrencia] = useState(getDataDeHoje());
-    const [origem, setOrigem] = useState();
-    const [motivo, setMotivo] = useState();
-    const [situacao, setSituacao] = useState("EM TRATAMENTO");
+    const [origem, setOrigem] = useState("");
+    const [motivo, setMotivo] = useState("");
+    const [situacao, setSituacao] = useState("");
     const [desc, setDesc] = useState("");
     const [banco, setBanco] = useState("");
     const [agencia, setAgencia] = useState("");
@@ -41,6 +41,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
     const [digito, setDigito] = useState("");
     const [pix, setPIX] = useState("");
     const [valorReembolso, setValorReembolso] = useState("");
+    const [valorParcela, setValorParcela] = useState("");
     const [telefone, setTelefone] = useState("");
 
     const initState = () => {
@@ -56,23 +57,23 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
             setOrigem(motivos[0]);
         }
         setValorReembolso('');
-        setSituacao("EM TRATAMENTO");
+        setSituacao("");
         setDesc("");
         setBanco("");
         setAgencia("");
         setConta("");
         setDigito("");
         setPIX("");
-        setTipoChavePix("CPF");
+        setTipoChavePix("");
         setTipoPagamento(true);
         setTelefone("");
         setTipoConta("");
+        setValorParcela("");
     }
 
     const BuscarMotivos = () => {
         api.get("BuscarTodosMotivos", res => {
             setMotivos(res.data);
-            setMotivo(res.data[0].motivo_contato_id);
         }, err => {
             Alert('Houve um erro ao buscar os motivos de contato', false)
         })
@@ -81,7 +82,6 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
     const BuscarOrigens = () => {
         api.get("BuscarTodasOrigem", res => {
             setOrigens(res.data);
-            setOrigem(res.data[0].origem_id);
         }, err => {
             Alert('Houve um erro ao buscar os motivos de contato', false)
         })
@@ -113,6 +113,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         formData.append("HistoricoContatosOcorrenciaTipoChavePix", tipoChavePix)
         formData.append("HistoricoContatosOcorrenciaTelefone", telefone)
         formData.append("HistoricoContatosOcorrenciaValorReembolso", valorReembolso)
+        formData.append("HistoricoContatosOcorrenciaValorParcela", valorParcela)
 
         for (const file of anexos)
             formData.append('HistoricoContatosOcorrenciaAnexos', file.file, file.file.name);
@@ -181,6 +182,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                             <div className="col-md-3">
                                 <Label>Origem</Label>
                                 <select name='HistoricoContatosOcorrenciaOrigemId' value={origem} onChange={e => setOrigem(e.target.value)} required className='form-control'>
+                                    <option value="">Selecione</option>
                                     {origens.map(origem => (
                                         <option value={origem.origem_id}>{origem.origem_nome}</option>
                                     ))}
@@ -193,6 +195,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                             <div className="col-md-3">
                                 <Label>Motivo do contato</Label>
                                 <select name='HistoricoContatosOcorrenciaMotivoContatoId' value={motivo} onChange={e => setMotivo(e.target.value)} required className='form-control'>
+                                    <option value="">Selecione</option>
                                     {motivos.map(motivo_contato => (
                                         <option value={motivo_contato.motivo_contato_id}>{motivo_contato.motivo_contato_nome}</option>
                                     ))}
@@ -201,6 +204,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                             <div className="col-md-3">
                                 <Label>Situação Da Ocorrência</Label>
                                 <select name='HistoricoContatosOcorrenciaSituacaoOcorrencia' value={situacao} onChange={e => setSituacao(e.target.value)} required className='form-control'>
+                                    <option value="">Selecione</option>
                                     {situacaoOcorrencias.map(item => (
                                         <option value={item.nome}>{item.nome}</option>
                                     ))}
@@ -212,7 +216,8 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                         <div className='row'>
                             <div className="col-md-3">
                                 <label>Tipo de depósito:</label>
-                                <select onChange={onChangeTipoPagamento} className='form-control'>
+                                <select required onChange={onChangeTipoPagamento} className='form-control'>
+                                    <option value="">Selecione</option>
                                     <option value="0">PIX</option>
                                     <option value="1">Dados bancários</option>
                                 </select>
@@ -220,7 +225,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                             {!tipoPagamento && <>
                                 <div className="col-md-3">
                                     <Label>Tipo Conta</Label>
-                                    <select name="" id="" className='form-control' value={tipoConta} onChange={e => setTipoConta(e.target.value)}>
+                                    <select required name="" id="" className='form-control' value={tipoConta} onChange={e => setTipoConta(e.target.value)}>
                                         <option value="">Selecione</option>
                                         <option value="CONTA CORRENTE">CONTA CORRENTE</option>
                                         <option value="CONTA POUPANÇA">CONTA POUPANÇA</option>
@@ -228,25 +233,26 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                                 </div>
                                 <div className="col-md-3">
                                     <Label>Banco</Label>
-                                    <input type="text" value={banco} onChange={e => setBanco(e.target.value)} className='form-control' />
+                                    <input required type="text" value={banco} onChange={e => setBanco(e.target.value)} className='form-control' />
                                 </div>
                                 <div className="col-md-2">
                                     <Label>Agência</Label>
-                                    <input maxLength={6} type="text" value={agencia} onChange={e => setAgencia(e.target.value)} className='form-control' />
+                                    <input required maxLength={6} type="text" value={agencia} onChange={e => setAgencia(e.target.value)} className='form-control' />
                                 </div>
                                 <div className="col-md-3">
                                     <Label>Conta</Label>
-                                    <input maxLength={15} type="text" value={conta} onChange={e => setConta(e.target.value)} placeholder='Conta sem dígito' className='form-control' />
+                                    <input required maxLength={15} type="text" value={conta} onChange={e => setConta(e.target.value)} placeholder='Conta sem dígito' className='form-control' />
                                 </div>
                                 <div className="col-md-1">
                                     <Label>Dígito</Label>
-                                    <input maxLength={15} type="text" value={digito} onChange={e => setDigito(e.target.value)} placeholder='Dígito' className='form-control' />
+                                    <input required maxLength={15} type="text" value={digito} onChange={e => setDigito(e.target.value)} placeholder='Dígito' className='form-control' />
                                 </div>
                             </>}
                             {tipoPagamento && <>
                                 <div className="col-md-3">
                                     <Label>Tipo Chave PIX</Label>
-                                    <select value={tipoChavePix} onChange={e => setTipoChavePix(e.target.value)} className='form-control'>
+                                    <select required value={tipoChavePix} onChange={e => setTipoChavePix(e.target.value)} className='form-control'>
+                                        <option value="">Selecione</option>
                                         <option value="CPF">CPF</option>
                                         <option value="CNPJ">CNPJ</option>
                                         <option value="telefone">telefone</option>
@@ -256,12 +262,28 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                                 </div>
                                 <div className="col-md-4">
                                     <Label>Chave PIX</Label>
-                                    <input type="text" value={pix} onChange={e => setPIX(e.target.value)} placeholder='Chave PIX' className='form-control' />
+                                    <input required type="text" value={pix} onChange={e => setPIX(e.target.value)} placeholder='Chave PIX' className='form-control' />
                                 </div>
                             </>}
                             <div className="col-md-3">
+                                <Label>Valor Parcela</Label>
+                                <NumericFormat
+                                    required
+                                    id='valorParcela'
+                                    value={valorParcela}
+                                    thousandSeparator="."
+                                    decimalSeparator=","
+                                    prefix="R$ "
+                                    decimalScale={2}
+                                    onValueChange={({ floatValue }) => setValorParcela(floatValue)} 
+                                    placeholder="R$ x.xxx,xx"
+                                    className="form-control"
+                                />
+                            </div>
+                            <div className="col-md-3">
                                 <Label>Valor total reembolsado</Label>
                                 <NumericFormat
+                                    required
                                     id='valorReembolso'
                                     value={valorReembolso}
                                     thousandSeparator="."

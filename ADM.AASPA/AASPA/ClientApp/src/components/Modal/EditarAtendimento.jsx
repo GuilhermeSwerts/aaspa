@@ -33,6 +33,7 @@ function ModalEditarAtendimento({ situacaoOcorrencias, cliente, BuscarHistoricoO
     const [tipoDeposito, setTipoDeposito] = useState("0");
     const [anexos, setAnexos] = useState([]);
     const [valorReembolso, setValorReembolso] = useState("");
+    const [valorParcela, setValorParcela] = useState("");
 
     const onChangeTipoPagamento = e => {
         setTipoPagamento(e.target.value === "0");
@@ -55,6 +56,7 @@ function ModalEditarAtendimento({ situacaoOcorrencias, cliente, BuscarHistoricoO
         setTipoConta("");
         setTipoDeposito("0");
         setValorReembolso('');
+        setValorParcela("");
     }
 
     const BuscarMotivos = () => {
@@ -108,6 +110,7 @@ function ModalEditarAtendimento({ situacaoOcorrencias, cliente, BuscarHistoricoO
         formData.append("HistoricoContatosOcorrenciaTelefone", telefone)
         formData.append("HistoricoContatosOcorrenciaTipoConta", tipoConta)
         formData.append("HistoricoContatosOcorrenciaValorReembolso", valorReembolso)
+        formData.append("HistoricoContatosOcorrenciaValorParcela", valorParcela)
 
         for (const file of anexos) {
             if (file.existente) {
@@ -148,6 +151,7 @@ function ModalEditarAtendimento({ situacaoOcorrencias, cliente, BuscarHistoricoO
             setTelefone(res.data.historico_contatos_ocorrencia_telefone);
             setTipoConta(res.data.historico_contatos_ocorrencia_tipo_conta);
             setValorReembolso(res.data.historico_contatos_ocorrencia_valor_reembolso)
+            setValorParcela(res.data.historico_contatos_ocorrencia_valor_parcela)
             const isPix = !(res.data.historico_contatos_ocorrencia_banco !== "" && res.data.historico_contatos_ocorrencia_agencia !== "" && res.data.historico_contatos_ocorrencia_conta !== "" && res.data.historico_contatos_ocorrencia_digito !== "");
             setTipoPagamento(isPix)
             setTipoDeposito(isPix ? "0" : "1");
@@ -307,6 +311,21 @@ function ModalEditarAtendimento({ situacaoOcorrencias, cliente, BuscarHistoricoO
                                 </div>
                             </>}
                             <div className="col-md-3">
+                                <Label>Valor Parcela</Label>
+                                <NumericFormat
+                                    required
+                                    id='valorParcela'
+                                    value={valorParcela}
+                                    thousandSeparator="."
+                                    decimalSeparator=","
+                                    prefix="R$ "
+                                    decimalScale={2}
+                                    onValueChange={({ floatValue }) => setValorParcela(floatValue)}
+                                    placeholder="R$ x.xxx,xx"
+                                    className="form-control"
+                                />
+                            </div>
+                            <div className="col-md-3">
                                 <Label>Valor total reembolsado</Label>
                                 <NumericFormat
                                     id='valorReembolso'
@@ -315,7 +334,7 @@ function ModalEditarAtendimento({ situacaoOcorrencias, cliente, BuscarHistoricoO
                                     decimalSeparator=","
                                     prefix="R$ "
                                     decimalScale={2}
-                                    onValueChange={({floatValue}) => setValorReembolso(floatValue)}
+                                    onValueChange={({ floatValue }) => setValorReembolso(floatValue)}
                                     placeholder="R$ x.xxx,xx"
                                     className="form-control"
                                 />

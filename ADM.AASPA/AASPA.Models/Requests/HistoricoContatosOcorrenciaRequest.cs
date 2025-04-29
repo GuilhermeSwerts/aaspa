@@ -26,5 +26,6 @@ namespace AASPA.Models.Requests
         public string? HistoricoContatosOcorrenciaTelefone { get; set; }
         public List<IFormFile> HistoricoContatosOcorrenciaAnexos { get; set; }
         public string HistoricoContatosOcorrenciaValorReembolso { get; set; }
+        public string HistoricoContatosOcorrenciaValorParcela { get; set; }
     }
 }
