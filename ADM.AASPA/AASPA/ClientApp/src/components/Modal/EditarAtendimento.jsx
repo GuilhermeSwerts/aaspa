@@ -34,6 +34,7 @@ function ModalEditarAtendimento({ situacaoOcorrencias, cliente, BuscarHistoricoO
     const [anexos, setAnexos] = useState([]);
     const [valorReembolso, setValorReembolso] = useState("");
     const [valorParcela, setValorParcela] = useState("");
+    const [valorParcela2, setValorParcela2] = useState("");
 
     const onChangeTipoPagamento = e => {
         setTipoPagamento(e.target.value === "0");
@@ -111,6 +112,7 @@ function ModalEditarAtendimento({ situacaoOcorrencias, cliente, BuscarHistoricoO
         formData.append("HistoricoContatosOcorrenciaTipoConta", tipoConta)
         formData.append("HistoricoContatosOcorrenciaValorReembolso", valorReembolso)
         formData.append("HistoricoContatosOcorrenciaValorParcela", valorParcela)
+        formData.append("HistoricoContatosOcorrenciaValorParcela2", valorParcela2)
 
         for (const file of anexos) {
             if (file.existente) {
@@ -152,6 +154,7 @@ function ModalEditarAtendimento({ situacaoOcorrencias, cliente, BuscarHistoricoO
             setTipoConta(res.data.historico_contatos_ocorrencia_tipo_conta);
             setValorReembolso(res.data.historico_contatos_ocorrencia_valor_reembolso)
             setValorParcela(res.data.historico_contatos_ocorrencia_valor_parcela)
+            setValorParcela2(res.data.historico_contatos_ocorrencia_valor_parcela_2)
             const isPix = !(res.data.historico_contatos_ocorrencia_banco !== "" && res.data.historico_contatos_ocorrencia_agencia !== "" && res.data.historico_contatos_ocorrencia_conta !== "" && res.data.historico_contatos_ocorrencia_digito !== "");
             setTipoPagamento(isPix)
             setTipoDeposito(isPix ? "0" : "1");
@@ -321,6 +324,20 @@ function ModalEditarAtendimento({ situacaoOcorrencias, cliente, BuscarHistoricoO
                                     prefix="R$ "
                                     decimalScale={2}
                                     onValueChange={({ floatValue }) => setValorParcela(floatValue)}
+                                    placeholder="R$ x.xxx,xx"
+                                    className="form-control"
+                                />
+                            </div>
+                            <div className="col-md-3">
+                                <Label>Valor Parcela 2</Label>
+                                <NumericFormat
+                                    id='valorParcela2'
+                                    value={valorParcela2}
+                                    thousandSeparator="."
+                                    decimalSeparator=","
+                                    prefix="R$ "
+                                    decimalScale={2}
+                                    onValueChange={({ floatValue }) => setValorParcela2(floatValue)}
                                     placeholder="R$ x.xxx,xx"
                                     className="form-control"
                                 />

@@ -30,5 +30,6 @@ namespace AASPA.Repository.Maps
         public string? historico_contatos_ocorrencia_tipo_conta { get; set; }
         public decimal historico_contatos_ocorrencia_valor_reembolso { get; set; }
         public decimal historico_contatos_ocorrencia_valor_parcela { get; set; }
+        public decimal historico_contatos_ocorrencia_valor_parcela_2 { get; set; }
     }
 }

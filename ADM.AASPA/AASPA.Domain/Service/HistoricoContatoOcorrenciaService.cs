@@ -103,6 +103,7 @@ namespace AASPA.Domain.Service
                 hst.historico_contatos_ocorrencia_tipo_conta,
                 hst.historico_contatos_ocorrencia_valor_reembolso,
                 hst.historico_contatos_ocorrencia_valor_parcela,
+                hst.historico_contatos_ocorrencia_valor_parcela_2,
                 anexos
             };
         }
@@ -145,6 +146,7 @@ namespace AASPA.Domain.Service
                 contatoOcorrencia.historico_contatos_ocorrencia_tipo_conta = historicoContatos.HistoricoContatosOcorrenciaTipoConta != null ? historicoContatos.HistoricoContatosOcorrenciaTipoConta.Replace("null", "") : "";
                 contatoOcorrencia.historico_contatos_ocorrencia_valor_reembolso = historicoContatos?.HistoricoContatosOcorrenciaValorReembolso != null ? decimal.Parse(historicoContatos.HistoricoContatosOcorrenciaValorReembolso, CultureInfo.InvariantCulture) : 0m;
                 contatoOcorrencia.historico_contatos_ocorrencia_valor_parcela = historicoContatos?.HistoricoContatosOcorrenciaValorParcela != null ? decimal.Parse(historicoContatos.HistoricoContatosOcorrenciaValorParcela, CultureInfo.InvariantCulture) : 0m;
+                contatoOcorrencia.historico_contatos_ocorrencia_valor_parcela_2 = historicoContatos?.HistoricoContatosOcorrenciaValorParcela2 != null ? decimal.Parse(historicoContatos.HistoricoContatosOcorrenciaValorParcela2, CultureInfo.InvariantCulture) : 0m;
 
                 var anexos = _mysql.anexos.Where(x => x.anexo_historico_contato_fk == contatoOcorrencia.historico_contatos_ocorrencia_id).ToList();
                 _mysql.anexos.RemoveRange(anexos);
@@ -231,7 +233,8 @@ namespace AASPA.Domain.Service
                     historico_contatos_ocorrencia_usuario_fk = usuarioId,
                     historico_contatos_ocorrencia_tipo_conta = historicoContatos.HistoricoContatosOcorrenciaTipoConta != null ? historicoContatos.HistoricoContatosOcorrenciaTipoConta.Replace("null", "") : "",
                     historico_contatos_ocorrencia_valor_reembolso = historicoContatos?.HistoricoContatosOcorrenciaValorReembolso != null ? decimal.Parse(historicoContatos.HistoricoContatosOcorrenciaValorReembolso, CultureInfo.InvariantCulture) : 0m,
-                    historico_contatos_ocorrencia_valor_parcela = historicoContatos?.HistoricoContatosOcorrenciaValorParcela != null ? decimal.Parse(historicoContatos.HistoricoContatosOcorrenciaValorParcela, CultureInfo.InvariantCulture) : 0m
+                    historico_contatos_ocorrencia_valor_parcela = historicoContatos?.HistoricoContatosOcorrenciaValorParcela != null ? decimal.Parse(historicoContatos.HistoricoContatosOcorrenciaValorParcela, CultureInfo.InvariantCulture) : 0m,
+                    historico_contatos_ocorrencia_valor_parcela_2 = historicoContatos?.HistoricoContatosOcorrenciaValorParcela2 != null ? decimal.Parse(historicoContatos.HistoricoContatosOcorrenciaValorParcela2, CultureInfo.InvariantCulture) : 0m
                 };
 
                 _mysql.historico_contatos_ocorrencia.Add(hst);
@@ -487,6 +490,7 @@ namespace AASPA.Domain.Service
                                    Dados_Bancarios_Chave_Tipo_Chave_Pix = string.IsNullOrEmpty(x.Historico?.historico_contatos_ocorrencia_tipo_chave_pix) ? ";" : x.Historico.historico_contatos_ocorrencia_tipo_chave_pix,
                                    Dados_Bancarios_Chave_Pix = string.IsNullOrEmpty(x.Historico?.historico_contatos_ocorrencia_chave_pix) ? ";" : x.Historico.historico_contatos_ocorrencia_chave_pix,
                                    Valor_Parcela = x.Historico?.historico_contatos_ocorrencia_valor_parcela.ToString("C", new System.Globalization.CultureInfo("pt-BR")) ?? ";",
+                                   Valor_Parcela_2 = x.Historico?.historico_contatos_ocorrencia_valor_parcela_2.ToString("C", new System.Globalization.CultureInfo("pt-BR")) ?? ";",
                                    Valor_Total_Reembolso = x.Historico?.historico_contatos_ocorrencia_valor_reembolso.ToString("C", new System.Globalization.CultureInfo("pt-BR")) ?? ";"
                                }).ToList();
 
