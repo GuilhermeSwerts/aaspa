@@ -9,11 +9,11 @@ namespace AASPA.Models.Enums
 {
     public enum EEndpointsIntegraall
     {
-        [Description("api/PropostasStatus/AtualizarStatusParaAverbado")]
+        [Description("api/PropostaStatus/AtualizarStatusParaAverbado")]
         AtualizaStatusAverbado,
-        [Description("api/PropostasStatus/AtualizarStatusParaCancelado")]
+        [Description("api/PropostaStatus/AtualizarStatusParaCancelado")]
         AtualizaStatusCancelado,
-        [Description("api/PropostasStatus/AtualizarStatusParaAtivoPago")]
+        [Description("api/PropostaStatus/AtualizarStatusParaAtivoPago")]
         AtualizaStatusPago,
     }
 }

@@ -32,7 +32,7 @@ namespace AASPA.Domain.Util
                 {
                     HttpClient _httpClient = new();
 
-                    var requestUriLogin = _configuration["IntegraallApi:BaseUrl"] + "Login/validar";
+                    var requestUriLogin = _configuration["IntegraallApi:BaseUrl"] + "api/Login/validar";
                     var loginRequest = new
                     {
                         login = _configuration["IntegraallApi:login"].ToString(),
@@ -60,19 +60,26 @@ namespace AASPA.Domain.Util
                 }
             }
 
-            public async static Task<bool> Post(string body, EEndpointsIntegraall endpoint)
+            public async static Task<bool> Post(string body, EEndpointsIntegraall    endpoint)
             {
                 try
                 {
                     var url = _configuration["IntegraallApi:BaseUrl"] + endpoint.GetDescription();
                     using var client = new HttpClient();
 
-                    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {GerarToken()}");
+                    var token = await GerarToken();
+
+                    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
 
                     var jsonBody = (body);
                     var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
-                    var response = await client.PostAsync(url, content);
+                    var response = await client.PostAsync(url, content);        
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        string erroDetalhado = await response.Content.ReadAsStringAsync();
+                    }
 
                     return response.IsSuccessStatusCode;
                 }
