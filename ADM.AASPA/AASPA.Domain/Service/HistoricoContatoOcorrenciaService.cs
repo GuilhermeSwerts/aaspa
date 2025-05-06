@@ -6,9 +6,11 @@ using AASPA.Models.Response;
 using AASPA.Repository;
 using AASPA.Repository.Maps;
 using Microsoft.AspNetCore.Http;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -99,6 +101,9 @@ namespace AASPA.Domain.Service
                 hst.historico_contatos_ocorrencia_tipo_chave_pix,
                 hst.historico_contatos_ocorrencia_telefone,
                 hst.historico_contatos_ocorrencia_tipo_conta,
+                hst.historico_contatos_ocorrencia_valor_reembolso,
+                hst.historico_contatos_ocorrencia_valor_parcela,
+                hst.historico_contatos_ocorrencia_valor_parcela_2,
                 anexos
             };
         }
@@ -139,6 +144,9 @@ namespace AASPA.Domain.Service
                 contatoOcorrencia.historico_contatos_ocorrencia_tipo_chave_pix = historicoContatos.HistoricoContatosOcorrenciaTipoChavePix != null ? historicoContatos.HistoricoContatosOcorrenciaTipoChavePix.Replace("null", "") : "";
                 contatoOcorrencia.historico_contatos_ocorrencia_telefone = historicoContatos.HistoricoContatosOcorrenciaTelefone != null ? historicoContatos.HistoricoContatosOcorrenciaTelefone.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "") : "";
                 contatoOcorrencia.historico_contatos_ocorrencia_tipo_conta = historicoContatos.HistoricoContatosOcorrenciaTipoConta != null ? historicoContatos.HistoricoContatosOcorrenciaTipoConta.Replace("null", "") : "";
+                contatoOcorrencia.historico_contatos_ocorrencia_valor_reembolso = historicoContatos?.HistoricoContatosOcorrenciaValorReembolso != null ? decimal.Parse(historicoContatos.HistoricoContatosOcorrenciaValorReembolso, CultureInfo.InvariantCulture) : 0m;
+                contatoOcorrencia.historico_contatos_ocorrencia_valor_parcela = historicoContatos?.HistoricoContatosOcorrenciaValorParcela != null ? decimal.Parse(historicoContatos.HistoricoContatosOcorrenciaValorParcela, CultureInfo.InvariantCulture) : 0m;
+                contatoOcorrencia.historico_contatos_ocorrencia_valor_parcela_2 = historicoContatos?.HistoricoContatosOcorrenciaValorParcela2 != null ? decimal.Parse(historicoContatos.HistoricoContatosOcorrenciaValorParcela2, CultureInfo.InvariantCulture) : 0m;
 
                 var anexos = _mysql.anexos.Where(x => x.anexo_historico_contato_fk == contatoOcorrencia.historico_contatos_ocorrencia_id).ToList();
                 _mysql.anexos.RemoveRange(anexos);
@@ -223,7 +231,10 @@ namespace AASPA.Domain.Service
                     historico_contatos_ocorrencia_tipo_chave_pix = historicoContatos.HistoricoContatosOcorrenciaTipoChavePix != null ? historicoContatos.HistoricoContatosOcorrenciaTipoChavePix.Replace("null", "") : "",
                     historico_contatos_ocorrencia_telefone = historicoContatos.HistoricoContatosOcorrenciaTelefone != null ? historicoContatos.HistoricoContatosOcorrenciaTelefone.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "") : "",
                     historico_contatos_ocorrencia_usuario_fk = usuarioId,
-                    historico_contatos_ocorrencia_tipo_conta = historicoContatos.HistoricoContatosOcorrenciaTipoConta != null ? historicoContatos.HistoricoContatosOcorrenciaTipoConta.Replace("null", "") : ""
+                    historico_contatos_ocorrencia_tipo_conta = historicoContatos.HistoricoContatosOcorrenciaTipoConta != null ? historicoContatos.HistoricoContatosOcorrenciaTipoConta.Replace("null", "") : "",
+                    historico_contatos_ocorrencia_valor_reembolso = historicoContatos?.HistoricoContatosOcorrenciaValorReembolso != null ? decimal.Parse(historicoContatos.HistoricoContatosOcorrenciaValorReembolso, CultureInfo.InvariantCulture) : 0m,
+                    historico_contatos_ocorrencia_valor_parcela = historicoContatos?.HistoricoContatosOcorrenciaValorParcela != null ? decimal.Parse(historicoContatos.HistoricoContatosOcorrenciaValorParcela, CultureInfo.InvariantCulture) : 0m,
+                    historico_contatos_ocorrencia_valor_parcela_2 = historicoContatos?.HistoricoContatosOcorrenciaValorParcela2 != null ? decimal.Parse(historicoContatos.HistoricoContatosOcorrenciaValorParcela2, CultureInfo.InvariantCulture) : 0m
                 };
 
                 _mysql.historico_contatos_ocorrencia.Add(hst);
@@ -426,60 +437,100 @@ namespace AASPA.Domain.Service
                                                       where histo.historico_contatos_ocorrencia_cliente_id == cli.cliente_id
                                                       orderby histo.historico_contatos_ocorrencia_dt_ocorrencia
                                                       select criador).FirstOrDefault()
-                                }).ToList();
+                                }).ToList()
+                               .Select(x => new
+                               {
+                                   ClienteId = x.Cliente.cliente_id.ToString(),
+                                   Cpf = string.IsNullOrEmpty(x.Cliente.cliente_cpf) ? ";" : x.Cliente.cliente_cpf,
+                                   Nome = string.IsNullOrEmpty(x.Cliente.cliente_nome) ? ";" : x.Cliente.cliente_nome,
+                                   Logradouro = string.IsNullOrEmpty(x.Cliente.cliente_logradouro) ? ";" : x.Cliente.cliente_logradouro,
+                                   Uf = string.IsNullOrEmpty(x.Cliente.cliente_uf) ? ";" : x.Cliente.cliente_uf,
+                                   Numero = string.IsNullOrEmpty(x.Cliente.cliente_numero) ? ";" : x.Cliente.cliente_numero,
+                                   Complemento = string.IsNullOrEmpty(x.Cliente.cliente_complemento) ? ";" : x.Cliente.cliente_complemento,
+                                   Data_Nascimento = x.Cliente.cliente_dataNasc.ToString("dd/MM/yyyy"),
+                                   Numero_Documento = string.IsNullOrEmpty(x.Cliente.cliente_nrDocto) ? ";" : x.Cliente.cliente_nrDocto,
+                                   Empregador = string.IsNullOrEmpty(x.Cliente.cliente_empregador) ? ";" : x.Cliente.cliente_empregador,
+                                   Matricula_Benefico = string.IsNullOrEmpty(x.Cliente.cliente_matriculaBeneficio) ? ";" : x.Cliente.cliente_matriculaBeneficio,
+                                   Nome_Mae = string.IsNullOrEmpty(x.Cliente.cliente_nomeMae) ? ";" : x.Cliente.cliente_nomeMae,
+                                   Nome_Pai = string.IsNullOrEmpty(x.Cliente.cliente_nomePai) ? ";" : x.Cliente.cliente_nomePai,
+                                   Telefone_Fixo = string.IsNullOrEmpty(x.Cliente.cliente_telefoneFixo) ? ";" : x.Cliente.cliente_telefoneFixo,
+                                   Telefone_Celular = string.IsNullOrEmpty(x.Cliente.cliente_telefoneCelular) ? ";" : x.Cliente.cliente_telefoneCelular,
+                                   Possui_Whatsapp = x.Cliente.cliente_possuiWhatsapp ? "Sim" : "Não",
+                                   Funcao_Aaspa = string.IsNullOrEmpty(x.Cliente.cliente_funcaoAASPA) ? ";" : x.Cliente.cliente_funcaoAASPA,
+                                   Email = string.IsNullOrEmpty(x.Cliente.cliente_email) ? ";" : x.Cliente.cliente_email,
+                                   Situacao = x.Cliente.cliente_situacao ? "Ativo" : "Inativo",
+                                   Estado_Civil = x.Cliente.cliente_estado_civil.ToString(),
+                                   Sexo = x.Cliente.cliente_estado_civil switch
+                                   {
+                                       1 => "Solteiro",
+                                       2 => "Casado",
+                                       3 => "Viúvo",
+                                       4 => "Separado judicialmente",
+                                       5 => "União estável",
+                                       6 => "Outros",
+                                       _ => "Não especificado"
+                                   },
+                                   RemessaId = x.Cliente.cliente_remessa_id.ToString(),
+                                   Captador_Nome = string.IsNullOrEmpty(x.Captador.captador_nome) ? ";" : x.Captador.captador_nome,
+                                   Captador_CPF_ou_CNPJ = string.IsNullOrEmpty(x.Captador.captador_cpf_cnpj) ? ";" : x.Captador.captador_cpf_cnpj,
+                                   Captador_Descricao = string.IsNullOrEmpty(x.Captador.captador_descricao) ? ";" : x.Captador.captador_descricao,
+                                   Data_Averbacao = x.Cliente.cliente_DataAverbacao.HasValue ? x.Cliente.cliente_DataAverbacao.Value.ToString("dd/MM/yyyy HH:mm:ss") : ";",
+                                   Status_Integraall = string.IsNullOrEmpty(x.Cliente.cliente_StatusIntegral.ToString()) ? ";" : x.Cliente.cliente_StatusIntegral.ToString(),
+                                   Motivo_Atendimento = string.IsNullOrEmpty(x.Motivo?.motivo_contato_nome) ? ";" : x.Motivo.motivo_contato_nome,
+                                   Origem_Atendimento = string.IsNullOrEmpty(x.Origem?.origem_nome) ? ";" : x.Origem.origem_nome,
+                                   Situacao_Atendimento = string.IsNullOrEmpty(x.Historico?.historico_contatos_ocorrencia_situacao_ocorrencia) ? ";" : x.Historico.historico_contatos_ocorrencia_situacao_ocorrencia,
+                                   Usuario_Responsavel_Pelo_Registro = string.IsNullOrEmpty(x.UsuarioCriador.usuario_nome) ? ";" : x.UsuarioCriador.usuario_nome,
+                                   Usuario_Responsavel_Pela_Ultima_Alteracao = string.IsNullOrEmpty(x.Usuario.usuario_nome) ? ";" : x.Usuario.usuario_nome,
+                                   Data_Atendimento = x.Historico != null ? x.Historico.historico_contatos_ocorrencia_dt_ocorrencia.ToString("dd/MM/yyyy HH:mm:ss") : ";",
+                                   Descricao_Atendimento = string.IsNullOrEmpty(x.Historico?.historico_contatos_ocorrencia_descricao) ? ";" : x.Historico.historico_contatos_ocorrencia_descricao.Replace("\r"," ").Replace("\n", " "),
+                                   Dados_Bancarios_Banco = string.IsNullOrEmpty(x.Historico?.historico_contatos_ocorrencia_banco) ? ";" : x.Historico.historico_contatos_ocorrencia_banco,
+                                   Dados_Bancarios_Agencia = string.IsNullOrEmpty(x.Historico?.historico_contatos_ocorrencia_agencia) ? ";" : x.Historico.historico_contatos_ocorrencia_agencia,
+                                   Dados_Bancarios_Conta = string.IsNullOrEmpty(x.Historico?.historico_contatos_ocorrencia_conta) ? ";" : x.Historico.historico_contatos_ocorrencia_conta,
+                                   Dados_Bancarios_Digito = string.IsNullOrEmpty(x.Historico?.historico_contatos_ocorrencia_digito) ? ";" : x.Historico.historico_contatos_ocorrencia_digito,
+                                   Dados_Bancarios_Chave_Tipo_Chave_Pix = string.IsNullOrEmpty(x.Historico?.historico_contatos_ocorrencia_tipo_chave_pix) ? ";" : x.Historico.historico_contatos_ocorrencia_tipo_chave_pix,
+                                   Dados_Bancarios_Chave_Pix = string.IsNullOrEmpty(x.Historico?.historico_contatos_ocorrencia_chave_pix) ? ";" : x.Historico.historico_contatos_ocorrencia_chave_pix,
+                                   Valor_Parcela = x.Historico?.historico_contatos_ocorrencia_valor_parcela.ToString("C", new System.Globalization.CultureInfo("pt-BR")) ?? ";",
+                                   Valor_Parcela_2 = x.Historico?.historico_contatos_ocorrencia_valor_parcela_2.ToString("C", new System.Globalization.CultureInfo("pt-BR")) ?? ";",
+                                   Valor_Total_Reembolso = x.Historico?.historico_contatos_ocorrencia_valor_reembolso.ToString("C", new System.Globalization.CultureInfo("pt-BR")) ?? ";"
+                               }).ToList();
 
-            var builder = new StringBuilder();
+            var dados = clientesData; // Substitua pelo seu código real
 
-            builder.AppendLine("#;CPF;NOME;CEP;LOGRADOURO;BAIRRO;LOCALIDADE;UF;NUMERO;COMPLEMENTO;DATANASC;DATACADASTRO;NRDOCTO;EMPREGADOR;MATRICULABENEFICIO;NOMEMAE;NOMEPAI;TELEFONEFIXO;TELEFONECELULAR;POSSUIWHATSAPP;FUNCAOAASPA;EMAIL;SITUACAO;ESTADO_CIVIL;SEXO;REMESSA_ID;CAPTADOR_NOME;CAPTADOR_CPF_OU_CNPJ;CAPTADOR_DESCRICAO;DATA_AVERBACAO;STATUS_INTEGRAALL;MOTIVO_ATENDIMENTO;ORIGEM_ATENDIMENTO;SITUACAO_ATENDIMENTO;USUARIO_RESPONSAVEL_PELO_REGISTRO;USUARIO_RESPONSAVEL_PELA_ULTIMA_ALTERACAO;DATA_ATENDIMENTO;DESCRICAO_ATENDIMENTO;DADOS_BANCARIOS_BANCO;DADOS_BANCARIOS_AGENCIA;DADOS_BANCARIOS_CONTA;DADOS_BANCARIOS_DIGITO;DADOS_BANCARIOS_CHAVE_PIX");
+            var csv = new StringBuilder();
 
-            for (int i = 0; i < clientesData.Count; i++)
+            // Cabeçalho
+            var header = string.Join(";", dados.First().GetType().GetProperties().Select(p => p.Name));
+            csv.AppendLine(header);
+
+            // Linhas de dados
+            foreach (var item in dados)
             {
-                var cliente = clientesData[i];
+                var values = item.GetType().GetProperties().Select(p =>
+                {
+                    var value = p.GetValue(item)?.ToString()?.Replace(";", "-").Replace("\r", " ")?.Replace("\n", " ") ?? "";
+                    return value;
+                });
 
-                var dtAverbacao = cliente.Cliente.cliente_DataAverbacao.HasValue ? cliente.Cliente.cliente_DataAverbacao.Value.ToString("dd/MM/yyyy hh:mm:ss:") : "";
-                var motivoNome = cliente.Motivo != null ? cliente.Motivo.motivo_contato_nome : ";;";
-                var origem = (cliente.Origem != null && !string.IsNullOrEmpty(cliente.Origem.origem_nome)) ? cliente.Origem.origem_nome : ";;";
-                var remessa = cliente.Cliente.cliente_remessa_id ?? 0;
-                var historico = cliente.Historico != null ? $"{cliente.Historico.historico_contatos_ocorrencia_situacao_ocorrencia};{cliente.Usuario.usuario_nome};{cliente.UsuarioCriador.usuario_nome};{cliente.Historico.historico_contatos_ocorrencia_dt_ocorrencia:dd/MM/yyyy hh:mm:ss};{cliente.Historico.historico_contatos_ocorrencia_descricao};{cliente.Historico.historico_contatos_ocorrencia_banco};{cliente.Historico.historico_contatos_ocorrencia_agencia};{cliente.Historico.historico_contatos_ocorrencia_conta};{cliente.Historico.historico_contatos_ocorrencia_digito};{cliente.Historico.historico_contatos_ocorrencia_chave_pix}" : ";;;;;;;;";
-                builder.AppendLine(
-                    $"{cliente.Cliente.cliente_id};" +
-                    $"{cliente.Cliente.cliente_cpf};" +
-                    $"{cliente.Cliente.cliente_nome};" +
-                    $"{cliente.Cliente.cliente_cep};" +
-                    $"{cliente.Cliente.cliente_logradouro};" +
-                    $"{cliente.Cliente.cliente_bairro};" +
-                    $"{cliente.Cliente.cliente_localidade};" +
-                    $"{cliente.Cliente.cliente_uf};" +
-                    $"{cliente.Cliente.cliente_numero.Replace(";", "")};" +
-                    $"{cliente.Cliente.cliente_complemento};" +
-                    $"{cliente.Cliente.cliente_dataNasc.ToString("dd/MM/yyyy")};" +
-                    $"{cliente.Cliente.cliente_dataCadastro};" +
-                    $"{cliente.Cliente.cliente_nrDocto};" +
-                    $"{cliente.Cliente.cliente_empregador};" +
-                    $"{cliente.Cliente.cliente_matriculaBeneficio};" +
-                    $"{cliente.Cliente.cliente_nomeMae};" +
-                    $"{cliente.Cliente.cliente_nomePai};" +
-                    $"{cliente.Cliente.cliente_telefoneFixo};" +
-                    $"{cliente.Cliente.cliente_telefoneCelular};" +
-                    $"{(cliente.Cliente.cliente_possuiWhatsapp ? "Sim" : "Não")};" +
-                    $"{cliente.Cliente.cliente_funcaoAASPA};" +
-                    $"{cliente.Cliente.cliente_email};" +
-                    $"{(cliente.Cliente.cliente_situacao ? "Ativo" : "Inativo")};" +
-                    $"{(cliente.Cliente.cliente_estado_civil switch { 1 => "Solteiro", 2 => "Casado", 3 => "Viúvo", 4 => "Separado judicialmente", 5 => "União estável", 6 => "Outros", _ => "Não especificado" })};" +
-                    $"{(cliente.Cliente.cliente_sexo == 1 ? "Masculino" : cliente.Cliente.cliente_sexo == 2 ? "Feminino" : "Outros")};" +
-                    $"{remessa};" +
-                    $"{cliente.Captador.captador_nome};" +
-                    $"{cliente.Captador.captador_cpf_cnpj};" +
-                    $"{cliente.Captador.captador_descricao.Replace("\r\n", "").Replace("\n", "").Replace("\r", "")};" +
-                    $"{dtAverbacao};" +
-                    $"{cliente.Cliente.cliente_StatusIntegral};" +
-                    $"{motivoNome};" +
-                    $"{origem};" +
-                    $"{historico.Replace("\r\n", "").Replace("\n", "").Replace("\r", "")};");
+                csv.AppendLine(string.Join(";", values));
             }
-
-            byte[] fileBytes = Encoding.Latin1.GetBytes(builder.ToString());
+            byte[] fileBytes = Encoding.Latin1.GetBytes(csv.ToString());
             return fileBytes;
+
+            //File.WriteAllText("clientes.csv", csv.ToString(), Encoding.UTF8);
+
+
+            //var builder = new StringBuilder();
+
+            //var cabecalho = string.Join(";", clientesData.First().GetType().GetProperties().Select(p => p.Name));
+            //builder.Append(cabecalho);
+            //foreach (var item in clientesData)
+            //{
+            //    var properties = item.GetType().GetProperties();
+            //    var valores = properties.Select(p => p.GetValue(item)?.ToString() ?? ";");
+            //    builder.AppendLine(string.Join(";", valores));
+            //}
+            //byte[] fileBytes = Encoding.Latin1.GetBytes(builder.ToString());
+            //return fileBytes;
         }
         private (List<BuscarClienteByIdResponse> Clientes, int QtdPaginas, int TotalClientes) CalcularPagina(List<BuscarClienteByIdResponse> todosClientes, int? paginaAtual, int totalClientes)
         {

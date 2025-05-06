@@ -1,14 +1,15 @@
 import axios from "axios";
 
+// const url = process.env.ENVIRONMENT == 'production' ? 'https://adm.aaspa.org.br' : 'https://adm.aaspa.org.br';
+const url = 'https://localhost:5001';
+
 export default class Api {
     constructor(urlBase = "") {
         this.loginPage = "/login";
         this.urlBase = urlBase;
 
         this.access_token = window.localStorage.getItem("access_token");
-        let url = window.location.host;
-        // this.ambiente = 'https://adm.aaspa.org.br';
-        this.ambiente = "https://localhost:5001"
+         this.ambiente = url;
 
         this.api = axios.create({
             baseURL: urlBase,
@@ -120,5 +121,4 @@ export default class Api {
     }
 }
 
-// export const api = new Api('https://adm.aaspa.org.br');
-export const api = new Api('https://localhost:5001');
+export const api = new Api(url);

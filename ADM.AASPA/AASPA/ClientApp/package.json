@@ -13,6 +13,7 @@
     "react-dom": "^18.3.1",
     "react-dropzone": "^14.2.9",
     "react-icons": "^5.2.1",
+    "react-number-format": "^5.4.4",
     "react-router": "~5.2.1",
     "react-router-bootstrap": "^0.25.0",
     "react-router-dom": "~5.3.0",
@@ -27,6 +28,7 @@
     "eslint-config-react-app": "6.0.0",
     "eslint-plugin-jsx-a11y": "^6.2.3",
     "nan": "^2.14.1",
+    "notenv": "^2.0.3",
     "react-scripts": "^5.0.0",
     "typescript": "^3.7.5"
   },

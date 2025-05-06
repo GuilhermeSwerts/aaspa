@@ -7,6 +7,7 @@ import { ButtonTooltip } from '../Inputs/ButtonTooltip';
 import { Alert } from '../../util/alertas';
 import { Size } from '../../util/size';
 import { FiPaperclip } from 'react-icons/fi';
+import { NumericFormat } from "react-number-format";
 
 function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = null, isEdit = false, situacaoOcorrencias = [] }) {
     const [show, setShow] = useState(false);
@@ -29,9 +30,9 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
     }
 
     const [dtOcorrencia, setDtOcorrencia] = useState(getDataDeHoje());
-    const [origem, setOrigem] = useState();
-    const [motivo, setMotivo] = useState();
-    const [situacao, setSituacao] = useState("EM TRATAMENTO");
+    const [origem, setOrigem] = useState("");
+    const [motivo, setMotivo] = useState("");
+    const [situacao, setSituacao] = useState("");
     const [desc, setDesc] = useState("");
     const [banco, setBanco] = useState("");
     const [agencia, setAgencia] = useState("");
@@ -39,6 +40,9 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
     const [tipoConta, setTipoConta] = useState("");
     const [digito, setDigito] = useState("");
     const [pix, setPIX] = useState("");
+    const [valorReembolso, setValorReembolso] = useState("");
+    const [valorParcela, setValorParcela] = useState("");
+    const [valorParcela2, setValorParcela2] = useState("");
     const [telefone, setTelefone] = useState("");
 
     const initState = () => {
@@ -53,23 +57,24 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         } else {
             setOrigem(motivos[0]);
         }
-        setSituacao("EM TRATAMENTO");
+        setValorReembolso('');
+        setSituacao("");
         setDesc("");
         setBanco("");
         setAgencia("");
         setConta("");
         setDigito("");
         setPIX("");
-        setTipoChavePix("CPF");
+        setTipoChavePix("");
         setTipoPagamento(true);
         setTelefone("");
         setTipoConta("");
+        setValorParcela("");
     }
 
     const BuscarMotivos = () => {
         api.get("BuscarTodosMotivos", res => {
             setMotivos(res.data);
-            setMotivo(res.data[0].motivo_contato_id);
         }, err => {
             Alert('Houve um erro ao buscar os motivos de contato', false)
         })
@@ -78,7 +83,6 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
     const BuscarOrigens = () => {
         api.get("BuscarTodasOrigem", res => {
             setOrigens(res.data);
-            setOrigem(res.data[0].origem_id);
         }, err => {
             Alert('Houve um erro ao buscar os motivos de contato', false)
         })
@@ -109,6 +113,9 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
         formData.append("HistoricoContatosOcorrenciaPix", pix)
         formData.append("HistoricoContatosOcorrenciaTipoChavePix", tipoChavePix)
         formData.append("HistoricoContatosOcorrenciaTelefone", telefone)
+        formData.append("HistoricoContatosOcorrenciaValorReembolso", valorReembolso)
+        formData.append("HistoricoContatosOcorrenciaValorParcela", valorParcela)
+        formData.append("HistoricoContatosOcorrenciaValorParcela2", valorParcela2)
 
         for (const file of anexos)
             formData.append('HistoricoContatosOcorrenciaAnexos', file.file, file.file.name);
@@ -177,6 +184,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                             <div className="col-md-3">
                                 <Label>Origem</Label>
                                 <select name='HistoricoContatosOcorrenciaOrigemId' value={origem} onChange={e => setOrigem(e.target.value)} required className='form-control'>
+                                    <option value="">Selecione</option>
                                     {origens.map(origem => (
                                         <option value={origem.origem_id}>{origem.origem_nome}</option>
                                     ))}
@@ -189,6 +197,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                             <div className="col-md-3">
                                 <Label>Motivo do contato</Label>
                                 <select name='HistoricoContatosOcorrenciaMotivoContatoId' value={motivo} onChange={e => setMotivo(e.target.value)} required className='form-control'>
+                                    <option value="">Selecione</option>
                                     {motivos.map(motivo_contato => (
                                         <option value={motivo_contato.motivo_contato_id}>{motivo_contato.motivo_contato_nome}</option>
                                     ))}
@@ -197,6 +206,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                             <div className="col-md-3">
                                 <Label>Situação Da Ocorrência</Label>
                                 <select name='HistoricoContatosOcorrenciaSituacaoOcorrencia' value={situacao} onChange={e => setSituacao(e.target.value)} required className='form-control'>
+                                    <option value="">Selecione</option>
                                     {situacaoOcorrencias.map(item => (
                                         <option value={item.nome}>{item.nome}</option>
                                     ))}
@@ -209,6 +219,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                             <div className="col-md-3">
                                 <label>Tipo de depósito:</label>
                                 <select onChange={onChangeTipoPagamento} className='form-control'>
+                                    <option value="">Selecione</option>
                                     <option value="0">PIX</option>
                                     <option value="1">Dados bancários</option>
                                 </select>
@@ -243,6 +254,7 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                                 <div className="col-md-3">
                                     <Label>Tipo Chave PIX</Label>
                                     <select value={tipoChavePix} onChange={e => setTipoChavePix(e.target.value)} className='form-control'>
+                                        <option value="">Selecione</option>
                                         <option value="CPF">CPF</option>
                                         <option value="CNPJ">CNPJ</option>
                                         <option value="telefone">telefone</option>
@@ -255,6 +267,50 @@ function ModalContatoOcorrencia({ cliente, BuscarHistoricoOcorrenciaCliente = nu
                                     <input type="text" value={pix} onChange={e => setPIX(e.target.value)} placeholder='Chave PIX' className='form-control' />
                                 </div>
                             </>}
+                            <div className="col-md-3">
+                                <Label>Valor Parcela</Label>
+                                <NumericFormat
+                                    required
+                                    id='valorParcela'
+                                    value={valorParcela}
+                                    thousandSeparator="."
+                                    decimalSeparator=","
+                                    prefix="R$ "
+                                    decimalScale={2}
+                                    onValueChange={({ floatValue }) => setValorParcela(floatValue)} 
+                                    placeholder="R$ x.xxx,xx"
+                                    className="form-control"
+                                />
+                            </div>
+                            <div className="col-md-3">
+                                <Label>Valor Parcela 2</Label>
+                                <NumericFormat
+                                    id='valorParcela2'
+                                    value={valorParcela2}
+                                    thousandSeparator="."
+                                    decimalSeparator=","
+                                    prefix="R$ "
+                                    decimalScale={2}
+                                    onValueChange={({ floatValue }) => setValorParcela2(floatValue)} 
+                                    placeholder="R$ x.xxx,xx"
+                                    className="form-control"
+                                />
+                            </div>
+                            <div className="col-md-3">
+                                <Label>Valor total reembolsado</Label>
+                                <NumericFormat
+                                    required
+                                    id='valorReembolso'
+                                    value={valorReembolso}
+                                    thousandSeparator="."
+                                    decimalSeparator=","
+                                    prefix="R$ "
+                                    decimalScale={2}
+                                    onValueChange={({ floatValue }) => setValorReembolso(floatValue)}
+                                    placeholder="R$ x.xxx,xx"
+                                    className="form-control"
+                                />
+                            </div>
                         </div>
                         <hr />
                         <small><b>Dados Extras:</b></small>

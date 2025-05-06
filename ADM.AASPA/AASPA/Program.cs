@@ -21,10 +21,11 @@ namespace AASPA
                      .ConfigureWebHostDefaults(webBuilder =>
                      {
                          webBuilder.UseStartup<Startup>();
-                         webBuilder.UseKestrel(options =>
-                         {
-                             options.Limits.MaxRequestBodySize = 5368709120;
-                         });
+                         webBuilder.UseIISIntegration();
+                         //webBuilder.UseKestrel(options =>
+                         //{
+                         //    options.Limits.MaxRequestBodySize = 5368709120;
+                         //});
                      });
     }
 }

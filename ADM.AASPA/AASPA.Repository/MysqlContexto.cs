@@ -37,7 +37,9 @@ namespace AASPA.Repository
                 .HasForeignKey(lb => lb.log_beneficios_cliente_id)
                 .OnDelete(DeleteBehavior.Cascade);
         }
+
         
+        public DbSet<NaoAssociados> NaoAssociados { get; set; }
         public DbSet<UsuarioDb> usuarios { get; set; }
         public DbSet<Sindicato> Sindicatos { get; set; }
         public DbSet<LogArquivoSindicato> LogArquivoSindicato { get; set; }

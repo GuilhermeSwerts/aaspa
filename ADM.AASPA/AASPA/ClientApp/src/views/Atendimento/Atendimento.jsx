@@ -11,6 +11,8 @@ import CrudAtendimento from './CrudAtendimento';
 import { Size } from '../../util/size';
 import Captador from '../Gerenciamento/Captador/index';
 import Dropdown from '../../components/Inputs/Dropdown';
+import { TbZoomMoney } from 'react-icons/tb';
+import { ButtonTooltip } from '../../components/Inputs/ButtonTooltip';
 
 function Atendimento() {
     const ref = useRef();
@@ -186,20 +188,31 @@ function Atendimento() {
                         <th>Data Cadastro</th>
                         <th>Captador</th>
                         <th>Status Atual</th>
+                        <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody>
                     {clientes.map(cliente => {
                         return (
-                            <tr className='selecao' onClick={e => ref.current.AbrirCrud(cliente.cliente.cliente_id)}>
-                                <td>{cliente.cliente.cliente_id}</td>
-                                <td>{Mascara.cpf(cliente.cliente.cliente_cpf)}</td>
-                                <td>{cliente.cliente.cliente_matriculaBeneficio}</td>
-                                <td>{cliente.cliente.cliente_nome}</td>
-                                <td>{Mascara.telefone(cliente.cliente.cliente_telefoneCelular)}</td>
-                                <td>{Mascara.data(cliente.cliente.cliente_dataCadastro)}</td>
-                                <td>{cliente.captador.captador_nome}</td>
-                                <td>{cliente.statusAtual.status_nome}</td>
+                            <tr className='selecao'>
+                                <td onClick={e => ref.current.AbrirCrud(cliente.cliente.cliente_id)}>{cliente.cliente.cliente_id}</td>
+                                <td onClick={e => ref.current.AbrirCrud(cliente.cliente.cliente_id)}>{Mascara.cpf(cliente.cliente.cliente_cpf)}</td>
+                                <td onClick={e => ref.current.AbrirCrud(cliente.cliente.cliente_id)}>{cliente.cliente.cliente_matriculaBeneficio}</td>
+                                <td onClick={e => ref.current.AbrirCrud(cliente.cliente.cliente_id)}>{cliente.cliente.cliente_nome}</td>
+                                <td onClick={e => ref.current.AbrirCrud(cliente.cliente.cliente_id)}>{Mascara.telefone(cliente.cliente.cliente_telefoneCelular)}</td>
+                                <td onClick={e => ref.current.AbrirCrud(cliente.cliente.cliente_id)}>{Mascara.data(cliente.cliente.cliente_dataCadastro)}</td>
+                                <td onClick={e => ref.current.AbrirCrud(cliente.cliente.cliente_id)}>{cliente.captador.captador_nome}</td>
+                                <td onClick={e => ref.current.AbrirCrud(cliente.cliente.cliente_id)}>{cliente.statusAtual.status_nome}</td>
+                                <td>
+                                    <ButtonTooltip
+                                        backgroundColor={'#004d00'}
+                                        onClick={() => window.location.href = `/historicopagamento?clienteId=${cliente.cliente.cliente_id}`}
+                                        className='btn btn-success button-container-item'
+                                        text={'Historico De Pagamentos'}
+                                        top={true}
+                                        textButton={<TbZoomMoney size={Size.IconeTabela} />}
+                                    />
+                                </td>
                             </tr>
                         )
                     })}
